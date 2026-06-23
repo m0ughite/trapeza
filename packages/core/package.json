@@ -1,0 +1,23 @@
+{
+  "name": "@trapeza/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The forkable Trapeza primitive: data models + interfaces + canonical pipeline signatures. No UI, no MCP, no chain SDK calls inline.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b"
+  }
+}

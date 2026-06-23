@@ -1,0 +1,27 @@
+{
+  "name": "@trapeza/adapter-gateway",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Circle Gateway / x402 settlement adapter for the Trapeza primitive. Wraps GatewayClient (client) and BatchFacilitatorClient (provider).",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b",
+    "spike:nanopayment": "tsx scripts/spike-nanopayment.ts"
+  },
+  "dependencies": {
+    "@trapeza/core": "*",
+    "@circle-fin/x402-batching": "^2.0.4",
+    "@x402/core": "^2.6.0",
+    "@x402/evm": "^2.6.0",
+    "viem": "^2.47.1"
+  }
+}

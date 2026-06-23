@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.pnp.*
+
+# env / secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# build artifacts
+dist/
+build/
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# next.js (apps added later)
+.next/
+out/
+
+# external reference clones: cloned Arc/Circle sample repos that carry their own
+# nested .git (would commit as broken submodules). Re-cloneable via context/README.md.
+context/samples/
+
+# original hackathon materials archive (binary)
+Lepton.zip

@@ -1,0 +1,27 @@
+{
+  "name": "trapeza",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Trapeza — a calibration-aware broker/clearinghouse for agent-to-agent nanopayment markets on Arc + Circle.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "typecheck": "tsc -b packages/core packages/adapter-arc packages/adapter-gateway",
+    "spike:nanopayment": "tsx packages/adapter-gateway/scripts/spike-nanopayment.ts",
+    "spike:erc8004": "tsx packages/adapter-arc/scripts/spike-erc8004-identity.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}
