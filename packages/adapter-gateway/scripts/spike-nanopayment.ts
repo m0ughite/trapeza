@@ -138,22 +138,37 @@ async function main() {
     const result = await settlement.pay(seller.url);
     const ms = Date.now() - start;
 
-    console.log(`\n  ✓ Nanopayment settled (${ms}ms)`);
+    console.log(`\n  ✓ Nanopayment accepted by Gateway facilitator (${ms}ms)`);
     console.log(`    Amount:  ${result.amountUsdc} USDC`);
 
-    const txHash =
+    const settleId =
       result.txHash ||
       (observedSettlement && (observedSettlement as { txHash?: string }).txHash) ||
       "";
-    if (txHash) {
-      console.log(`    Tx:      ${ARC_TESTNET_EXPLORER}/tx/${txHash}`);
+    // Circle Gateway batches settlements: verify+settle returning success means
+    // the authorization was accepted into a batch. The on-chain USDC transfer to
+    // the seller lands when the batch flushes (asynchronously), NOT immediately.
+    // A real EVM tx hash is 0x + 64 hex; anything else (e.g. a UUID) is Circle's
+    // settlement/batch id, which must NOT be linked as an /tx/ — that would
+    // misrepresent it as a confirmed on-chain transaction.
+    const isEvmTxHash = /^0x[0-9a-fA-F]{64}$/.test(settleId);
+    if (isEvmTxHash) {
+      console.log(`    On-chain tx: ${ARC_TESTNET_EXPLORER}/tx/${settleId}`);
+    } else if (settleId) {
+      console.log(`    Gateway settlement id: ${settleId}`);
+      console.log(
+        `    (batched — the on-chain transfer to the seller settles ` +
+          `asynchronously; this id is NOT an EVM tx hash)`,
+      );
     } else {
       console.log(
-        `    Tx:      (settlement succeeded but no tx hash surfaced by the SDK; ` +
-          `check the seller address on the explorer)`,
+        `    (facilitator returned success but no id surfaced by the SDK)`,
       );
     }
-    console.log(`    Seller:  ${ARC_TESTNET_EXPLORER}/address/${sellerAddress}`);
+    console.log(
+      `    Watch seller for the settled transfer: ` +
+        `${ARC_TESTNET_EXPLORER}/address/${sellerAddress}`,
+    );
   } finally {
     await seller.close();
   }

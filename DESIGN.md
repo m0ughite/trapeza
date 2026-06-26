@@ -1,5 +1,9 @@
 # Trapeza — A Calibration-Aware Broker for Agent-to-Agent Nanopayment Markets
 
+> **Canonical doc is [SOURCE-OF-TRUTH.md](SOURCE-OF-TRUTH.md).** This doc remains authoritative for the core
+> primitive (API surface §4, module boundary §4.3, contrarian auction stance §2). Note the deltas locked in
+> the SoT: **deadline is Jul 6** (the §6 dates below are stale), and the §6 plan is superseded by SoT §8.
+
 > Codename: **Trapeza** (τράπεζα, "the banker's table"). The ancient *trapezitai* staked their own
 > standing on the coins they vouched for — the exact primitive in Prior-Art #08. Name is **locked**.
 

@@ -53,12 +53,16 @@ don't conflict. Keep `SELLER_ADDRESS` distinct so you can see the payment land.
 
 What each wallet needs:
 
-- **Buyer** (`BUYER_PRIVATE_KEY`): needs **both** native USDC (gas, 18 decimals)
-  **and** ERC-20 USDC at `0x3600000000000000000000000000000000000000`
-  (6 decimals, the payment token). The faucet funds Arc-testnet USDC; the spike
-  prints both balances and tells you exactly which is missing if either is zero.
-- **Owner** (`OWNER_PRIVATE_KEY`): needs native USDC for gas (~0.006 USDC/tx).
-- **Validator** (optional): same as owner — native USDC for gas.
+- **Buyer** (`BUYER_PRIVATE_KEY`): just fund the address with Arc-testnet USDC
+  from the faucet. **There is only one USDC balance.** On Arc, USDC *is* the
+  native gas asset, and the ERC-20 at `0x3600000000000000000000000000000000000000`
+  is merely a 6-decimal *interface* over that same balance (the native view uses
+  18 decimals). So a single faucet drop simultaneously gives you gas (18-dec
+  native view) **and** the x402 payment token (6-dec ERC-20 view) — there is no
+  separate "ERC-20 funding" step. The spike prints both views; they will move
+  together. (Ref: `context/.../arc/references/contract-addresses.md#usdc`.)
+- **Owner** (`OWNER_PRIVATE_KEY`): needs USDC for gas (~0.006 USDC/tx).
+- **Validator** (optional): same as owner — USDC for gas.
 
 > No Circle API key is required for either default spike. Both use self-managed
 > wallets. The nanopayment uses the public x402 batching facilitator; ERC-8004

@@ -125,13 +125,85 @@ Tests       13 passed (13)
 
 ---
 
+## Phase P0' - Wallets created, funded, balances verified (Jun 26)
+
+Created the testnet keypairs and unblocked the on-chain side of P0. Deadline was extended to Jul 6, so the on-chain spikes can now run.
+
+**Wallets generated** with Foundry `cast wallet new` (4 distinct roles, kept separable so the demo shows clean on-chain actors):
+
+| Role | Address | Funded? |
+| --- | --- | --- |
+| OWNER (`OWNER_PRIVATE_KEY`) — ERC-8004 registrant | `0x75F5B96324474e6f9f6A4ef859De5F8e131B68F9` | 40 USDC |
+| BUYER (`BUYER_PRIVATE_KEY`) — nanopayment payer | `0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd` | 20 USDC |
+| SELLER (`SELLER_ADDRESS`) — receiver, address only | `0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101` | n/a (receives) |
+| VALIDATOR (`VALIDATOR_PRIVATE_KEY`) — optional rater | `0x69AF9eD2cD16F40f20F454bBDD2A193364E2B925` | 20 USDC |
+
+**Storage (both gitignored, `chmod 600`, never committed — verified with `git check-ignore`):**
+- `.env` — the live spike credentials (`ARC_RPC_URL`, `BUYER_PRIVATE_KEY`, `SELLER_ADDRESS`, `OWNER_PRIVATE_KEY`, `VALIDATOR_PRIVATE_KEY`).
+- `secrets/wallets.json` — full backup (address + private key + role for all four), with `chainId eip155:5042002`. Added `secrets/` to `.gitignore`.
+
+**Correction — the "dual-token funding gotcha" (P0 mismatch #5, line 90) was WRONG.** On Arc there is a single USDC balance: USDC is the native gas asset (18-decimal native view) and the ERC-20 at `0x3600...0000` is just a 6-decimal *interface* over that same balance — not a second token to fund separately. One faucet drop covers gas and the x402 payment token simultaneously. Verified on-chain via `cast`:
+
+```
+BUYER  native = 20000000000000000000 (20 USDC, 18-dec)   erc20 0x3600 = 20000000 (20 USDC, 6-dec)
+OWNER  native = 40000000000000000000 (40 USDC, 18-dec)   erc20 0x3600 = 40000000 (40 USDC, 6-dec)
+VAL    native = 20000000000000000000 (20 USDC, 18-dec)   erc20 0x3600 = 20000000 (20 USDC, 6-dec)
+0x3600.decimals() = 6
+```
+
+Source of truth: `context/samples/context-arc/docs/docs.arc.network/arc/references/contract-addresses.md#usdc` ("The ERC-20 function call directly affects native USDC balance movements"). Fixed the same misstatement in `SETUP.md` §2 and `.env.example`. **Net effect: the buyer is fully funded for the nanopayment; no separate ERC-20 funding link is needed.**
+
+**Next:** all three funded wallets are ready — run `npm install` then `npm run spike:erc8004` (OWNER, +VALIDATOR for the reputation leg) and `npm run spike:nanopayment` (BUYER → SELLER). These are the two on-chain proofs still pending from P0.
+
+---
+
+> **Logging habit (going forward):** every meaningful step — wallet/credential changes, spike runs and their tx hashes, design corrections, blockers and their resolutions — gets appended here as a dated phase entry, with on-chain claims backed by verifiable evidence (explorer links or `cast` output), never fabricated.
+
+---
+
+## Phase P0'' - Both on-chain spikes RUN; x402 validity bug found & fixed (Jun 26)
+
+Ran both P0 spikes against Arc testnet with the funded wallets. **ERC-8004 passed first try; the nanopayment failed, was root-caused, fixed, and now passes.**
+
+### Spike 2 — ERC-8004 identity (PASS, 2 real txs)
+```
+Agent ID:   842573
+Register:   https://testnet.arcscan.app/tx/0x3cc07a9310283fddc7c6c1de1aede992985fe7e89ea0de32b1cbbb40489e1735
+Reputation: https://testnet.arcscan.app/tx/0x7b0d7d3a2d8574483b10ecfd5c4072274eb0ce697811ace8c5b2f16186f7f982
+```
+OWNER registered an identity NFT; VALIDATOR recorded one reputation event. Both are real, confirmed EVM tx hashes (0x + 64 hex).
+
+### Spike 1 — x402 / Gateway nanopayment (FIXED, now PASS)
+**Symptom:** `verify failed: authorization_validity_too_short` (only surfaced after I added the `invalidReason` logging the seller was swallowing).
+
+**Root cause (high confidence):** Circle's facilitator advertises a per-network **`minValiditySeconds: 604800` (7 days)** for Arc at `GET https://gateway-api-testnet.circle.com/v1/x402/supported`, but the `@circle-fin/x402-batching` SDK **hardcodes `maxTimeoutSeconds: 345600` (4 days)** in both `enhancePaymentRequirements` and `createGatewayMiddleware`. The client signs `validBefore = now + maxTimeoutSeconds`, so every authorization is ~3 days short of the required window → rejected. This is an SDK/facilitator mismatch; the reference `arc-nanopayments` would fail identically today. (Clock skew ruled out: local vs chain timestamp differed by 1s. A first "fix" — padding the advertised value by 600s — confirmed it was a hard threshold, not latency.)
+
+**Fix:** `packages/adapter-gateway/src/x402.ts` now reads `extra.minValiditySeconds` from the facilitator's `getSupported()` at seller startup and signs for `minValiditySeconds + 3600s` buffer (fallback 604800 if the field ever disappears). New exported `resolveMaxTimeoutSeconds()`; `startX402Seller` is now async.
+
+**Result:**
+```
+✓ Nanopayment accepted by Gateway facilitator (437ms)
+  Amount: 0.001 USDC   Gateway settlement id: 05f9f115-9837-4926-8f46-5009eb7660d7
+  Deposit tx: https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0
+```
+
+**Important settlement nuance (do not overclaim):** Gateway *batches* settlements. `verify`+`settle` returning success means the authorization was accepted into a batch; the returned `05f9f115-…` is Circle's **settlement/batch UUID, NOT an EVM tx hash**, and the seller's on-chain USDC was still `0x0` immediately after. The real on-chain transfer to the seller lands when Circle flushes the batch. Evidence the payment is nonetheless real: the buyer's **Gateway available balance dropped exactly 0.001 USDC** (0.100 → 0.099) across runs. The deposit *into* Gateway (`0xb64a…`) is a genuine confirmed on-chain tx.
+
+**Spike honesty fix:** `spike-nanopayment.ts` no longer renders the settlement UUID as an `/tx/` link. It only prints an `/tx/` link when the id matches `^0x[0-9a-fA-F]{64}$`; otherwise it labels it a Gateway settlement id and points at the seller's address page for the eventual batched transfer. (Upholds the "never present a non-tx as a confirmed tx" rule.)
+
+**Open follow-up:** confirm the seller's balance increments after a batch flush (poll `balanceOf` on the seller), and, if needed for the demo, find/await the Gateway batch-settlement status so we can surface the real on-chain settlement tx. Tracked below.
+
+---
+
 ## Open items / remaining work
 
-Needs the user's funded wallets + live adapters before an on-chain end-to-end demo (each drops into an injected boundary with zero changes to `@trapeza/core`):
-1. `@trapeza/adapter-arc` — implement `ChainAdapter` (`mintIdentity`/`giveFeedback`/`openEscrow`/`resolveEscrow`) against deployed ERC-8004 + forked `RefundProtocol.sol` on Arc testnet (`eip155:5042002`).
-2. `@trapeza/adapter-gateway` — implement `SettlementAdapter.pay` via real x402/Circle Gateway.
+Status note (Jun 26): wallets are funded and BOTH P0 on-chain spikes pass — `adapter-arc` identity/reputation calls and `adapter-gateway` deposit + x402 verify/settle are proven live. Remaining adapter work is the escrow/oracle surface and end-to-end wiring.
+
+1. `@trapeza/adapter-arc` — identity (`mintIdentity`) + reputation (`giveFeedback`) PROVEN on testnet (Agent ID 842573). Still TODO: `openEscrow`/`resolveEscrow` against forked `RefundProtocol.sol`.
+2. `@trapeza/adapter-gateway` — `deposit` + x402 `verify`/`settle` PROVEN (settlement accepted, buyer Gateway balance debited 0.001). Still TODO: surface the real on-chain settlement tx after the Gateway **batch flush**, and confirm the seller's `balanceOf` increments (poll seller address; investigate a Gateway batch-status endpoint/await).
 3. A real `Oracle` for the v1 extraction capability (JSON-Schema + ground-truth diff).
-4. Funded wallets + secrets (broker + seeded provider/requester wallets, populated `.env`). This is the P4 risk (wallet nonce/funding).
+4. ~~Funded wallets + secrets~~ DONE — `.env` + `secrets/wallets.json`, OWNER/BUYER/VALIDATOR funded (see P0'). Remaining P4 risk: broker + seeded provider/requester wallet fan-out and nonce management under the loop.
 5. A real `Store` (e.g. Supabase/Postgres) swapped in for `InMemoryStore` if persistence across the seeded loop is wanted.
+6. (from P0'') Pin/upgrade `@circle-fin/x402-batching` and re-check whether a newer release fixes the hardcoded `maxTimeoutSeconds: 345600`; our dynamic `minValiditySeconds` read makes us resilient either way, but file an upstream note.
 
 Decision pending (does not block builds): whether to rewrite DESIGN.md to fold in the `oracleVerify` / `QuoteSource` adjustments so it stays authoritative, vs. keeping them documented inline.

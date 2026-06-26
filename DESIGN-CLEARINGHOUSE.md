@@ -1,5 +1,13 @@
 # Trapeza Clearinghouse — Graph-Level Constrained Allocation & Price-Clearing for MAS Networks
 
+> **Canonical doc is [SOURCE-OF-TRUTH.md](SOURCE-OF-TRUTH.md).** The SoT supersedes this doc on four points:
+> (1) **§4.2 pricing** — UCP is *display-only* for v1; settle discriminatory `min(ask,reserve)`; quality-adjusted
+> UCP is post-hackathon (SoT §4.1). (2) **§7 State Twins** — scoped to *settlement preflight + bounded scenario
+> forks*, not an NP-hard evaluator; quality is the deterministic oracle's job under a *verification policy*
+> (SoT §6–§7). (3) **§6 solver sprint** — replaced by the Jul-6 plan in SoT §8. (4) A CoW-style **2-solver
+> bake-off** is added to the demo (SoT §4.3). The formal model (§5) and reconciliation (§3) here are elaborated
+> in plain language in SoT §5.
+
 > This extends [Trapeza core design](DESIGN.md). **Same primitive, elevated one level.** The core doc
 > defines Trapeza as a *calibration-first, bond-backed, per-task pairwise broker* — it routes one task to
 > one provider by calibrated expected value and slashes a USDC bond on underdelivery. This document keeps
@@ -68,14 +76,14 @@ it can layer onto the same primitive without contradicting it.
 ## 2. The reframe — clearinghouse, not broker
 
 
-|                | **Trapeza core (DESIGN.md)**                   | **Trapeza Clearinghouse (this doc)**                                                  |
-| -------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Input          | one task spec + budget                         | a **task DAG** + global budget/deadline/quality/risk constraints + provider set       |
-| Decision       | pick 1 provider for 1 task                     | **assign every node to a provider, ordered, priced** — jointly                        |
-| Math           | calibrated EV ranking (CASTER)                 | **constrained optimization** over the whole graph (AEX objective + RCPSP constraints) |
-| Pricing        | posted-price / score-adjusted Vickrey per task | **batch clearing** with shadow-price interpretation + per-hop / Shapley split         |
-| Settlement     | one escrow release/slash per task              | **one batched settlement** of the whole cleared allocation                            |
-| Eval substrate | (stretch) fork-and-simulate                    | **fork-and-evaluate is core** — the solver scores candidate clearings on State Twins  |
+|                | **Trapeza core (DESIGN.md)**                   | **Trapeza Clearinghouse (this doc)**                                                                                                   |
+| -------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Input          | one task spec + budget                         | a **task DAG** + global budget/deadline/priority/quality/risk constraints + provider set                                               |
+| Decision       | pick 1 provider for 1 task                     | **assign every node to a provider, ordered, priced** — jointly                                                                         |
+| Math           | calibrated EV ranking (CASTER)                 | **constrained optimization** over the whole graph (AEX objective + RCPSP constraints)                                                  |
+| Pricing        | posted-price / score-adjusted Vickrey per task | **batch clearing** with shadow-price interpretation + per-hop / Shapley split OR (UCP - Unified Clearing Price mecanism if applicable) |
+| Settlement     | one escrow release/slash per task              | **one batched settlement** of the whole cleared allocation                                                                             |
+| Eval substrate | (stretch) fork-and-simulate                    | **fork-and-evaluate is core** — the solver scores candidate clearings on State Twins. **Verification Policy + Scoping + LLM Judge**    |
 
 
 The clearinghouse is the literal instantiation of RFB-3's three named builds at once: it *is* the

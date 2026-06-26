@@ -29,10 +29,56 @@ export interface PaymentRequirements {
   extra: { name: string; version: string; verifyingContract: string };
 }
 
+/**
+ * The SDK hardcodes `maxTimeoutSeconds: 345600` (4 days), but Arc's facilitator
+ * requires a *longer* minimum authorization validity. The required value is
+ * advertised per-network at `/v1/x402/supported` as `extra.minValiditySeconds`
+ * (604800 = 7 days for Arc testnet as of Jun 2026). Signing for less yields
+ * `authorization_validity_too_short`. We read it dynamically and fall back to
+ * this constant if the field is ever absent.
+ */
+const ARC_MIN_VALIDITY_FALLBACK_SECONDS = 604800;
+/**
+ * Headroom added on top of the facilitator minimum. The client signs
+ * `validBefore = signTime + maxTimeoutSeconds`, but the facilitator checks
+ * `validBefore >= verifyTime + minValiditySeconds`; this buffer absorbs the
+ * sign→verify→settle latency so the window doesn't fall short by a few seconds.
+ */
+const VALIDITY_BUFFER_SECONDS = 3600;
+
+/**
+ * Resolve the `maxTimeoutSeconds` to sign with by reading the facilitator's
+ * advertised `minValiditySeconds` for Arc, plus a latency buffer.
+ */
+export async function resolveMaxTimeoutSeconds(
+  facilitator: BatchFacilitatorClient,
+): Promise<number> {
+  try {
+    const supported = (await facilitator.getSupported()) as {
+      kinds?: Array<{
+        network?: string;
+        extra?: { name?: string; minValiditySeconds?: number | string };
+      }>;
+    };
+    const kind = supported.kinds?.find(
+      (k) =>
+        k.network === ARC_TESTNET_NETWORK &&
+        k.extra?.name === "GatewayWalletBatched",
+    );
+    const min = Number(kind?.extra?.minValiditySeconds);
+    if (Number.isFinite(min) && min > 0) return min + VALIDITY_BUFFER_SECONDS;
+  } catch {
+    // fall through to the fallback below
+  }
+  return ARC_MIN_VALIDITY_FALLBACK_SECONDS + VALIDITY_BUFFER_SECONDS;
+}
+
 /** Parse a `$0.001`-style price into USDC atomic units (6 decimals). */
 export function buildPaymentRequirements(
   price: string,
   payTo: `0x${string}`,
+  maxTimeoutSeconds: number = ARC_MIN_VALIDITY_FALLBACK_SECONDS +
+    VALIDITY_BUFFER_SECONDS,
 ): PaymentRequirements {
   const amount = Math.round(parseFloat(price.replace("$", "")) * 1_000_000);
   return {
@@ -41,7 +87,7 @@ export function buildPaymentRequirements(
     asset: ARC_TESTNET_USDC,
     amount: amount.toString(),
     payTo,
-    maxTimeoutSeconds: 345600,
+    maxTimeoutSeconds,
     extra: {
       name: "GatewayWalletBatched",
       version: "1",
@@ -83,10 +129,19 @@ export interface X402Seller {
  * with the resolved URL and a close() helper. Mirrors the reference seller's
  * 402 / verify / settle behavior.
  */
-export function startX402Seller(opts: X402SellerOptions): Promise<X402Seller> {
+export async function startX402Seller(
+  opts: X402SellerOptions,
+): Promise<X402Seller> {
   const path = opts.path ?? "/paid";
-  const requirements = buildPaymentRequirements(opts.price, opts.payTo);
   const facilitator = new BatchFacilitatorClient();
+  // Sign for the facilitator-advertised minimum validity (+ buffer), not the
+  // SDK's stale 4-day default — otherwise verify fails too_short on Arc.
+  const maxTimeoutSeconds = await resolveMaxTimeoutSeconds(facilitator);
+  const requirements = buildPaymentRequirements(
+    opts.price,
+    opts.payTo,
+    maxTimeoutSeconds,
+  );
   const responseBody = opts.body ?? { ok: true, resource: path };
 
   const listener = async (req: IncomingMessage, res: ServerResponse) => {
@@ -130,6 +185,9 @@ export function startX402Seller(opts: X402SellerOptions): Promise<X402Seller> {
         requirements,
       );
       if (!verifyResult.isValid) {
+        console.error(
+          `[x402 seller] verify failed: ${verifyResult.invalidReason}`,
+        );
         res.writeHead(402, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
@@ -145,6 +203,9 @@ export function startX402Seller(opts: X402SellerOptions): Promise<X402Seller> {
         requirements,
       );
       if (!settleResult.success) {
+        console.error(
+          `[x402 seller] settle failed: ${settleResult.errorReason}`,
+        );
         res.writeHead(402, { "Content-Type": "application/json" });
         res.end(
           JSON.stringify({
