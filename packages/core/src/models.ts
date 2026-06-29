@@ -15,6 +15,14 @@ export type Capability = string;
 
 export type MechanismId = "posted" | "second_price" | "dutch";
 
+/** JSON Schema Draft 2020-12 verification contract for a task node. */
+export interface OracleSpec {
+  /** Output JSON Schema the provider deliverable must satisfy. */
+  schema: Record<string, unknown>;
+  /** Field-level expected values for deterministic ground-truth diff. */
+  groundTruth: Record<string, unknown>;
+}
+
 /**
  * Dynamic price surface (RFB-2): a pure function from observed load and task
  * complexity to a USDC price string. Kept as a function type so providers can
@@ -40,8 +48,15 @@ export interface TaskSpec {
   capability: Capability;
   input: unknown;
   /** JSON Schema + ground-truth ref (v1) | hidden test ref (v2). */
-  oracleSpec: unknown;
+  oracleSpec: OracleSpec;
+  /** Marginal value this node contributes to the deliverable (v_n). */
+  valueUsdc: string;
+  /** Max willingness to pay / reserve for this node. */
   budgetUsdc: string;
+  /** Minimum calibrated success probability required for this node. */
+  qualityFloor?: number;
+  /** Required bond as a fraction of node value (ρ_n). */
+  bondRatio?: number;
   /** Preference weights, Σ = 1. */
   preference: { price: number; latency: number; quality: number; risk: number };
   deadlineMs: number;

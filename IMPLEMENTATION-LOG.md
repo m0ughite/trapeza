@@ -1,6 +1,6 @@
 # Trapeza — Implementation Log
 
-A chronological record of design decisions, build phases, blockers, and outcomes for the Lepton Agents Hackathon (Canteen x Circle, Jun 15-29 2026). Companion to [DESIGN.md](DESIGN.md) and [DESIGN-CLEARINGHOUSE.md](DESIGN-CLEARINGHOUSE.md).
+A chronological record of design decisions, build phases, blockers, and outcomes for the Lepton Agents Hackathon (Canteen x Circle, Jun 15-Jul7 2026). Companion to [DESIGN.md](DESIGN.md) and [DESIGN-CLEARINGHOUSE.md](DESIGN-CLEARINGHOUSE.md).
 
 Project: **Trapeza** — a calibration-aware, bonded broker/clearinghouse primitive for agent-to-agent nanopayment networks (targets RFB 3). The decision signal is calibrated `p_success x value - price - risk_premium` from realized outcomes, not self-reported bids; providers post slashable USDC bonds; settlement is per-task in USDC via Circle Gateway/x402 on Arc.
 
@@ -16,7 +16,7 @@ Loaded the full hackathon spec, four research papers, and the Arc/Circle referen
   - **MarketBench**, arXiv 2604.23897 — empirically shows agents are miscalibrated on their own success probability and cost; auctions built from self-reports diverge from optimal allocation. Self-assessment is *the* bottleneck.
   - **CASTER**, arXiv 2601.19793 — cost-aware neural routing in multi-agent graphs; -72.4% cost matching strong-model success.
   - **State Twins**, arXiv 2605.11522 — off-chain, sub-second, forkable/replayable simulation of on-chain state.
-- **Sample repos** -> `context/samples/context-arc/` (recursive clone, all 8 submodules: arc-nanopayments, arc-commerce, arc-multichain-wallet, arc-escrow, arc-fintech, arc-p2p-payments, arc-prediction-markets, arc-stablecoin-fx) plus a bundled `docs/` folder. Not in the submodule set: `circle-agent`, `arc-defi-lending-and-borrowing`.
+- **Sample repos + docs** -> `context-for-agent/` (5 bundled samples: arc-commerce, arc-multichain-wallet, arc-escrow, arc-fintech, arc-p2p-payments; plus mirrored docs/skills). `arc-nanopayments` and `circle-agent` clone on demand — see `context-for-agent/samples/README.md`.
 - **Index** -> `context/README.md`.
 
 ---
@@ -151,13 +151,13 @@ VAL    native = 20000000000000000000 (20 USDC, 18-dec)   erc20 0x3600 = 20000000
 0x3600.decimals() = 6
 ```
 
-Source of truth: `context/samples/context-arc/docs/docs.arc.network/arc/references/contract-addresses.md#usdc` ("The ERC-20 function call directly affects native USDC balance movements"). Fixed the same misstatement in `SETUP.md` §2 and `.env.example`. **Net effect: the buyer is fully funded for the nanopayment; no separate ERC-20 funding link is needed.**
+Source of truth: `context-for-agent/docs/docs.arc.network/arc/references/contract-addresses.md#usdc` ("The ERC-20 function call directly affects native USDC balance movements"). Fixed the same misstatement in `SETUP.md` §2 and `.env.example`. **Net effect: the buyer is fully funded for the nanopayment; no separate ERC-20 funding link is needed.**
 
 **Next:** all three funded wallets are ready — run `npm install` then `npm run spike:erc8004` (OWNER, +VALIDATOR for the reputation leg) and `npm run spike:nanopayment` (BUYER → SELLER). These are the two on-chain proofs still pending from P0.
 
 ---
 
-> **Logging habit (going forward):** every meaningful step — wallet/credential changes, spike runs and their tx hashes, design corrections, blockers and their resolutions — gets appended here as a dated phase entry, with on-chain claims backed by verifiable evidence (explorer links or `cast` output), never fabricated.
+> **Logging habit (going forward):** every work session that touches the repo gets an entry in [ACTIVITY-LOG.md](ACTIVITY-LOG.md) (author, manual/assisted, branch, verification). Milestones — wallet/credential changes, spike runs and their tx hashes, design corrections, blockers and their resolutions — also get a phase entry here, with on-chain claims backed by verifiable evidence (explorer links or `cast` output), never fabricated.
 
 ---
 
@@ -195,13 +195,47 @@ OWNER registered an identity NFT; VALIDATOR recorded one reputation event. Both 
 
 ---
 
+## Phase A0 - Agent configuration + activity logging (Jun 27)
+
+Wired `context-for-agent/` into persistent project agent config. Session detail: [ACTIVITY-LOG.md](ACTIVITY-LOG.md) entries `agent-config` and `activity-logging`.
+
+**Agent config added:**
+- Root [AGENTS.md](AGENTS.md) — Trapeza entry point, doc hierarchy, build commands, context routing
+- `.cursor/rules/` — `trapeza-project.mdc` (always apply), `trapeza-adapters.mdc` (adapter globs)
+- `.cursor/skills/` — `trapeza-build`, `arc-circle-context` (route-only to circlefin-skills)
+- `.cursor/agents/` — `trapeza-builder`, `arc-circle-expert`, `onchain-verifier`
+- `.cursor/mcp.json` — `arc-docs` + `circle` MCP servers
+- `context-for-agent/samples/README.md` — bundled samples + on-demand clone for `arc-nanopayments`
+
+**Collaboration logging added:**
+- [ACTIVITY-LOG.md](ACTIVITY-LOG.md) — per-session log (author, manual/assisted, branch)
+- [CONTRIBUTING.md](CONTRIBUTING.md) — logging contract for branch collaboration
+
+**Path fixes:** `context/samples/context-arc/` → `context-for-agent/` in DESIGN.md, SETUP.md, context/README.md, and this log (R0).
+
+---
+
+## Phase E1 — TS-only algorithmic engine (Jun 29)
+
+Implemented deterministic engine packages on `feature/deterministic-part`:
+
+- **`@trapeza/oracle`** — `SchemaOracle`: AJV Draft 2020-12 + field-level ground-truth diff; binary pass/fail for slashing
+- **`@trapeza/clearinghouse`** — HiGHS MILP graph solver, greedy+LNS degrade/bake-off, DAG scheduler (longest-path makespan), LP shadow prices, settlement preflight twin, seeded Monte Carlo
+- **Core extensions** — micro-USDC integer money, `valueUsdc` on `TaskSpec`, `SettlementState`/`StateSnapshotSource` seam (read-only injected snapshot)
+
+**Verification:** `npm test` 42/42; `npm run typecheck` exit 0. CI headline: global MILP clearing feasible on budget-vs-bottleneck instance where per-node greedy fails.
+
+See [ENGINE-GUIDE.md](ENGINE-GUIDE.md) and [ALGORITHMIC-SPEC.md](ALGORITHMIC-SPEC.md) (TS-only stack).
+
+---
+
 ## Open items / remaining work
 
 Status note (Jun 26): wallets are funded and BOTH P0 on-chain spikes pass — `adapter-arc` identity/reputation calls and `adapter-gateway` deposit + x402 verify/settle are proven live. Remaining adapter work is the escrow/oracle surface and end-to-end wiring.
 
 1. `@trapeza/adapter-arc` — identity (`mintIdentity`) + reputation (`giveFeedback`) PROVEN on testnet (Agent ID 842573). Still TODO: `openEscrow`/`resolveEscrow` against forked `RefundProtocol.sol`.
 2. `@trapeza/adapter-gateway` — `deposit` + x402 `verify`/`settle` PROVEN (settlement accepted, buyer Gateway balance debited 0.001). Still TODO: surface the real on-chain settlement tx after the Gateway **batch flush**, and confirm the seller's `balanceOf` increments (poll seller address; investigate a Gateway batch-status endpoint/await).
-3. A real `Oracle` for the v1 extraction capability (JSON-Schema + ground-truth diff).
+3. ~~A real `Oracle` for the v1 extraction capability (JSON-Schema + ground-truth diff).~~ DONE in `@trapeza/oracle` (Phase E1).
 4. ~~Funded wallets + secrets~~ DONE — `.env` + `secrets/wallets.json`, OWNER/BUYER/VALIDATOR funded (see P0'). Remaining P4 risk: broker + seeded provider/requester wallet fan-out and nonce management under the loop.
 5. A real `Store` (e.g. Supabase/Postgres) swapped in for `InMemoryStore` if persistence across the seeded loop is wanted.
 6. (from P0'') Pin/upgrade `@circle-fin/x402-batching` and re-check whether a newer release fixes the hardcoded `maxTimeoutSeconds: 345600`; our dynamic `minValiditySeconds` read makes us resilient either way, but file an upstream note.

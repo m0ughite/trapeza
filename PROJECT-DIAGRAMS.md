@@ -177,8 +177,7 @@ Instead of trusting self-reported provider bids, Trapeza dynamically computes po
 Represented as a conjugate Beta-Binomial distribution:
 $$p \sim \text{Beta}(\alpha, \beta)$$
 
-*   **Priors:** Seeded from provider claims $p_{\text{claim}} \in [0, 1]$ using a weak weight coefficient $C \ge 1$:
-    $$\alpha_0 = C \cdot p_{\text{claim}}, \quad \beta_0 = C \cdot (1 - p_{\text{claim}})$$
+*   **Priors:** Uniform **Beta(1, 1)** cold start — intentionally **not** seeded from provider claims $p_{\text{claim}}$ (bids are priors for RFQ only; the allocation signal comes from realized outcomes per `packages/core/src/calibration.ts`).
 *   **Posterior Update:** For a task outcome $y \in \{0, 1\}$ (where $1 = \text{success}$, $0 = \text{failure}$):
     $$\alpha \leftarrow \alpha + y$$
     $$\beta \leftarrow \beta + (1 - y)$$

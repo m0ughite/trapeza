@@ -1,13 +1,7 @@
 /**
- * SEAM (not built in P0) — graph-level clearing for the Trapeza Clearinghouse
- * extension (see DESIGN-CLEARINGHOUSE.md).
+ * Graph-level clearing seam (DESIGN-CLEARINGHOUSE.md).
  *
- * This file exists only to keep the boundary open: the clearinghouse is a
- * separate module that *imports the primitive and does not modify it*. We
- * declare the `TaskGraph` data model and a `GraphClearing.submitGraph()`
- * signature here so the primitive's public types are forward-compatible. No
- * solver, no State-Twins sandbox, no LP duals in P0 — those live in the future
- * clearinghouse package and call `createTrapezaCore` underneath.
+ * Types only in core; solver/twin live in `@trapeza/clearinghouse`.
  */
 
 import type { Allocation, TaskSpec } from "./models.js";
@@ -20,8 +14,8 @@ export interface TaskGraphNode {
 
 /** A directed dependency edge (`from` must complete before `to`). */
 export interface TaskGraphEdge {
-  from: string; // nodeId
-  to: string; // nodeId
+  from: string;
+  to: string;
 }
 
 /** A requester-submitted workflow: a DAG with global constraints. */
@@ -29,25 +23,59 @@ export interface TaskGraph {
   id: string;
   nodes: TaskGraphNode[];
   edges: TaskGraphEdge[];
-  /** Global ceilings the clearing must respect across the whole graph. */
   globalBudgetUsdc: string;
   globalDeadlineMs: number;
+  /** Minimum end-to-end success probability (q_min). */
+  globalQualityFloor?: number;
+  /** Requester risk aversion ρ applied in the solver objective. */
+  riskAversion?: number;
 }
 
-/** The result of clearing a graph: a per-node allocation plus pricing. */
+/** Scheduled start time for a cleared node. */
+export interface NodeSchedule {
+  nodeId: string;
+  startMs: number;
+  durationMs: number;
+  endMs: number;
+}
+
+/** Solver metadata returned with a clearing. */
+export interface ClearingMeta {
+  solver: "highs_milp" | "greedy_lns";
+  objectiveValue: number;
+  makespanMs: number;
+  seed?: number;
+  preflightPassed: boolean;
+}
+
+/** The result of clearing a graph: per-node allocation plus pricing. */
 export interface GraphClearing {
   graphId: string;
   allocations: Allocation[];
-  /** Shadow prices (LP duals) per node — populated by the future solver. */
+  schedule: NodeSchedule[];
+  /** Shadow prices (LP duals) — display only. */
   shadowPricesUsdc: Record<string, string>;
+  /** Per-node settlement price (min(ask, reserve)). */
+  settlementPricesUsdc: Record<string, string>;
   totalClearedUsdc: string;
+  meta: ClearingMeta;
 }
 
-/**
- * Future clearinghouse entrypoint. Intentionally a type only in P0 — the MCP
- * `submit_graph()` tool and the CP-SAT/LNS solver implement this on top of the
- * primitive later. Declared here so the seam is type-stable from day one.
- */
+/** Read-only on-chain settlement snapshot for the state twin (injected). */
+export interface SettlementState {
+  requesterBalanceMicro: bigint;
+  providerBondMicro: Record<string, bigint>;
+  escrowLockedMicro: Record<string, bigint>;
+  /** nodeId → fee locked in escrow for that job. */
+  nodeFeeMicro: Record<string, bigint>;
+}
+
+/** Injected boundary: fetch a real testnet snapshot without signing. */
+export interface StateSnapshotSource {
+  getSettlementState(): Promise<SettlementState>;
+}
+
+/** Clearinghouse entrypoint — implemented by `@trapeza/clearinghouse`. */
 export interface GraphClearinghouse {
   submitGraph(graph: TaskGraph): Promise<GraphClearing>;
 }
