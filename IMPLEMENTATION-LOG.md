@@ -225,7 +225,52 @@ Implemented deterministic engine packages on `feature/deterministic-part`:
 
 **Verification:** `npm test` 42/42; `npm run typecheck` exit 0. CI headline: global MILP clearing feasible on budget-vs-bottleneck instance where per-node greedy fails.
 
-See [ENGINE-GUIDE.md](ENGINE-GUIDE.md) and [ALGORITHMIC-SPEC.md](ALGORITHMIC-SPEC.md) (TS-only stack).
+> **Superseded by Phase C (Jul 3):** the TS-only framing and the build-dependent test count are
+> retracted (see ACTIVITY-LOG.md). The Tier-1 solver is now Python OR-Tools CP-SAT; the HiGHS/greedy
+> TS solvers are the Tier-2 degrade path + bake-off opponent.
+
+See [ENGINE-GUIDE.md](ENGINE-GUIDE.md) and [ALGORITHMIC-SPEC.md](ALGORITHMIC-SPEC.md).
+
+---
+
+## Phase C — Consolidation: Python CP-SAT boundary + docs reconciliation (Jul 3)
+
+Finished the approved [CONSOLIDATION-PLAN.md](CONSOLIDATION-PLAN.md) (C0–C5) after a mid-flight crash.
+The teammate's working TS engine is **kept**; Tier-1 optimization is **restored to Python OR-Tools
+CP-SAT** behind FastAPI, with the TS greedy+LNS demoted to the Tier-2 degrade path + bake-off opponent.
+
+- **C0 — harness honesty.** Clean, no-build `npm test` loads all 15 suites (vitest src aliases for
+  `clearinghouse`/`oracle`); root `typecheck` includes both new packages.
+- **C1 — enforcement.** Preflight enforced in `submitGraph` (throws `PREFLIGHT_FAILED`); 2×-budget
+  fixture removed; bond decrement (`Σ bond ≤ B_p`); per-node + global log-quality floors in
+  greedy/LNS; CP-SAT ≥ Tier-2 objective assertion.
+- **C2 — Python CP-SAT Tier-1.** `solver/trapeza_solver/` (FastAPI + Pydantic) implements the full
+  §5.4 model — assignment, budget, DAG precedence/makespan, per-node + global quality, latency caps,
+  bond capacity, RCPSP concurrency (cumulative intervals) — plus GLOP LP-dual shadow prices. TS
+  `solver-client.ts` validates both directions against the ONE shared
+  `contract/solver-contract.schema.json` (AJV) and **degrades to TS Tier-2 on any failure**.
+- **Amendment 1 — Monte Carlo (shipped, flagged).** Python NumPy `/simulate` + in-process TS fallback,
+  gated by `monteCarlo: { enabled }`.
+- **C3 — docs.** §4.1 risk taxonomy → `ALGORITHMIC-SPEC.md` (+ `useDefaults:false`); §5.3.1 risk
+  taxonomy + §6.1.1 oracle dispute-ladder → `SOURCE-OF-TRUTH.md`; retracted the "51/51" + "TS-only"
+  claims in `ACTIVITY-LOG.md`; created `ENGINE-GUIDE.md`.
+- **C4 — demo.** Bake-off = CP-SAT (Python) vs greedy+LNS (TS); Monte Carlo behind the flag.
+- **C5 — core-broker integration.** Core + engine suites are green in one `npm test` run; the broker
+  is the clearinghouse's one-node case (§5.5). Existing `@trapeza/core` P0 spikes untouched.
+
+**Verification (clean checkout, no prior build):**
+```
+npm test            → 57 passed (15 files)   [service UP; 4 live CP-SAT tests run]
+                    → 53 passed / 4 skipped  [service DOWN; degradation path green]
+npm run typecheck   → exit 0
+cd solver && .venv/bin/python -m pytest -q → 14 passed
+npm run demo        → 6 beats; greedy NO_PROVIDER where CP-SAT clears (obj 1.2849);
+                      Monte Carlo via Python engine; preflight blocks under-funded plan
+```
+
+**Deviation:** risk is carried as resolved per-`(node,provider)` `candidates[].score` (computed once
+in TS), not `riskMicro` on the provider as sketched in CONSOLIDATION-PLAN §3.3 — economically correct
+and DRY (see `contract/README.md`).
 
 ---
 

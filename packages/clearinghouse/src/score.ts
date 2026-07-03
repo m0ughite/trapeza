@@ -121,6 +121,28 @@ export function objectiveFromAssignments(
   return assignments.reduce((sum, a) => sum + a.score, 0);
 }
 
+/**
+ * Global quality floor check (bug #6): the whole-job reliability (the product of
+ * per-node p̂ = Σ log p̂) must clear `globalQualityFloor`. Greedy/LNS optimize the
+ * additive objective and are blind to this multiplicative constraint, so it is
+ * checked explicitly on the final assignment; CP-SAT enforces it in the model.
+ */
+export function meetsGlobalQuality(input: SolverInput, assignments: NodeAssignment[]): boolean {
+  const qMin = input.graph.globalQualityFloor ?? 0;
+  if (qMin <= 0) return true;
+  const byId = new Map(input.providers.map((p) => [p.id, p]));
+  let logSum = 0;
+  for (const a of assignments) {
+    const p = byId.get(a.providerId)!;
+    const pHat =
+      p.calibration.nObservations > 0
+        ? pSuccessMean(p.calibration)
+        : p.claimedSuccessProb;
+    logSum += Math.log(Math.max(pHat, 1e-12));
+  }
+  return logSum >= Math.log(qMin);
+}
+
 /** Large-neighborhood search: destroy random nodes and re-greedy repair. */
 export function lnsImprove(
   input: SolverInput,
@@ -172,6 +194,15 @@ export function lnsImprove(
             node.task.valueUsdc,
           );
           if (cost + bond > budgetLeft) continue;
+          // Repair must respect the per-node quality floor (bug #6): the
+          // original repair dropped it, so LNS could re-introduce a
+          // below-floor provider that greedy had excluded.
+          const qFloor = node.task.qualityFloor ?? 0;
+          const pHat =
+            p.calibration.nObservations > 0
+              ? pSuccessMean(p.calibration)
+              : p.claimedSuccessProb;
+          if (pHat < qFloor) continue;
           const score = scoreProviderForNode(input.graph, nodeId, p);
           if (!pick || score > pick.score) pick = { p, score };
         }

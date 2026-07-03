@@ -1,0 +1,17 @@
+{
+  "graphId": "example-2node",
+  "deadlineMs": 120000,
+  "budgetUsdcMicro": "1000000",
+  "nodes": [{ "nodeId": "n1" }, { "nodeId": "n2" }],
+  "edges": [{ "from": "n1", "to": "n2" }],
+  "assignments": [
+    { "nodeId": "n1", "providerId": "p1" },
+    { "nodeId": "n2", "providerId": "p2" }
+  ],
+  "providers": [
+    { "id": "p1", "successAlpha": 19, "successBeta": 3, "costMean": 0.14, "costVar": 0.0001, "latencyMean": 100, "latencyVar": 25, "nObservations": 20, "priceUsdc": 0.15 },
+    { "id": "p2", "successAlpha": 18, "successBeta": 4, "costMean": 0.19, "costVar": 0.0001, "latencyMean": 200, "latencyVar": 25, "nObservations": 20, "priceUsdc": 0.2 }
+  ],
+  "iterations": 500,
+  "seed": 42
+}

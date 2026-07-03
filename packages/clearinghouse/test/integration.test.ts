@@ -55,7 +55,9 @@ describe("submitGraph integration", () => {
     expect(clearing.allocations).toHaveLength(6);
     expect(clearing.schedule).toHaveLength(6);
     expect(clearing.meta.preflightPassed).toBe(true);
-    expect(["highs_milp", "greedy_lns"]).toContain(clearing.meta.solver);
+    expect(["cp_sat", "highs_milp", "greedy_lns"]).toContain(
+      clearing.meta.solver,
+    );
     expect(Number(clearing.shadowPricesUsdc.budget)).toBeGreaterThanOrEqual(0);
   });
 

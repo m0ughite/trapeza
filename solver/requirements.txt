@@ -1,0 +1,12 @@
+# Trapeza Python solver service (Tier-1 CP-SAT + Monte Carlo twin).
+# Target interpreter: CPython 3.12 (OR-Tools has no 3.14 wheels yet).
+ortools==9.11.4210
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic==2.10.4
+numpy==2.2.1
+
+# Dev / test
+pytest==8.3.4
+httpx==0.28.1
+jsonschema==4.23.0

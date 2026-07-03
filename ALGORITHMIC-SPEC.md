@@ -40,7 +40,7 @@ The Oracle verifies task deliverables by validating output objects against prede
 ```typescript
 import Ajv, { JSONSchemaType } from "ajv";
 
-const ajv = new Ajv({ allErrors: true, useDefaults: true });
+const ajv = new Ajv({ allErrors: true, useDefaults: false });
 
 // 1. Define the interface for the task output
 interface InvoiceExtractionOutput {
@@ -233,6 +233,31 @@ flowchart TD
     Result -->|"YES"| Output["Return allocation list & schedule"]
     Result -->|"NO"| Fail["Trigger Degrade Path\n(Per-task fallback routing)"]
 ```
+
+---
+
+## 4.1 Risk factors beyond task-failure variance
+
+The solver's `risk_premium` is not a single scalar. `risk_{n,p}` is a weighted sum of independent
+risk axes, each with a requester-tunable weight `w_k`:
+`risk_{n,p} = Σ_k w_k · risk^{(k)}_{n,p}`.
+
+1. **Failure variance** — posterior uncertainty on `p̂` × exposed value (the v1 term).
+2. **Data sensitivity** — confidentiality of the node's input (signals, transactions, PII); high
+   sensitivity also gates eligibility to bonded/attested providers (hard constraint).
+3. **Time/deadline risk** — convex tardiness cost near the deadline, in addition to the hard
+   makespan constraint and per-node latency cap `λ_n^max`.
+4. **Verifiability** — how cheaply/deterministically the output can be checked; low verifiability
+   raises residual risk and pushes toward bond + reputation (see verification policy).
+5. **Provider correlation** — anti-concentration penalty / per-provider node cap to avoid
+   single-point-of-failure clearings.
+6. **DAG cascade criticality** — a node's risk is scaled by the downstream value it poisons on
+   failure (descendant value at risk), so bottleneck/high-fan-out nodes are priced as riskier.
+7. **Counterparty/settlement** — bond sufficiency and escrow solvency, enforced as hard feasibility
+   via the settlement-preflight twin.
+
+Only axes (1), (3-as-constraint), and (7-as-preflight) are active in v1; axes (2), (4), (5), (6) are
+defined here so the objective and constraint set are forward-compatible.
 
 ---
 

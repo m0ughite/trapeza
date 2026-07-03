@@ -10,6 +10,10 @@ export interface SolverProvider {
   claimedSuccessProb: number;
   claimedLatencyMs: number;
   calibration: CalibrationRecord;
+  /** Max nodes this provider can run concurrently (k_p). Default: unbounded. */
+  concurrency?: number;
+  /** Max USDC bond lockable across all assigned nodes (B_p). Default: unbounded. */
+  bondCapacityUsdc?: string;
 }
 
 export interface NodeAssignment {
@@ -18,10 +22,12 @@ export interface NodeAssignment {
   score: number;
 }
 
+export type SolverKind = "cp_sat" | "highs_milp" | "greedy_lns";
+
 export interface SolverResult {
   assignments: NodeAssignment[];
   objectiveValue: number;
-  solver: "highs_milp" | "greedy_lns";
+  solver: SolverKind;
 }
 
 export interface SolverInput {

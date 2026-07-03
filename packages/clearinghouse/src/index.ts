@@ -8,6 +8,7 @@ export {
   preflightSettlement,
   assertPreflight,
   formatPreflightSummary,
+  defaultSettlementState,
   fixtureSettlementState,
   ClearingError,
   type ClearinghouseOptions,
@@ -18,8 +19,19 @@ export type {
   NodeAssignment,
   SolverInput,
   SolverResult,
+  SolverKind,
 } from "./types.js";
 
 export { computeSchedule } from "./schedule.js";
-export { greedyAssign, lnsImprove } from "./score.js";
+export { greedyAssign, lnsImprove, meetsGlobalQuality } from "./score.js";
 export { betaSample, gammaSample } from "./twin/montecarlo.js";
+export {
+  solveCpSat,
+  simulateViaService,
+  solverHealthy,
+  buildSolveRequest,
+  buildSimulateRequest,
+  type CpSatResult,
+  type SimulateResult,
+  type SolverClientOptions,
+} from "./solver-client.js";

@@ -1,0 +1,15 @@
+{
+  "status": "optimal",
+  "objectiveValue": 2.2,
+  "assignments": [
+    { "nodeId": "n1", "providerId": "p1", "score": 1.3 },
+    { "nodeId": "n2", "providerId": "p2", "score": 0.9 }
+  ],
+  "schedule": [
+    { "nodeId": "n1", "startMs": 0, "durationMs": 100, "endMs": 100 },
+    { "nodeId": "n2", "startMs": 100, "durationMs": 200, "endMs": 300 }
+  ],
+  "shadowPrices": { "budget": "0.42", "deadline": "0.00", "capacity:p1": "0.00" },
+  "makespanMs": 300,
+  "solver": "cp_sat"
+}

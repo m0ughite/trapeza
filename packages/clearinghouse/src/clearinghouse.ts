@@ -1,29 +1,57 @@
 import {
   formatMicroToUsdc,
   parseUsdcToMicro,
+  type GraphClearing,
   type GraphClearinghouse,
+  type NodeSchedule,
   type StateSnapshotSource,
 } from "@trapeza/core";
 import { validateDag } from "./dag.js";
 import { solveGreedyLns, solveGreedyOnly } from "./greedy-lns.js";
 import { computeShadowPrices, solveMilp } from "./milp.js";
 import { computeSchedule } from "./schedule.js";
-import { preflightSettlement, assertPreflight, formatPreflightSummary } from "./twin/preflight.js";
-import { fixtureSettlementState } from "./twin/snapshot.js";
-import { ClearingError, type SolverProvider } from "./types.js";
+import { preflightSettlement } from "./twin/preflight.js";
+import { runMonteCarlo } from "./twin/montecarlo.js";
+import { defaultSettlementState, fixtureSettlementState } from "./twin/snapshot.js";
+import {
+  solveCpSat,
+  simulateViaService,
+  type SolverClientOptions,
+} from "./solver-client.js";
+import {
+  ClearingError,
+  type NodeAssignment,
+  type SolverKind,
+  type SolverProvider,
+} from "./types.js";
 
 export interface ClearinghouseOptions {
   providers: SolverProvider[];
   snapshot?: StateSnapshotSource;
   seed?: number;
-  /** Prefer MILP; fall back to greedy+LNS on failure. */
-  preferMilp?: boolean;
+  /**
+   * Prefer the Python CP-SAT Tier-1 solver (default true). On any failure —
+   * service down, timeout, contract-validation error, infeasible — the
+   * clearinghouse degrades to the in-process TS Tier-2 (greedy+LNS) so the demo
+   * runs even without Python (Amendment 3).
+   */
+  preferCpSat?: boolean;
+  /** Base URL of the Python solver service. Default env or localhost:8000. */
+  solverUrl?: string;
+  /** Solver/simulate request timeout (ms). Default 8000. */
+  solverTimeoutMs?: number;
+  /** State-Twins Monte Carlo robustness scoring (Amendment 1). Default: off. */
+  monteCarlo?: { enabled: boolean; iterations?: number };
 }
 
 export function createClearinghouse(
   options: ClearinghouseOptions,
 ): GraphClearinghouse {
   const seed = options.seed ?? 42;
+  const clientOpts: SolverClientOptions = {
+    baseUrl: options.solverUrl,
+    timeoutMs: options.solverTimeoutMs,
+  };
 
   return {
     async submitGraph(graph) {
@@ -35,34 +63,48 @@ export function createClearinghouse(
         seed,
       };
 
-      let solver: "highs_milp" | "greedy_lns" = "greedy_lns";
-      let assignments;
+      let solver: SolverKind = "greedy_lns";
+      let assignments: NodeAssignment[] | undefined;
       let objectiveValue = 0;
+      let degraded = false;
+      let cpSchedule: NodeSchedule[] | undefined;
+      let cpShadow: Record<string, string> | undefined;
+      let cpMakespan: number | undefined;
 
-      if (options.preferMilp !== false) {
+      const preferCpSat = options.preferCpSat !== false;
+      if (preferCpSat) {
         try {
-          const milp = await solveMilp(input);
-          assignments = milp.assignments;
-          objectiveValue = milp.objectiveValue;
-          solver = "highs_milp";
-        } catch (e) {
-          if (e instanceof ClearingError && e.code === "NO_PROVIDER") throw e;
-          const greedy = solveGreedyLns(input);
-          assignments = greedy.assignments;
-          objectiveValue = greedy.objectiveValue;
-          solver = "greedy_lns";
+          const cp = await solveCpSat(input, clientOpts);
+          assignments = cp.assignments;
+          objectiveValue = cp.objectiveValue;
+          cpSchedule = cp.schedule;
+          cpShadow = cp.shadowPricesUsdc;
+          cpMakespan = cp.makespanMs;
+          solver = "cp_sat";
+        } catch {
+          // Degrade to TS Tier-2. Solver-level infeasibility that a capability
+          // gap causes will re-surface as NO_PROVIDER from greedy below.
+          degraded = true;
         }
-      } else {
+      }
+
+      if (!assignments) {
         const greedy = solveGreedyLns(input);
         assignments = greedy.assignments;
         objectiveValue = greedy.objectiveValue;
+        solver = "greedy_lns";
       }
 
-      const { schedule, makespanMs } = computeSchedule(
-        graph,
-        assignments,
-        options.providers,
-      );
+      let schedule: NodeSchedule[];
+      let makespanMs: number;
+      if (cpSchedule && cpMakespan !== undefined) {
+        schedule = cpSchedule;
+        makespanMs = cpMakespan;
+      } else {
+        const s = computeSchedule(graph, assignments, options.providers);
+        schedule = s.schedule;
+        makespanMs = s.makespanMs;
+      }
 
       if (makespanMs > graph.globalDeadlineMs) {
         throw new ClearingError(
@@ -73,23 +115,35 @@ export function createClearinghouse(
 
       const snapshot = options.snapshot
         ? await options.snapshot.getSettlementState()
-        : fixtureSettlementState({
-            requesterBalanceMicro: parseUsdcToMicro(graph.globalBudgetUsdc) * 2n,
-          });
+        : defaultSettlementState(input, assignments);
 
+      // Preflight is ENFORCED (bug #3): a clearing that would overdraw the
+      // requester or over-commit a bond never settles.
       const preflight = preflightSettlement(snapshot, input, assignments);
-
-      const budgetMicro = parseUsdcToMicro(graph.globalBudgetUsdc);
-      let shadowBudgetDual = 0;
-      try {
-        const sp = await computeShadowPrices(
-          graph,
-          options.providers,
-          budgetMicro,
+      if (!preflight.passed) {
+        throw new ClearingError(
+          `preflight failed: ${preflight.errors.join("; ")}`,
+          "PREFLIGHT_FAILED",
         );
-        shadowBudgetDual = sp.budgetDual;
-      } catch {
-        /* display-only */
+      }
+
+      let shadowPricesUsdc: Record<string, string>;
+      if (cpShadow) {
+        shadowPricesUsdc = cpShadow;
+      } else {
+        const budgetMicro = parseUsdcToMicro(graph.globalBudgetUsdc);
+        let shadowBudgetDual = 0;
+        try {
+          const sp = await computeShadowPrices(
+            graph,
+            options.providers,
+            budgetMicro,
+          );
+          shadowBudgetDual = sp.budgetDual;
+        } catch {
+          /* display-only */
+        }
+        shadowPricesUsdc = { budget: String(shadowBudgetDual) };
       }
 
       const allocations = assignments.map((a) => {
@@ -114,13 +168,11 @@ export function createClearinghouse(
         totalMicro += settle;
       }
 
-      return {
+      const clearing: GraphClearing = {
         graphId: graph.id,
         allocations,
         schedule,
-        shadowPricesUsdc: {
-          budget: String(shadowBudgetDual),
-        },
+        shadowPricesUsdc,
         settlementPricesUsdc,
         totalClearedUsdc: formatMicroToUsdc(totalMicro),
         meta: {
@@ -129,8 +181,28 @@ export function createClearinghouse(
           makespanMs,
           seed,
           preflightPassed: preflight.passed,
+          degraded,
         },
       };
+
+      if (options.monteCarlo?.enabled) {
+        const iterations = options.monteCarlo.iterations ?? 500;
+        try {
+          const sim = await simulateViaService(
+            input,
+            assignments,
+            iterations,
+            seed,
+            clientOpts,
+          );
+          clearing.twinSimulation = { ...sim, engine: "python" };
+        } catch {
+          const mc = runMonteCarlo(input, assignments, iterations, seed);
+          clearing.twinSimulation = { ...mc, engine: "ts" };
+        }
+      }
+
+      return clearing;
     },
   };
 }
@@ -138,6 +210,10 @@ export function createClearinghouse(
 export { solveGreedyOnly, solveGreedyLns, solveMilp };
 export { computeShadowPrices } from "./milp.js";
 export { runMonteCarlo } from "./twin/montecarlo.js";
-export { preflightSettlement, assertPreflight, formatPreflightSummary } from "./twin/preflight.js";
-export { fixtureSettlementState } from "./twin/snapshot.js";
+export {
+  preflightSettlement,
+  assertPreflight,
+  formatPreflightSummary,
+} from "./twin/preflight.js";
+export { defaultSettlementState, fixtureSettlementState } from "./twin/snapshot.js";
 export { ClearingError } from "./types.js";

@@ -162,6 +162,12 @@ Never log secrets, private keys, or `.env` contents.
 - `npm test` → 42/42 pass
 - `npm run typecheck` → exit 0
 
+> **[RETRACTED 2026-07-03 — see consolidation entry below]** The "TS-only" framing and the
+> `ALGORITHMIC-SPEC.md TS-only header` claim are superseded: the ratified boundary is polyglot
+> (TS orchestrator/oracle + Python OR-Tools CP-SAT Tier-1 over FastAPI + TS HiGHS/greedy Tier-2).
+> The clean-checkout `npm test` count logged here was also **not reproducible without a prior
+> `tsc -b`** (see CONSOLIDATION-PLAN.md §1.1); the C0 vitest-alias fix makes clean `npm test` honest.
+
 ### Notes
 - HiGHS WASM via `highs/runtime`; engine never reads private keys; twin uses injected snapshot
 
@@ -225,6 +231,11 @@ Never log secrets, private keys, or `.env` contents.
 - `npm run typecheck` → pass
 - `npm run test:coverage` → **51/51** pass; **94.44%** statements, **77.83%** branches; `montecarlo.ts` **98.4%**, `clearinghouse.ts` **82.52%**
 
+> **[RETRACTED 2026-07-03]** The "51/51 pass" figure was **build-dependent** — reproducible only
+> after a manual `tsc -b`. On a clean checkout (no prior build) `npm test` loaded 0 tests for 9/14
+> suites and only 19 ran (CONSOLIDATION-PLAN.md §1.1). Fixed in C0 (vitest src aliases). Current
+> honest counts are in the 2026-07-03 consolidation entry below.
+
 ---
 
 ## 2026-06-29 — mindsmith — assisted — clearinghouse-demo
@@ -246,5 +257,56 @@ Never log secrets, private keys, or `.env` contents.
 - `npm run demo` → all six sections print; greedy `NO_PROVIDER` on bake-off; `deadlineBreachProbability` **12.2%** (non-degenerate)
 - `npm run typecheck` → pass
 - `npm run test:coverage` → **51/51** pass (no regression)
+
+> **[RETRACTED 2026-07-03]** Same build-dependent "51/51" caveat as above. See the consolidation
+> entry below for the current clean-checkout counts (TS 57 pass, Python 14 pass).
+
+---
+
+## 2026-07-03 — consolidation — assisted — python-cpsat-boundary + docs reconciliation (C0–C5)
+
+**Branch:** `feature/deterministic-part`
+**Mode:** assisted
+**Scope:** finish the approved CONSOLIDATION-PLAN (C0–C5) after a mid-flight crash; restore the
+polyglot Python/OR-Tools boundary; reconcile docs; verify honestly.
+
+### Done
+- **C0 (harness honesty):** verified the `vitest.config.ts` src aliases for `@trapeza/clearinghouse`
+  + `@trapeza/oracle` make a **clean, no-build `npm test`** load all 15 suites; `typecheck` script
+  now includes `oracle` + `clearinghouse`.
+- **C1 (enforce):** confirmed `assertPreflight`/preflight enforced in `submitGraph` (throws
+  `PREFLIGHT_FAILED`); 2×-budget fixture removed; bond decremented (`Σ bond ≤ B_p`); per-node +
+  global quality floors in greedy/LNS (`meetsGlobalQuality`, LNS repair floor); CP-SAT ≥ Tier-2
+  objective assertion present.
+- **C2 (Python CP-SAT Tier-1):** `solver/` FastAPI service implements the full §5.4 model (assignment,
+  budget, DAG precedence/makespan, per-node + global log-quality, latency caps, bond capacity, RCPSP
+  concurrency via cumulative intervals) + GLOP LP-dual shadow prices; TS `solver-client.ts` validates
+  both directions against the ONE shared `contract/solver-contract.schema.json` and degrades to TS
+  Tier-2 on any failure.
+- **Amendment 1 (Monte Carlo shipped-and-flagged):** Python NumPy `/simulate` + TS in-process fallback,
+  gated by `monteCarlo: { enabled }`, tested both engine paths.
+- **C3 (docs):** inserted §4.1 risk taxonomy into `ALGORITHMIC-SPEC.md` (+ `useDefaults:false` fix);
+  §5.3.1 risk taxonomy + §6.1.1 oracle dispute-ladder note into `SOURCE-OF-TRUTH.md`; retracted the
+  build-dependent "51/51" and "TS-only" claims above.
+- **C4 (demo):** bake-off is CP-SAT (Python) vs greedy+LNS (TS); Monte Carlo behind the flag.
+- **Hygiene:** `.gitignore` now excludes `solver/.venv/`, `__pycache__/`, `.pytest_cache/`, `*.pyc`.
+
+### Files
+- `.gitignore`, `ALGORITHMIC-SPEC.md`, `SOURCE-OF-TRUTH.md`, `ACTIVITY-LOG.md`, `IMPLEMENTATION-LOG.md`
+- (verified, mostly pre-existing from the crashed run) `solver/**`, `contract/**`,
+  `packages/clearinghouse/src/solver-client.ts`, `packages/clearinghouse/test/cpsat-integration.test.ts`
+
+### Verification (clean checkout, no prior build)
+- `npm test` → **57 passed (15 files)** with the Python service UP (the 4 live CP-SAT tests run);
+  **53 passed / 4 skipped** with the service down (degradation path still green).
+- `npm run typecheck` → exit 0
+- `cd solver && .venv/bin/python -m pytest -q` → **14 passed**
+- `npm run demo` → all 6 beats; bake-off shows greedy `NO_PROVIDER` where CP-SAT clears (obj 1.2849);
+  Monte Carlo via Python engine; preflight rejects the under-funded plan.
+
+### Notes
+- Deviation from CONSOLIDATION-PLAN §3.3: risk is carried as resolved per-`(node,provider)`
+  `candidates[].score` computed once in TS (not `riskMicro` on the provider) — economically correct
+  and DRY (documented in `contract/README.md`). No commits made; user reviews first.
 
 ---

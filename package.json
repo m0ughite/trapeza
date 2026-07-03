@@ -14,7 +14,12 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
-    "typecheck": "tsc -b packages/core packages/adapter-arc packages/adapter-gateway",
+    "typecheck": "tsc -b packages/core packages/oracle packages/clearinghouse packages/adapter-arc packages/adapter-gateway",
+    "demo": "tsx --tsconfig demo/tsconfig.json demo/run-clearing.ts",
+    "solver:install": "python3.12 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt",
+    "solver": "cd solver && .venv/bin/python -m uvicorn trapeza_solver.app:app --host 127.0.0.1 --port 8000",
+    "solver:test": "cd solver && .venv/bin/python -m pytest -q",
+    "test:all": "npm run typecheck && npm test && npm run solver:test",
     "spike:nanopayment": "tsx packages/adapter-gateway/scripts/spike-nanopayment.ts",
     "spike:erc8004": "tsx packages/adapter-arc/scripts/spike-erc8004-identity.ts"
   },

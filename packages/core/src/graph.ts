@@ -41,11 +41,25 @@ export interface NodeSchedule {
 
 /** Solver metadata returned with a clearing. */
 export interface ClearingMeta {
-  solver: "highs_milp" | "greedy_lns";
+  solver: "cp_sat" | "highs_milp" | "greedy_lns";
   objectiveValue: number;
   makespanMs: number;
   seed?: number;
   preflightPassed: boolean;
+  /** True when the primary Python CP-SAT path was used; false on TS degrade. */
+  degraded?: boolean;
+}
+
+/** State-Twins Monte Carlo robustness scoring (Amendment 1; flag-gated). */
+export interface TwinSimulation {
+  failureProbability: number;
+  budgetOverrunProbability: number;
+  deadlineBreachProbability: number;
+  expectedNetCostUsdc: number;
+  seed: number;
+  iterations: number;
+  /** Where the simulation ran: Python service or in-process TS fallback. */
+  engine: "python" | "ts";
 }
 
 /** The result of clearing a graph: per-node allocation plus pricing. */
@@ -59,6 +73,8 @@ export interface GraphClearing {
   settlementPricesUsdc: Record<string, string>;
   totalClearedUsdc: string;
   meta: ClearingMeta;
+  /** Optional Monte Carlo twin output when the feature flag is enabled. */
+  twinSimulation?: TwinSimulation;
 }
 
 /** Read-only on-chain settlement snapshot for the state twin (injected). */

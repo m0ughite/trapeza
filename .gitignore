@@ -13,6 +13,12 @@ dist/
 build/
 *.tsbuildinfo
 
+# python solver (never commit the venv or caches)
+solver/.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
 # logs
 *.log
 npm-debug.log*

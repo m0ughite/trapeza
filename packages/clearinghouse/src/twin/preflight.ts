@@ -45,19 +45,24 @@ export function preflightSettlement(
     }
     requester -= fee;
 
+    // Remaining bond capacity for this provider. We DECREMENT it as each node's
+    // bond is locked (bug #5): a provider assigned to several nodes must not
+    // over-commit its capacity, i.e. Σ_n bond_n ≤ B_p. The available balance
+    // carries across nodes so aggregate over-commitment is caught.
     const provBond = bonds[a.providerId] ?? 0n;
     if (bond > provBond) {
       errors.push(`insufficient bond for ${a.providerId} on ${a.nodeId}`);
     }
+    bonds[a.providerId] = provBond - bond;
 
-    if (passed) {
-      bonds[a.providerId] = provBond;
-    } else {
+    if (!passed) {
+      // Slash: requester is made whole (fee refunded + bond redirected).
       requester += fee + bond;
-      bonds[a.providerId] = provBond - bond;
       if (bonds[a.providerId]! < 0n) {
         errors.push(`negative bond after slash ${a.providerId}`);
       }
+    } else if (bonds[a.providerId]! < 0n) {
+      errors.push(`bond capacity exceeded for ${a.providerId}`);
     }
   }
 

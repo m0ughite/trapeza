@@ -14,9 +14,10 @@ import {
   createClearinghouse,
   formatPreflightSummary,
   preflightSettlement,
-  runMonteCarlo,
-  solveGreedyOnly,
+  solveCpSat,
+  solveGreedyLns,
   solveMilp,
+  solverHealthy,
   type SolverProvider,
 } from "@trapeza/clearinghouse";
 import {
@@ -94,6 +95,13 @@ async function main(): Promise<void> {
 
   // ── 3. Clearing ──────────────────────────────────────────────────────────
   section("3. Clearing — submitGraph end to end");
+  const serviceUp = await solverHealthy();
+  console.log(
+    serviceUp
+      ? "  Python CP-SAT solver service: UP (Tier-1 primary path)."
+      : "  Python CP-SAT solver service: DOWN → degrading to TS greedy+LNS (Tier-2).",
+  );
+  console.log("");
   const ch = createClearinghouse({
     providers: workflowProviders,
     seed: DEMO_SEED,
@@ -130,8 +138,16 @@ async function main(): Promise<void> {
   );
   console.log("");
   kv("total cleared", `$${clearing.totalClearedUsdc}`);
-  kv("shadow price (budget)", clearing.shadowPricesUsdc.budget ?? "0");
-  kv("solver", clearing.meta.solver);
+  console.log("");
+  table(
+    ["shadow price", "value"],
+    Object.entries(clearing.shadowPricesUsdc).map(([k, v]) => [k, v]),
+  );
+  console.log("");
+  kv(
+    "solver",
+    `${clearing.meta.solver}${clearing.meta.degraded ? " (degraded from CP-SAT)" : ""}`,
+  );
   kv("objective value", clearing.meta.objectiveValue.toFixed(4));
   kv("makespan", `${clearing.meta.makespanMs} ms`);
   kv("preflight passed", clearing.meta.preflightPassed);
@@ -142,11 +158,11 @@ async function main(): Promise<void> {
   });
 
   // ── 4. Bake-off ──────────────────────────────────────────────────────────
-  section("4. Bake-off — MILP vs greedy on budget-vs-bottleneck");
+  section("4. Bake-off — CP-SAT (Python Tier-1) vs greedy+LNS (TS Tier-2)");
   printGraph(budgetBottleneckGraph);
   console.log("");
   console.log(
-    "  Greedy overspends on the easy logo step and cannot afford the bottleneck.",
+    "  Greedy+LNS overspends on the easy logo step and cannot afford the bottleneck.",
   );
 
   const bakeInput = {
@@ -157,8 +173,8 @@ async function main(): Promise<void> {
   };
 
   try {
-    const greedy = solveGreedyOnly(bakeInput);
-    kv("greedy objective", greedy.objectiveValue.toFixed(4));
+    const greedy = solveGreedyLns(bakeInput);
+    kv("greedy+LNS objective", greedy.objectiveValue.toFixed(4));
     table(
       ["node", "provider", "score"],
       greedy.assignments.map((a) => [
@@ -169,38 +185,72 @@ async function main(): Promise<void> {
     );
   } catch (e) {
     if (e instanceof ClearingError) {
-      kv("greedy result", `${e.code}: ${e.message}`);
+      kv("greedy+LNS result", `${e.code}: ${e.message}`);
     } else {
-      kv("greedy result", String(e));
+      kv("greedy+LNS result", String(e));
     }
   }
 
-  const milp = await solveMilp(bakeInput);
-  kv("MILP objective", milp.objectiveValue.toFixed(4));
-  table(
-    ["node", "provider", "score"],
-    milp.assignments.map((a) => [a.nodeId, a.providerId, a.score.toFixed(4)]),
+  console.log("");
+  if (serviceUp) {
+    const cp = await solveCpSat(bakeInput);
+    kv("CP-SAT objective (Python)", cp.objectiveValue.toFixed(4));
+    table(
+      ["node", "provider", "score"],
+      cp.assignments.map((a) => [a.nodeId, a.providerId, a.score.toFixed(4)]),
+    );
+    console.log("");
+    console.log(
+      "  CP-SAT sees the whole graph: cheap-logo + mid-code, both under $1.00.",
+    );
+  } else {
+    const milp = await solveMilp(bakeInput);
+    kv("TS HiGHS stand-in objective", milp.objectiveValue.toFixed(4));
+    table(
+      ["node", "provider", "score"],
+      milp.assignments.map((a) => [a.nodeId, a.providerId, a.score.toFixed(4)]),
+    );
+    console.log("");
+    console.log(
+      "  Python service down → TS HiGHS stand-in clears cheap-logo + mid-code.",
+    );
+  }
+
+  // ── 5. Twin Monte Carlo (feature-flagged) ─────────────────────────────────
+  section("5. Twin Monte Carlo — flagged robustness scoring on the cleared plan");
+  console.log(
+    "  Enabled via `monteCarlo: { enabled: true }` on the clearinghouse.",
+  );
+  console.log(
+    serviceUp
+      ? "  Engine: Python/NumPy (vectorized) when the service is up."
+      : "  Engine: in-process TS fallback (service down).",
   );
   console.log("");
-  console.log(
-    "  MILP picks cheap-logo + mid-code — both steps covered under $1.00.",
-  );
-
-  // ── 5. Twin Monte Carlo ──────────────────────────────────────────────────
-  section("5. Twin Monte Carlo — stochastic risk on the cleared plan");
-  const mcInput = {
-    graph: workflowGraphTightDeadline,
-    providers: workflowProviders,
-    riskAversion: 1,
-    seed: DEMO_SEED,
-  };
   kv("deadline (tight)", `${workflowGraphTightDeadline.globalDeadlineMs} ms`);
-  const mc = runMonteCarlo(mcInput, assignments, 500, DEMO_SEED);
-  kv("failure probability", fmtPct(mc.failureProbability));
-  kv("budget overrun probability", fmtPct(mc.budgetOverrunProbability));
-  kv("deadline breach probability", fmtPct(mc.deadlineBreachProbability));
-  kv("expected net cost", fmtUsdc(mc.expectedNetCostUsdc));
-  kv("iterations", mc.iterations);
+  const mcCh = createClearinghouse({
+    providers: workflowProviders,
+    seed: DEMO_SEED,
+    snapshot: {
+      getSettlementState: async () => fundedSnapshot(workflowProviders),
+    },
+    monteCarlo: { enabled: true, iterations: 500 },
+  });
+  try {
+    const mcClearing = await mcCh.submitGraph(workflowGraphTightDeadline);
+    const mc = mcClearing.twinSimulation;
+    if (mc) {
+      kv("twin engine", mc.engine);
+      kv("failure probability", fmtPct(mc.failureProbability));
+      kv("budget overrun probability", fmtPct(mc.budgetOverrunProbability));
+      kv("deadline breach probability", fmtPct(mc.deadlineBreachProbability));
+      kv("expected net cost", fmtUsdc(mc.expectedNetCostUsdc));
+      kv("iterations", mc.iterations);
+    }
+  } catch (e) {
+    const msg = e instanceof ClearingError ? `${e.code}: ${e.message}` : String(e);
+    kv("clearing (tight deadline)", msg);
+  }
 
   // ── 6. Preflight guard ───────────────────────────────────────────────────
   section("6. Preflight guard — twin rejects under-funded plan");
@@ -210,7 +260,12 @@ async function main(): Promise<void> {
   console.log("");
   const badPreflight = preflightSettlement(
     underFundedSnapshot(workflowProviders),
-    mcInput,
+    {
+      graph: workflowGraph,
+      providers: workflowProviders,
+      riskAversion: 1,
+      seed: DEMO_SEED,
+    },
     assignments,
   );
   kv("preflight passed", badPreflight.passed);
