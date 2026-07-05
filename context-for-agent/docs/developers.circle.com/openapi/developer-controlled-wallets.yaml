@@ -1,0 +1,3503 @@
+openapi: 3.0.3
+info:
+  version: '1.0'
+  title: Developer-Controlled Wallets
+  description: Developer-Controlled Wallets API documentation.
+servers:
+  - url: https://api.circle.com
+security:
+  - BearerAuth: []
+tags:
+  - name: Wallet Sets
+  - name: Wallets
+  - name: Signing
+  - name: Transactions
+  - name: Token Lookup
+paths:
+  /v1/w3s/walletSets:
+    get:
+      tags:
+        - Wallet Sets
+      summary: Get all wallet sets
+      description: Retrieve an array of existing wallet sets.
+      operationId: getWalletSets
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Successfully retrieved wallet sets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSets'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/walletSets/{id}:
+    get:
+      tags:
+        - Wallet Sets
+      summary: Get a wallet set
+      description: Retrieve an existing wallet set.
+      operationId: getWalletSet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Successfully retrieved wallet set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSetResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/walletSets:
+    post:
+      tags:
+        - Wallet Sets
+      summary: Create a new wallet set
+      description: >
+        Creates a new developer-controlled wallet set.
+
+
+        **Note:** A developer account can create up to 1,000 wallet sets, with
+        each set supporting up to 10 million wallets.
+
+        To ensure EVM wallets are created with the same address across chains,
+        see [Unified Wallet Addressing on EVM
+        Chains](/w3s/unified-wallet-addressing-evm).
+      operationId: createWalletSet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateWalletSet'
+      responses:
+        '200':
+          description: Wallet set already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSetResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          description: Successfully created wallet set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSetResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/developer/walletSets/{id}:
+    put:
+      tags:
+        - Wallet Sets
+      summary: Update a wallet set
+      description: Update the name of the wallet set
+      operationId: updateWalletSet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateWalletSet'
+      responses:
+        '200':
+          description: Successfully updated wallet set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSetResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/wallets:
+    post:
+      tags:
+        - Wallets
+      summary: Create wallets
+      description: >
+        Creates a new developer-controlled wallet or a batch of wallets within a
+        wallet set, given the target blockchain and wallet name.
+
+
+        **Note:** Each `walletSetId` supports a maximum of 10 million wallets.
+      operationId: createWallet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateWallet'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallets'
+          description: >-
+            Returns the existing wallet(s) if the idempotency key matches a
+            previous successful request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallets'
+          description: Successfully created the wallet(s).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/wallets:
+    get:
+      tags:
+        - Wallets
+      summary: List wallets
+      description: Retrieves a list of all wallets that fit the specified parameters.
+      operationId: getWallets
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WalletAddress'
+        - $ref: '#/components/parameters/Blockchain'
+        - $ref: '#/components/parameters/ScaCore'
+        - $ref: '#/components/parameters/WalletSetId'
+        - $ref: '#/components/parameters/ReferenceId'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Order'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Successfully retrieved wallets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallets'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/wallets/{id}:
+    get:
+      tags:
+        - Wallets
+      summary: Retrieve a wallet
+      description: Retrieve an existing wallet
+      operationId: getWallet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Successfully retrieved wallet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Wallets
+      summary: Update a wallet
+      description: Updates info metadata of a wallet.
+      operationId: updateWallet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateWallet'
+      responses:
+        '200':
+          description: Successfully updated wallet metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/wallets/balances:
+    get:
+      tags:
+        - Wallets
+      summary: List wallets with balances
+      description: >-
+        Retrieves a list of all wallets that match the specified parameters.
+        Wallet balances update automatically after each transfer.
+
+
+        **Note**: On Aptos, this endpoint only returns balances for tokens
+        stored in primary storage. Tokens held in
+        [AIP-21](https://github.com/aptos-labs/aptos-core/releases/tag/aptos-node-v1.5.0)
+        secondary storage are excluded from balance queries and deposit
+        notifications to prevent incorrect or misleading results from secondary
+        storage-based state changes.
+      operationId: getWalletsWithBalances
+      security:
+        - BearerAuth: []
+      parameters:
+        - description: Filter by blockchain.
+          name: blockchain
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Blockchain'
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/WalletAddress'
+        - $ref: '#/components/parameters/ScaCore'
+        - $ref: '#/components/parameters/WalletSetId'
+        - $ref: '#/components/parameters/ReferenceId'
+        - $ref: '#/components/parameters/AmountGte'
+        - $ref: '#/components/parameters/TokenAddress'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Successfully retrieved wallets with balances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletsWithBalances'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/developer/wallets/derive:
+    put:
+      tags:
+        - Wallets
+      summary: Derive wallet by address
+      description: >-
+        Creates a wallet on the target blockchain using the same address as the
+        source wallet identified by source blockchain and wallet address. If the
+        target wallet already exists, its metadata is updated.
+      operationId: deriveWalletByAddress
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/DeriveWalletByAddress'
+      responses:
+        '200':
+          description: Successfully updated the metadata for an existing wallet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          description: The derived wallet was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/sign/message:
+    post:
+      tags:
+        - Signing
+      summary: Sign message
+      description: >
+        Sign a message from a specified developer-controlled wallet. This
+        endpoint supports message signing for Ethereum-based blockchains (using
+        EIP-191), Solana and Aptos (using Ed25519 signatures). Note that Smart
+        Contract Accounts (SCA) are specific to Ethereum and EVM-compatible
+        chains. The difference between Ethereum's EOA and SCA can be found in
+        the [account types
+        guide](https://developers.circle.com/wallets/account-types). You can
+        also check the list of Ethereum Dapps that support SCA:
+        https://eip1271.io/."
+
+
+        You must provide either a `walletId` or a `walletAddress` and
+        `blockchain` pair in the request body.
+      operationId: signMessage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/SignMessage'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+          description: Successfully signed a message.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/sign/typedData:
+    post:
+      tags:
+        - Signing
+      summary: Sign typed data
+      description: >-
+        | Sign the EIP-712 typed structured data from a specified
+        developer-controlled wallet.
+
+        You must provide either a `walletId` or a `walletAddress` and
+        `blockchain` pair in the request body.
+
+        This endpoint only supports Ethereum and EVM-compatible blockchains.
+        Please note that not all apps currently support Smart Contract Accounts
+        (SCA); the difference between Ethereum's EOA and SCA can be found in the
+        [account types
+        guide](https://developers.circle.com/wallets/account-types). You can
+        also check the list of Ethereum apps that support SCA:
+        https://eip1271.io/.
+      operationId: signTypedData
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/SignTypedData'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+          description: Successfully signed a message.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/sign/transaction:
+    post:
+      tags:
+        - Signing
+      summary: Sign transaction
+      description: >
+        Sign a transaction from a specific developer-controlled wallet.
+
+
+        You must provide either a `walletId` or a `walletAddress` and
+        `blockchain` pair in the request body.
+
+
+        NOTE: This endpoint is only available for the following chains: `SOL`,
+        `SOL-DEVNET`, `NEAR`, `NEAR-TESTNET`, `EVM`, `EVM-TESTNET`. Each chain
+        defines its own standard, please refer to [Signing APIs
+        doc](https://learn.circle.com/w3s/signing-apis).
+      operationId: signTransaction
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/SignTransaction'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignTransactionResponse'
+          description: Successfully signed a transaction.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/sign/delegateAction:
+    post:
+      tags:
+        - Signing
+      summary: Sign delegate action
+      description: |-
+        Sign a delegate action from a specific developer-controlled wallet.
+
+        NOTE: This endpoint is only available for NEAR and NEAR-TESTNET.
+      operationId: signDelegateAction
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/SignDelegateAction'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignDelegateActionResponse'
+          description: Successfully signed a delegate action.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: List transactions
+      security:
+        - BearerAuth: []
+      description: >-
+        Lists all transactions. Includes details such as status,
+        source/destination, and transaction hash.
+      operationId: listTransactions
+      parameters:
+        - $ref: '#/components/parameters/Blockchain'
+        - $ref: '#/components/parameters/CustodyType'
+        - $ref: '#/components/parameters/DestinationAddress'
+        - $ref: '#/components/parameters/IncludeAll'
+        - $ref: '#/components/parameters/DeveloperOperation'
+        - $ref: '#/components/parameters/TransactionState'
+        - $ref: '#/components/parameters/TransactionHash'
+        - $ref: '#/components/parameters/TransactionType'
+        - $ref: '#/components/parameters/WalletIds'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Order'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transactions'
+          description: Transactions retrieved
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      summary: Get a transaction
+      description: Retrieves info for a single transaction using it's unique identifier.
+      operationId: getTransaction
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/TransactionType'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transaction retrieved
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/transactions/lowestNonceTransaction:
+    get:
+      tags:
+        - Transactions
+      summary: Get the lowest nonce pending transaction for a wallet
+      description: >-
+        For a nonce-supported blockchain, get the lowest nonce transaction
+        that's in QUEUED or SENT or STUCK state for the provided wallet.
+      operationId: getLowestNonceTransaction
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Blockchain'
+        - $ref: '#/components/parameters/WalletAddress'
+        - $ref: '#/components/parameters/WalletId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetLowestNonceTransactionResponse'
+          description: The lowest nonce transaction is fetched
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '204':
+          description: no corresponding transaction
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/developer/transactions/feeParameters:
+    get:
+      tags:
+        - Transactions
+      summary: Get fee parameters of a blockchain
+      description: >-
+        Get latest fee parameters of a blockchain with an optional account type
+        (default to 'EOA').
+      operationId: getFeeParameters
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Blockchain'
+        - $ref: '#/components/parameters/AccountType'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeParametersResponse'
+          description: Fee parameters retrieved
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+  /v1/w3s/developer/transactions/transfer:
+    post:
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      summary: Create a transfer transaction
+      description: >
+        Initiates an on-chain digital asset transfer from a specified
+        developer-controlled wallet.
+
+
+        You must provide either a `walletId` or a `walletAddress` and
+        `blockchain` pair in the request body.
+      operationId: createDeveloperTransactionTransfer
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTransferTransactionForDeveloper'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateTransferTransactionForDeveloperResponse
+          description: >-
+            Returns the existing transaction if the idempotency key matches a
+            previous successful request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateTransferTransactionForDeveloperResponse
+          description: A new transaction is created
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/wallets/{id}/balances:
+    get:
+      tags:
+        - Wallets
+      summary: Get token balance for a wallet
+      description: >-
+        Fetches the digital asset balance for a single developer-controlled
+        wallet using its unique identifier.
+
+
+        **Note**: On Aptos, this endpoint only returns balances for tokens
+        stored in primary storage. Tokens held in
+        [AIP-21](https://github.com/aptos-labs/aptos-core/releases/tag/aptos-node-v1.5.0)
+        secondary storage are excluded from balance queries and deposit
+        notifications to prevent incorrect or misleading results from secondary
+        storage-based state changes.
+      operationId: listWalletBalance
+      security:
+        - BearerAuth: []
+      parameters:
+        - description: Wallet ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IncludeAll'
+        - $ref: '#/components/parameters/TokenName'
+        - $ref: '#/components/parameters/TokenAddress'
+        - $ref: '#/components/parameters/TokenStandard'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balances'
+          description: Success
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/wallets/{id}/blockchains/{blockchain}:
+    put:
+      tags:
+        - Wallets
+      summary: Derive a wallet
+      description: >-
+        Derives an EOA (Externally Owned Account) or SCA (Smart Contract
+        Account) wallet using the address of the specified wallet and
+        blockchain. If the target wallet already exists, its metadata will be
+        updated with the provided metadata. This operation is only supported for
+        EVM-based blockchains.
+      operationId: deriveWallet
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+        - description: The unique identifier of the blockchains.
+          name: blockchain
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EvmBlockchain'
+      requestBody:
+        $ref: '#/components/requestBodies/DeriveWallet'
+      responses:
+        '200':
+          description: Successfully updated the metadata for an existing wallet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          description: The derived wallet was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/tokens/{id}:
+    get:
+      tags:
+        - Token Lookup
+      summary: Get token details
+      description: >-
+        Fetches details of a specific token given its unique identifier. Every
+        token in your network of wallets has a UUID associated with it,
+        regardless of whether it's already recognized or was added as a
+        monitored token.
+      operationId: getTokenId
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: Token found
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/wallets/{id}/nfts:
+    get:
+      tags:
+        - Wallets
+      summary: Get NFTs for a wallet
+      description: >-
+        Fetches the info for all NFTs stored in a single developer-controlled
+        wallet, using the wallets unique identifier.
+      operationId: listWalletNfts
+      security:
+        - BearerAuth: []
+      parameters:
+        - description: Wallet ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IncludeAll'
+        - $ref: '#/components/parameters/TokenName'
+        - $ref: '#/components/parameters/TokenAddress'
+        - $ref: '#/components/parameters/TokenStandard'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Nfts'
+          description: Success
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/transactions/validateAddress:
+    post:
+      tags:
+        - Transactions
+      summary: Validate an address
+      description: >-
+        Confirms that a specified address is valid for a given token on a
+        certain blockchain.
+      operationId: createValidateAddress
+      security:
+        - BearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/ValidateAddress'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateAddress'
+          description: Address validated
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+  /v1/w3s/transactions/contractExecution/estimateFee:
+    post:
+      tags:
+        - Transactions
+      summary: Estimate fee for a contract execution transaction
+      description: >-
+        Estimates gas fees that will be incurred for a contract execution
+        transaction, given its ABI parameters and blockchain.
+      operationId: createTransactionEstimateFee
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/EstimateContractExecutionTransactionFee'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstimateTransactionFee'
+          description: Transaction fee estimated
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/transactions/transfer/estimateFee:
+    post:
+      tags:
+        - Transactions
+      summary: Estimate fee for a transfer transaction
+      description: >-
+        Estimates gas fees that will be incurred for a transfer transaction;
+        given its amount, blockchain, and token.
+      operationId: createTransferEstimateFee
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/EstimateTransferTransactionFee'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstimateTransactionFee'
+          description: Transaction fee estimated
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/transactions/contractExecution:
+    post:
+      tags:
+        - Transactions
+      summary: Create a contract execution transaction
+      description: >
+        Creates a transaction which executes a smart contract. ABI parameters
+        must be passed in the request.
+
+        Related transactions may be submitted as a batch transaction in a single
+        call.
+
+
+        You must provide either a `walletId` or a `walletAddress` and
+        `blockchain` pair in the request body.
+      operationId: createDeveloperTransactionContractExecution
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: >-
+          #/components/requestBodies/CreateContractExecutionTransactionForDeveloper
+      responses:
+        '200':
+          description: >-
+            Returns the existing transaction if the idempotency key matches a
+            previous successful request.
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateContractExecutionTransactionForDeveloper
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          description: A new transaction is created
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateContractExecutionTransactionForDeveloper
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/transactions/walletUpgrade:
+    post:
+      tags:
+        - Transactions
+      summary: Create a wallet upgrade transaction
+      description: Creates a transaction which upgrades a wallet.
+      operationId: createDeveloperTransactionWalletUpgrade
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateWalletUpgradeTransactionForDeveloper'
+      responses:
+        '200':
+          description: >-
+            Returns the existing transaction if the idempotency key matches a
+            previous successful request.
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateWalletUpgradeTransactionForDeveloper
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          description: A new transaction is created
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CreateWalletUpgradeTransactionForDeveloper
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/transactions/{id}/cancel:
+    post:
+      tags:
+        - Transactions
+      summary: Cancel a transaction
+      description: >
+        Cancels a specified transaction from a developer-controlled wallet. Gas
+        fees may still be incurred. 
+
+        This is a best-effort operation, it won't be effective if the original
+        transaction has already been processed by the blockchain.
+      operationId: createDeveloperTransactionCancel
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/CancelTransactionForDeveloper'
+      responses:
+        '200':
+          description: Transaction canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelTransactionForDeveloper'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/w3s/developer/transactions/{id}/accelerate:
+    post:
+      tags:
+        - Transactions
+      summary: Accelerate a transaction
+      description: >-
+        Accelerates a specified transaction from a developer-controlled wallet.
+        Additional gas fees may be incurred.
+      operationId: createDeveloperTransactionAccelerate
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/AccelerateTransactionForDeveloper'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccelerateTransactionForDeveloper'
+          description: Transaction accelerated
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/DefaultError'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PREFIX:ID:SECRET
+      description: >-
+        Circle's API Keys are formatted in the following structure
+        "PREFIX:ID:SECRET". All three parts are requred to make a successful
+        request.
+  schemas:
+    XRequestId:
+      type: string
+      format: uuid
+      description: >-
+        A unique identifier, which can be helpful for identifying a request when
+        communicating with Circle support.
+      example: 2adba88e-9d63-44bc-b975-9b6ae3440dde
+    Id:
+      type: string
+      format: uuid
+      description: System-generated unique identifier of the resource.
+      example: c4d1da72-111e-4d52-bdbf-2e74a2d803d5
+    CreateDate:
+      type: string
+      format: date-time
+      description: Date and time the resource was created, in ISO-8601 UTC format.
+      example: '2023-01-01T12:04:05Z'
+    UpdateDate:
+      type: string
+      format: date-time
+      description: Date and time the resource was last updated, in ISO-8601 UTC format.
+      example: '2023-01-01T12:04:05Z'
+    WalletSet:
+      type: object
+      required:
+        - id
+        - custodyType
+        - createDate
+        - updateDate
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+    DeveloperWalletSet:
+      allOf:
+        - $ref: '#/components/schemas/WalletSet'
+        - type: object
+          required:
+            - custodyType
+          properties:
+            custodyType:
+              type: string
+              enum:
+                - DEVELOPER
+    ExternalUserId:
+      type: string
+      description: Unique system generated identifier for the user.
+      example: ext_user_id_1
+      maxLength: 50
+      minLength: 5
+    EndUserWalletSet:
+      allOf:
+        - $ref: '#/components/schemas/WalletSet'
+        - type: object
+          required:
+            - custodyType
+            - userId
+          properties:
+            custodyType:
+              type: string
+              enum:
+                - ENDUSER
+            userId:
+              $ref: '#/components/schemas/ExternalUserId'
+    WalletSets:
+      title: WalletSetsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - walletSets
+          properties:
+            walletSets:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/DeveloperWalletSet'
+                  - $ref: '#/components/schemas/EndUserWalletSet'
+                discriminator:
+                  propertyName: custodyType
+    WalletSetResponse:
+      title: WalletSetResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - walletSet
+          properties:
+            walletSet:
+              oneOf:
+                - $ref: '#/components/schemas/DeveloperWalletSet'
+                - $ref: '#/components/schemas/EndUserWalletSet'
+              discriminator:
+                propertyName: custodyType
+    EntitySecretCiphertext:
+      type: string
+      description: >
+        A base64 string expression of the entity secret ciphertext. The entity
+        secret should be encrypted by the entity public key. Circle mandates
+        that the entity secret ciphertext is unique for each API request.
+      format: byte
+      example: >-
+        M8OAwbJ8rMsPd8+NT4xRDBDJSNqUKAvJeWPyuwZSlVXgRucogAlBxjvjIw4nsKeJ4hejjlpmyaaJrusHm6zsvy4BLuL1an3dYn3wORjYf3sU4QN9Rdk9OJxZvE5hDNPq7okucvb1eElxPVREZvr4ew7sh4ktmwDrwWFUYwKoly4fEzxYI9zvVpCY9xPSgkA5m3u1/P2vMYZ0QFtn8lRZxCuTyc4wRLpT9TOaK46CEXCakmAYaYWnLkl18QXOSY6FhCbGm+zQ2Uu4cUPU/bqjIyQIB80ut3drInDzysQLE/FJjcJW9+q+E75LKGKnrp2zCg/Xv3TEvru9a2A0vd7InZ9kNuxnPPFc1JSO7BT2TPP89YcLO0OmtRiGoXPlYzXuNIfUsVQ5/FW9FPp4qp+iMPrAidsjQrskHPxhW92GeezLpOSkUl7lAWQoioYED979mqGfzNIZTF5Ob6fJifboiwhOab6sAKnxmvWjgFnW/bZ5a8xkzgPc4RHpIejot1Q7fpT+67eA+DVxvUqakJI6t3iEaZTNITCSU2Cfj1oyCQfrZGf9tauW49rO1zYHKoV4z9ylymOWtCUk641iyxwFCNSW47CDsc0M8iI4J6JqsNMpQuR9sdWVhROi5yn9UR7ac7pizB3dFmc0/qjtTRoYStaaSEYg3L5woALv5kAA2j4=
+    IdempotencyKey:
+      type: string
+      description: >-
+        Universally unique identifier (UUID v4) idempotency key. This key is
+        utilized to ensure exactly-once execution of mutating requests. To
+        create a UUIDv4 go to
+        [uuidgenerator.net](https://www.uuidgenerator.net). If the same key is
+        reused, it will be treated as the same request and the original response
+        will be returned.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      format: uuid
+    Name:
+      type: string
+      description: Name or description associated with the wallet or walletSet.
+    AccountType:
+      type: string
+      description: >
+        An account can be a Smart Contract Account (SCA) or an Externally Owned
+        Account (EOA). To learn more, see the [account types
+        guide](https://developers.circle.com/wallets/account-types).
+
+
+        If an account type is not specified during the creation of a wallet, it
+        defaults to `EOA` (Externally Owned Account). Note that Solana and Aptos
+        don't support Smart Contract Account (SCA).
+      enum:
+        - SCA
+        - EOA
+    Blockchain:
+      type: string
+      description: >-
+        The blockchain network that the resource is to be created on or is
+        currently on.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - SOL
+        - SOL-DEVNET
+        - ARB
+        - ARB-SEPOLIA
+        - NEAR
+        - NEAR-TESTNET
+        - EVM
+        - EVM-TESTNET
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - APTOS
+        - APTOS-TESTNET
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    ReferenceId:
+      type: string
+      description: >-
+        Optional user-defined reference identifier for the wallet. Not used by
+        Circle for wallet functionality. Used for internal tracking or
+        associating wallets with entities in your own systems (for example, a
+        customer or account ID).
+      example: customer_12345
+    WalletMetadata:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        refId:
+          $ref: '#/components/schemas/ReferenceId'
+    Address:
+      title: Address
+      description: >
+        Blockchain generated unique identifier, associated with wallet
+        (account), smart contract or other blockchain objects.
+      type: string
+      example: '0xca9142d0b9804ef5e239d3bc1c7aa0d1c74e7350'
+    CustodyType:
+      type: string
+      description: >
+        Describes who controls the digital assets in a wallet: either the
+        end-user or the developer.
+      enum:
+        - DEVELOPER
+        - ENDUSER
+    WalletState:
+      type: string
+      description: This enum describes the current state of the wallet.
+      enum:
+        - LIVE
+        - FROZEN
+      example: LIVE
+    InitialPublicKey:
+      type: string
+      description: >-
+        For NEAR blockchains only, the originally assigned public key of a
+        wallet at the time of its creation.
+      example: 3eQoJ3ex6uWX3R8F1THF6Y6oBQwPYpF1X9HBM1gjqw7w
+    Wallet:
+      type: object
+      required:
+        - id
+        - state
+        - walletSetId
+        - custodyType
+        - address
+        - blockchain
+        - createDate
+        - updateDate
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        address:
+          $ref: '#/components/schemas/Address'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+        custodyType:
+          $ref: '#/components/schemas/CustodyType'
+        name:
+          $ref: '#/components/schemas/Name'
+        refId:
+          $ref: '#/components/schemas/ReferenceId'
+        state:
+          $ref: '#/components/schemas/WalletState'
+        userId:
+          $ref: '#/components/schemas/ExternalUserId'
+        walletSetId:
+          $ref: '#/components/schemas/Id'
+        initialPublicKey:
+          $ref: '#/components/schemas/InitialPublicKey'
+    EOAWallet:
+      title: EOAWallet
+      allOf:
+        - $ref: '#/components/schemas/Wallet'
+        - type: object
+          required:
+            - accountType
+          properties:
+            accountType:
+              type: string
+              description: >
+                An account can be a Smart Contract Account (SCA) or an
+                Externally Owned Account (EOA). To learn more, see the [account
+                types
+                guide](https://developers.circle.com/wallets/account-types).
+
+
+                If an account type is not specified during the creation of a
+                wallet, it defaults to `EOA` (Externally Owned Account). Note
+                that Solana and Aptos don't support Smart Contract Account
+                (SCA).
+              enum:
+                - EOA
+    ScaCore:
+      type: string
+      description: >-
+        SCAs have different versions, each with unique functionality. `SCACore`
+        displays the version of the SCA being created. For a list of supported
+        versions, refer to the developer documentation.
+      enum:
+        - circle_4337_v1
+        - circle_6900_singleowner_v1
+        - circle_6900_singleowner_v2
+        - circle_6900_singleowner_v3
+      example: circle_6900_singleowner_v2
+    SCAWallet:
+      title: SCAWallet
+      allOf:
+        - $ref: '#/components/schemas/Wallet'
+        - type: object
+          required:
+            - accountType
+            - scaCore
+          properties:
+            accountType:
+              type: string
+              description: >
+                An account can be a Smart Contract Account (SCA) or an
+                Externally Owned Account (EOA). To learn more, see the [account
+                types
+                guide](https://developers.circle.com/wallets/account-types).
+
+
+                If an account type is not specified during the creation of a
+                wallet, it defaults to `EOA` (Externally Owned Account). Note
+                that Solana and Aptos don't support Smart Contract Account
+                (SCA).
+              enum:
+                - SCA
+            scaCore:
+              $ref: '#/components/schemas/ScaCore'
+    Wallets:
+      title: WalletsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - wallets
+          properties:
+            wallets:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/EOAWallet'
+                  - $ref: '#/components/schemas/SCAWallet'
+                discriminator:
+                  propertyName: accountType
+    WalletResponse:
+      title: WalletResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - wallet
+          properties:
+            wallet:
+              oneOf:
+                - $ref: '#/components/schemas/EOAWallet'
+                - $ref: '#/components/schemas/SCAWallet'
+              discriminator:
+                propertyName: accountType
+    AmountOperator:
+      title: Amount
+      type: string
+      description: >-
+        Filters by the specified amount. If `tokenAddress` is provided, the
+        filter applies to that token; otherwise, it applies to the native token.
+      example: '10.0'
+    TokenStandard:
+      title: TokenStandard
+      type: string
+      enum:
+        - ERC20
+        - ERC721
+        - ERC1155
+        - Fungible
+        - FungibleAsset
+        - NonFungible
+        - NonFungibleEdition
+        - ProgrammableNonFungible
+        - ProgrammableNonFungibleEdition
+    Token:
+      title: Token
+      type: object
+      required:
+        - id
+        - blockchain
+        - isNative
+        - createDate
+        - updateDate
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+          description: Blockchain name of the specified token.
+        standard:
+          $ref: '#/components/schemas/TokenStandard'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        decimals:
+          type: integer
+          description: Number of decimal places shown in the token amount.
+        isNative:
+          type: boolean
+          description: >-
+            Defines if the token is a native token of the specified blockchain.
+            If TRUE, the token is a native token.
+        symbol:
+          type: string
+          description: Blockchain symbol of the specified token.
+        tokenAddress:
+          $ref: '#/components/schemas/Address'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+    Balance:
+      title: Balance
+      type: object
+      required:
+        - token
+        - updateDate
+        - amount
+      properties:
+        amount:
+          type: string
+          description: Token balance for each token in the wallet.
+          example: '6.62607015'
+        token:
+          $ref: '#/components/schemas/Token'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+    EOAWalletWithBalances:
+      title: EOAWalletWithBalances
+      allOf:
+        - $ref: '#/components/schemas/Wallet'
+        - type: object
+          required:
+            - accountType
+            - tokenBalances
+          properties:
+            accountType:
+              type: string
+              description: >
+                An account can be a Smart Contract Account (SCA) or an
+                Externally Owned Account (EOA). To learn more, see the [account
+                types
+                guide](https://developers.circle.com/wallets/account-types).
+
+
+                If an account type is not specified during the creation of a
+                wallet, it defaults to `EOA` (Externally Owned Account). Note
+                that Solana and Aptos don't support Smart Contract Account
+                (SCA).
+              enum:
+                - EOA
+            tokenBalances:
+              description: >-
+                Lists native token balances and, if specified, USDC/EURC
+                balances for the wallets.
+              type: array
+              items:
+                $ref: '#/components/schemas/Balance'
+    SCAWalletWithBalances:
+      title: SCAWalletWithBalances
+      allOf:
+        - $ref: '#/components/schemas/Wallet'
+        - type: object
+          required:
+            - accountType
+            - scaCore
+            - tokenBalances
+          properties:
+            accountType:
+              type: string
+              description: >
+                An account can be a Smart Contract Account (SCA) or an
+                Externally Owned Account (EOA). To learn more, see the [account
+                types
+                guide](https://developers.circle.com/wallets/account-types).
+
+
+                If an account type is not specified during the creation of a
+                wallet, it defaults to `EOA` (Externally Owned Account). Note
+                that Solana and Aptos don't support Smart Contract Account
+                (SCA).
+              enum:
+                - SCA
+            scaCore:
+              $ref: '#/components/schemas/ScaCore'
+            tokenBalances:
+              description: >-
+                Lists native token balances and, if specified, USDC/EURC
+                balances for the wallets.
+              type: array
+              items:
+                $ref: '#/components/schemas/Balance'
+    WalletsWithBalances:
+      title: WalletsWithBalancesResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - wallets
+          properties:
+            wallets:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/EOAWalletWithBalances'
+                  - $ref: '#/components/schemas/SCAWalletWithBalances'
+                discriminator:
+                  propertyName: accountType
+    EvmBlockchain:
+      type: string
+      description: >-
+        The blockchain network that the resource is to be created on or is
+        currently on.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - ARB
+        - ARB-SEPOLIA
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - EVM
+        - EVM-TESTNET
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    EncodedByHex:
+      type: boolean
+      description: >-
+        Indicator of whether the input message is encoded by hex. If TRUE, then
+        the message should be a hex string. By default, it is False.
+      example: false
+    Message:
+      type: string
+      description: >-
+        The user friendly message that needs to be signed. If it is a hex
+        string, encodedByHex needs to be TRUE. The hex string should start with
+        “0x” and have even length.
+      example: I agree with this transfer
+    Memo:
+      type: string
+      description: >-
+        The human readable explanation for this sign action. Useful for
+        presenting with extra information.
+      example: Transfer USDC to Sam
+    Signature:
+      type: string
+      description: >-
+        Each chain encode signatures in a different way, please refer to
+        [Signing APIs doc](https://learn.circle.com/w3s/signing-apis) and the
+        blockchain's document.
+      example: 3W6r38STvZuBSmk2bbbct132SjEsYSARo3CJi3JQvNUaFoYu...
+    SignatureResponse:
+      title: SignatureResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - signature
+          properties:
+            signature:
+              $ref: '#/components/schemas/Signature'
+    TypedData:
+      title: TypedData
+      type: string
+      description: A string represents the typed structured data in EIP-712
+      example: >-
+        { "types": { "Data": [{ "name": "dummy", "type": "string"
+        }],"EIP712Domain":[{ "name": "name", "type": "string" },{ "name":
+        "chainId", "type": "uint256" }]}, "domain": { "name": "Test", "chainId":
+        1337 }, "primaryType": "Data", "message": { "dummy": "dummy" }}
+    RawTransaction:
+      type: string
+      description: >
+        Raw transaction string that needs to be signed. Excluded with
+        `transaction`. Required without `transaction`.
+
+        Required to be base64 encoded for NEAR, Solana chains. Required to be
+        hex encoded for EVM chains.
+      example: >-
+        AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAQROrEbiYfF3zCII9...
+    TransactionObject:
+      title: Transaction
+      type: string
+      description: >
+        Transaction object in JSON that needs to be signed. Excluded with
+        `rawTransaction`. Required without `rawTransaction`.
+
+
+        NOTE: This field is only supported by `EVM` chains.
+      example: >-
+        {"nonce":1,"to":"0x9e4ebf23f713268b8e72cd162337f20c536357c9","value":"10000000000000000","gas":"21000","maxFeePerGas":"42000000000","maxPriorityFeePerGas":"25000000000","chainId":80002}
+    SignedTransaction:
+      type: string
+      description: >-
+        Signed transaction. Base64 encoded for NEAR and Solana chains. Hex
+        encoded for EVM chains.
+      example: >-
+        AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABpzlAhqqen7eyTe0KQ3w+9NS4E+7sscb+Cr...
+    TransactionHash:
+      type: string
+      description: Blockchain generated identifier of the transaction.
+      example: '0x4a25cc5e661d8504b59c5f38ba93f010e8518966f00e2ceda7955c4b8621357d'
+    SignTransactionResponse:
+      title: SignTransactionResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - signature
+            - signedTransaction
+          properties:
+            signature:
+              $ref: '#/components/schemas/Signature'
+            signedTransaction:
+              $ref: '#/components/schemas/SignedTransaction'
+            txHash:
+              description: >
+                Blockchain-generated identifier of the transaction. Present if
+                the wallet blockchain is not Solana.
+              $ref: '#/components/schemas/TransactionHash'
+    UnsignedDelegateAction:
+      type: string
+      description: >-
+        Unsigned delegate action string that needs to be signed. Must be base64
+        encoded.
+      example: >-
+        AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAQROrEbiYfF3zCII9...
+    SignedDelegateAction:
+      type: string
+      description: Signed delegate action is a base64 encoded string for NEAR.
+      example: >-
+        AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABpzlAhqqen7eyTe0KQ3w+9NS4E+7sscb+Cr...
+    SignDelegateActionResponse:
+      title: SignedDelegateActionResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - signature
+            - signedDelegateAction
+          properties:
+            signature:
+              $ref: '#/components/schemas/Signature'
+            signedDelegateAction:
+              $ref: '#/components/schemas/SignedDelegateAction'
+    TransactionState:
+      title: TransactionState
+      type: string
+      description: Current state of the transaction.
+      enum:
+        - CANCELLED
+        - CONFIRMED
+        - COMPLETE
+        - DENIED
+        - FAILED
+        - INITIATED
+        - CLEARED
+        - QUEUED
+        - SENT
+        - STUCK
+    TransactionType:
+      title: TransactionType
+      type: string
+      enum:
+        - INBOUND
+        - OUTBOUND
+    AbiFunctionSignature:
+      title: AbiFunctionSignature
+      type: string
+      description: "The contract ABI function signature or\_`callData`\_field is required for interacting with the smart contract. The ABI function signature cannot be used simultaneously with\_`callData`. e.g. burn(uint256)"
+      example: burn(uint256)
+    AbiParameters:
+      title: AbiParameters
+      type: array
+      items:
+        anyOf:
+          - type: string
+          - type: integer
+          - type: boolean
+          - type: array
+            items: {}
+      description: "The contract ABI function signature parameters for executing the contract interaction. Supported parameter types include string, integer, boolean, and array. These parameters should be used exclusively with the abiFunctionSignature and cannot be used with\_`callData`."
+      example:
+        - '100'
+        - '1'
+    TransferAmounts:
+      title: TransferAmounts
+      type: array
+      items:
+        type: string
+      description: >-
+        Transfer amounts in decimal number format, at least one element is
+        required for transfer. For ERC721 token transfer, the amounts field is
+        required to be ["1"] (array with "1" as the only element).
+      example:
+        - '6.62607015'
+    ContractAddress:
+      title: ContractAddress
+      description: The blockchain address of the contract to be executed.
+      type: string
+      example: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+    GasLimit:
+      type: string
+      description: >
+        The maximum units of gas to use for the transaction. Required if
+        `feeLevel` is not provided.
+
+        Estimates for this limit can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        An insufficient gas limit may cause the transaction to fail on-chain.
+        Use this field with care when manually providing values.
+
+        GasLimit override (only supported for EOA wallets): Using `gasLimit`
+        together with `feeLevel`, the provided `gasLimit` will override the
+        estimation's gasLimit.
+      example: '21000'
+    GasPrice:
+      type: string
+      description: >
+        For blockchains without EIP-1559 support, the maximum price of gas, in
+        gwei, to use per each unit of gas (see `gasLimit`). Requires `gasLimit`.
+        Cannot be used with `feeLevel`, `priorityFee`, or `maxFee`.
+
+        Estimates for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        The wallet service enforces a dynamic minimum `gasPrice` based on
+        current network conditions. Requests specifying a `gasPrice` below this
+        minimum will be rejected
+    MaxFee:
+      type: string
+      example: '5.935224468'
+      description: >
+        For blockchains with EIP-1559 support, the maximum price per unit of gas
+        (see `gasLimit`), in gwei. Requires `priorityFee`, and `gasLimit` to be
+        present. Cannot be used with `feeLevel` or `gasPrice`.
+
+        Estimates for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+    PriorityFee:
+      type: string
+      example: '1.022783914'
+      description: >
+        For blockchains with EIP-1559 support, the “tip”, in gwei, to add to the
+        base fee as an incentive for validators.
+
+        Please note that the `maxFee` and `gasLimit` parameters are required
+        alongside the `priorityFee`. The `feeLevel` and `gasPrice` parameters
+        cannot be used with the `priorityFee`. 
+
+        Estimations for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        The wallet service enforces a dynamic minimum `priorityFee` based on
+        current network conditions. Requests specifying a `priorityFee` below
+        this minimum will be rejected
+    BaseFee:
+      type: string
+      example: '1.022783914'
+      description: >
+        For blockchains with EIP-1559 support, the estimated base fee represents
+        the minimum fee required for a transaction to be included in a block on
+        the blockchain. 
+
+        It is measured in gwei and compensates for the computational resources
+        validators consume to process the transaction. 
+
+        The base fee is supplemented by a separate "tip" called the priority
+        fee, which acts as an extra incentive for validators to prioritize the
+        transaction. 
+
+        The priority fee is added to the base fee to calculate the final
+        transaction fee.
+    NetworkFee:
+      type: string
+      example: '0.0001246397138'
+      description: >
+        The estimated network fee is the maximum amount of cryptocurrency (such
+        as ETH, ARB, or SOL) that you will pay for your transaction. This fee
+        depends on the parameters you set, including Gas Limit, Priority Fee,
+        and Max Fee.
+
+        It compensates for the computational resources that validators consume
+        to process the transaction. It is measured in native token such as ETH,
+        SOL.
+
+        For blockchains with L1 data fees such as OP/BASE, the network fee is a
+        combination of the Execution Gas Fee and the L1 Data Fee.
+
+        Each blockchain might use different formula for network fee. Refer to
+        each specific blockchain's documentation to understand how `networkFee`
+        is calculated.
+    NetworkFeeRaw:
+      type: string
+      example: '0.0001246397138'
+      description: >
+        Similar to `networkFee`, `networkFeeRaw` is an estimation with lower
+        buffer and thus should be closer to the actual on-chain expense. 
+
+        This field will only be returned in the estimation response.
+    L1Fee:
+      type: string
+      example: '0.000000000000140021'
+      description: >
+        This fee represents the Layer 1 (L1) rollup charge associated with
+        transactions on Layer 2 blockchains. The amount is expressed in the
+        native currency, such as ETH. This field is relevant for Layer 2
+        blockchains utilizing a rollup mechanism and for specific account types,
+        such as externally owned accounts (EOAs) on the Optimism (OP)
+        blockchain.
+    TransactionFee:
+      type: object
+      properties:
+        gasLimit:
+          $ref: '#/components/schemas/GasLimit'
+        gasPrice:
+          $ref: '#/components/schemas/GasPrice'
+        maxFee:
+          $ref: '#/components/schemas/MaxFee'
+        priorityFee:
+          $ref: '#/components/schemas/PriorityFee'
+        baseFee:
+          $ref: '#/components/schemas/BaseFee'
+        networkFee:
+          $ref: '#/components/schemas/NetworkFee'
+        networkFeeRaw:
+          $ref: '#/components/schemas/NetworkFeeRaw'
+        l1Fee:
+          $ref: '#/components/schemas/L1Fee'
+    FeeLevel:
+      type: string
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+      example: MEDIUM
+      description: >
+        A dynamic blockchain fee level setting (`LOW`, `MEDIUM`, or `HIGH`) that
+        will be used to pay gas for the transaction. Calculated based on network
+        traffic, supply of validators, and demand for transaction verification.
+        Cannot be used with `gasPrice`, `priorityFee`, or `maxFee`.
+
+        Estimates for each fee level can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+    Operation:
+      title: Operation
+      type: string
+      enum:
+        - TRANSFER
+        - CONTRACT_EXECUTION
+        - CONTRACT_DEPLOYMENT
+      description: Operation type of the transaction.
+    TransactionReferenceId:
+      type: string
+      example: grouptransaction123
+      description: Optional reference or description used to identify the transaction.
+    RiskAction:
+      type: string
+      description: An action to to take for the decision.
+      enum:
+        - APPROVE
+        - REVIEW
+        - FREEZE_WALLET
+        - DENY
+      example: REVIEW
+    BaseScreeningDecision:
+      type: object
+      description: >-
+        Screening decision detail about matched rule, actions to take, and all
+        related risk signals.
+      required:
+        - screeningDate
+      properties:
+        ruleName:
+          type: string
+          description: Name of the matched rule found in screening.
+          example: Low Gambling Risk (Owner)
+        actions:
+          type: array
+          description: Actions to take for the decision.
+          items:
+            $ref: '#/components/schemas/RiskAction'
+          example:
+            - REVIEW
+        screeningDate:
+          $ref: '#/components/schemas/CreateDate'
+    RiskScore:
+      type: string
+      description: Risk score of the signal.
+      enum:
+        - UNKNOWN
+        - LOW
+        - MEDIUM
+        - HIGH
+        - SEVERE
+        - BLOCKLIST
+      example: LOW
+    RiskCategory:
+      type: string
+      description: The category of the associated risk of the blockchain address.
+      enum:
+        - SANCTIONS
+        - CSAM
+        - ILLICIT_BEHAVIOR
+        - GAMBLING
+        - TERRORIST_FINANCING
+        - UNSUPPORTED
+        - FROZEN
+        - OTHER
+        - HIGH_RISK_INDUSTRY
+        - PEP
+        - TRUSTED
+        - HACKING
+        - HUMAN_TRAFFICKING
+        - SPECIAL_MEASURES
+      example: GAMBLING
+    RiskType:
+      type: string
+      description: Type of the signal.
+      enum:
+        - OWNERSHIP
+        - COUNTERPARTY
+        - INDIRECT
+      example: OWNERSHIP
+    RiskSignal:
+      type: object
+      description: >-
+        Risk signal that includes source, value, and risk type, risk score and
+        risk category.
+      required:
+        - source
+        - sourceValue
+        - riskScore
+        - riskCategories
+        - type
+      properties:
+        source:
+          type: string
+          description: Source of the risk signal.
+          enum:
+            - ADDRESS
+            - BLOCKCHAIN
+            - ASSET
+          example: ADDRESS
+        sourceValue:
+          type: string
+          description: >-
+            Value of the source. For example, if source is “ADDRESS”. The source
+            value would be an blockchain address.
+          example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+        riskScore:
+          $ref: '#/components/schemas/RiskScore'
+        riskCategories:
+          type: array
+          description: List of risk categories for the signal.
+          items:
+            $ref: '#/components/schemas/RiskCategory'
+          example:
+            - GAMBLING
+        type:
+          $ref: '#/components/schemas/RiskType'
+    TransactionScreeningDecision:
+      type: object
+      description: >-
+        Transaction decision detail about matched rule, actions to take, and all
+        related risk signals.
+      allOf:
+        - $ref: '#/components/schemas/BaseScreeningDecision'
+        - type: object
+          properties:
+            reasons:
+              type: array
+              description: >-
+                Risk signals found include source, value, and type of the
+                signal. It also contains risk score and risk category.
+              items:
+                $ref: '#/components/schemas/RiskSignal'
+    Transaction:
+      title: Transaction
+      type: object
+      required:
+        - id
+        - state
+        - blockchain
+        - transactionType
+        - createDate
+        - updateDate
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        abiFunctionSignature:
+          $ref: '#/components/schemas/AbiFunctionSignature'
+        abiParameters:
+          $ref: '#/components/schemas/AbiParameters'
+        amounts:
+          $ref: '#/components/schemas/TransferAmounts'
+        amountInUSD:
+          type: string
+          description: Transaction amount in USD decimal format.
+        blockHash:
+          type: string
+          description: Identifier for the block that includes the transaction.
+        blockHeight:
+          type: integer
+          description: >-
+            Block height of the transaction, representing the number of
+            blockchain confirmations.
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        contractAddress:
+          $ref: '#/components/schemas/ContractAddress'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        custodyType:
+          $ref: '#/components/schemas/CustodyType'
+        destinationAddress:
+          $ref: '#/components/schemas/Address'
+        errorReason:
+          type: string
+          description: >-
+            Description of the error. Only present for transactions in `FAILED`
+            state.
+        errorDetails:
+          type: string
+          description: >-
+            Additional detail associated with the corresponding transaction's
+            error reason
+        estimatedFee:
+          $ref: '#/components/schemas/TransactionFee'
+          description: >
+            The estimated fee for the transaction.
+
+            For Get Transactions API, this will only be returned if transaction
+            type is used in the request query parameters
+        feeLevel:
+          $ref: '#/components/schemas/FeeLevel'
+          description: >-
+            Defines the blockchain fee level which will be paid for the
+            transaction e.g. LOW, MEDIUM, HIGH.
+
+            For Get Transactions API, this will only be returned if transaction
+            type is used in the request query parameters
+        firstConfirmDate:
+          type: string
+          format: date-time
+          description: >-
+            Date the transaction was first confirmed in a block. ISO-8601 UTC
+            date/time.
+          example: '2021-05-18T00:00:00Z'
+        networkFee:
+          type: string
+          description: Gas fee, in native token, paid to the network for the transaction.
+        networkFeeInUSD:
+          type: string
+          description: Gas fee, in USD, paid to the network for the transaction.
+        nfts:
+          type: array
+          description: >-
+            List of Nfts, in JSON string format, associated with the
+            transaction.
+          example:
+            - '[{"ntfTokenId":"12321"'
+            - >-
+              "metadata":"ipfs://QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4/1"}
+            - '{"ntfTokenId":"12322"'
+            - >-
+              "metadata":"ipfs://QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4/2"}]
+          items:
+            type: string
+        operation:
+          $ref: '#/components/schemas/Operation'
+        refId:
+          $ref: '#/components/schemas/TransactionReferenceId'
+        sourceAddress:
+          $ref: '#/components/schemas/Address'
+        state:
+          $ref: '#/components/schemas/TransactionState'
+        tokenId:
+          $ref: '#/components/schemas/Id'
+        transactionType:
+          $ref: '#/components/schemas/TransactionType'
+        txHash:
+          $ref: '#/components/schemas/TransactionHash'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+        userId:
+          $ref: '#/components/schemas/ExternalUserId'
+        walletId:
+          $ref: '#/components/schemas/Id'
+        transactionScreeningEvaluation:
+          description: >-
+            This field is optional and applicable to Compliance Engine customers
+            only.
+          $ref: '#/components/schemas/TransactionScreeningDecision'
+    Transactions:
+      title: TransactionsResponse
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+    Error:
+      title: Error
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: Code that corresponds to the error.
+        message:
+          type: string
+          description: Message that describes the error.
+    TransactionResponse:
+      title: TransactionResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            transaction:
+              $ref: '#/components/schemas/Transaction'
+    LowestNonceTransactionFeeInfo:
+      title: LowestNonceTransactionFeeInfo
+      type: object
+      required:
+        - newHighEstimatedFee
+        - feeDifferenceAmount
+      properties:
+        newHighEstimatedFee:
+          $ref: '#/components/schemas/TransactionFee'
+          description: |
+            The latest HIGH estimated fee for the transaction.
+        feeDifferenceAmount:
+          type: string
+          description: >-
+            Difference between new HIGH estimation and transaction's existing
+            estimated fee, in native token amount unit, for example ETH
+          example: '0.1'
+    GetLowestNonceTransactionResponse:
+      title: GetLowestNonceTransactionResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - transaction
+            - feeInfo
+          properties:
+            transaction:
+              $ref: '#/components/schemas/Transaction'
+            feeInfo:
+              $ref: '#/components/schemas/LowestNonceTransactionFeeInfo'
+    FeeParameters:
+      type: object
+      properties:
+        gasPrice:
+          $ref: '#/components/schemas/GasPrice'
+        maxFee:
+          $ref: '#/components/schemas/MaxFee'
+        priorityFee:
+          $ref: '#/components/schemas/PriorityFee'
+        baseFee:
+          $ref: '#/components/schemas/BaseFee'
+    FeeParametersResponse:
+      title: FeeParametersResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            high:
+              $ref: '#/components/schemas/FeeParameters'
+            low:
+              $ref: '#/components/schemas/FeeParameters'
+            medium:
+              $ref: '#/components/schemas/FeeParameters'
+    TransferAmounts-2:
+      title: TransferAmounts
+      type: array
+      items:
+        type: string
+      description: >-
+        Transfer amounts in decimal number format, at least one element is
+        required for transfer. For ERC721 token transfer, the amounts field is
+        required to be ["1"] (array with "1" as the only element).
+      example:
+        - '6.62607015'
+      minItems: 1
+    NftTokenId:
+      title: NftTokenId
+      type: string
+      description: The NFT token ID.
+      example: '2'
+    NftTokenIds:
+      title: NftTokenIds
+      type: array
+      description: >-
+        List of NFT token IDs corresponding with the NFTs to transfer. Batch
+        transfers are supported only for ERC-1155 tokens. The length of NFT
+        token IDs must match the length of amounts.
+      items:
+        $ref: '#/components/schemas/NftTokenId'
+    TokenId:
+      title: TokenId
+      type: string
+      format: uuid
+      description: >-
+        System generated identifier of the token. Excluded with `tokenAddress`
+        and `tokenBlockchain`.
+    TokenAddress:
+      title: TokenAddress
+      type: string
+      description: >-
+        Blockchain address of the transferred token. Empty for native tokens.
+        Excluded with `tokenId`.
+    TransferBlockchain:
+      title: TransferBlockchain
+      type: string
+      description: >
+        Blockchain associated with the transfer transaction. Required when
+        either of `walletAddress` or `tokenAddress` is provided.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - SOL
+        - SOL-DEVNET
+        - ARB
+        - ARB-SEPOLIA
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - APTOS
+        - APTOS-TESTNET
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    TokenBlockchain:
+      title: TokenBlockchain
+      type: string
+      description: >
+        Blockchain of the transferred token. Required if `tokenId` is not
+        provided.
+
+        The `blockchain` and `tokenId` fields are mutually exclusive.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - SOL
+        - SOL-DEVNET
+        - ARB
+        - ARB-SEPOLIA
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - APTOS
+        - APTOS-TESTNET
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    WalletId:
+      title: WalletId
+      type: string
+      format: uuid
+      description: |
+        Unique system generated identifier of the wallet.
+        For contract deploys this wallet ID will be used as the source.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+    CreateTransferTransactionForDeveloperResponse:
+      title: CreateTransferTransactionForDeveloperResponse
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - state
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+            state:
+              $ref: '#/components/schemas/TransactionState'
+    Balances:
+      title: BalancesResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            tokenBalances:
+              description: List of token balances for each token on the wallet(s).
+              type: array
+              items:
+                $ref: '#/components/schemas/Balance'
+    TokenResponse:
+      title: TokenResponse
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            token:
+              $ref: '#/components/schemas/Token'
+    Nft:
+      title: Nft
+      type: object
+      required:
+        - token
+        - amount
+        - updateDate
+      properties:
+        amount:
+          type: string
+          description: >-
+            Amount of NFTs on a wallet. For non-fungible token standards, like
+            ERC721, NonFungible, NonFungibleEdition, ProgrammableNonFungible,
+            ProgrammableNonFungibleEdition, amount will always be “1”; for
+            semi-fungible token standards like ERC1155, amount will correspond
+            to the number of tokens; for FungibleAsset, amount can be greater
+            than "1".
+          example: '1'
+        metadata:
+          type: string
+          description: The metadata of the NFT.
+          example: ipfs://QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4/1
+        nftTokenId:
+          $ref: '#/components/schemas/NftTokenId'
+        token:
+          $ref: '#/components/schemas/Token'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+    Nfts:
+      title: NftsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            nfts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Nft'
+    ValidateAddress:
+      title: ValidateAddressResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - isValid
+          properties:
+            isValid:
+              type: boolean
+    CallData:
+      title: CallData
+      type: string
+      description: "The raw transaction data, must be an even-length hexadecimal string with the\_`0x`\_prefix, to be executed. It is important to note that the usage of\_`callData`\_is mutually exclusive with the\_`abiFunctionSignature`\_and\_`abiParameters`. Therefore,\_`callData`\_cannot be utilized simultaneously with either\_`abiFunctionSignature`\_or\_`abiParameters`."
+      example: >-
+        0xcdcd77c000000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001
+    Amount:
+      title: Amount
+      type: string
+      description: >-
+        The amount of native token that will be sent to the contract abi
+        execution. Optional field for payable api only, if not provided, no
+        native token will be sent.
+      example: '1.0'
+    ContractExecutionBlockchain:
+      title: ContractExecutionBlockchain
+      type: string
+      description: >
+        Blockchain associated with the contract execution transaction. Required
+        when either of `walletAddress` or `sourceAddress` is provided.
+
+        The `blockchain` and `walletId` fields are mutually exclusive.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - ARB
+        - ARB-SEPOLIA
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    SourceAddress:
+      type: string
+      description: >
+        Source address of the transaction. Required along with `blockchain` if
+        `walletId` is not provided. 
+
+        The `sourceAddress` and `walletId` fields are mutually exclusive.
+      example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+    CallGasLimit:
+      title: CallGasLimit
+      type: string
+      description: >-
+        One of ERC-4337 gas fields. The amount of gas to allocate for the main
+        execution call. Only in smart contract account estimation response.
+      example: '69222'
+    VerificationGasLimit:
+      title: VerificationGasLimit
+      type: string
+      description: >-
+        One of ERC-4337 gas fields. The amount of gas to allocate for the
+        verification step. Only in smart contract account estimation response.
+      example: '56863'
+    PreVerificationGas:
+      title: PreVerificationGas
+      type: string
+      description: >-
+        One of ERC-4337 gas fields. The amount of gas to pay to compensate the
+        bundler for pre-verification execution and call data. Only in smart
+        contract account estimation response.
+      example: '44112'
+    EstimateTransactionFee:
+      title: EstimateTransactionFeeResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            high:
+              $ref: '#/components/schemas/TransactionFee'
+            low:
+              $ref: '#/components/schemas/TransactionFee'
+            medium:
+              $ref: '#/components/schemas/TransactionFee'
+            callGasLimit:
+              $ref: '#/components/schemas/CallGasLimit'
+            verificationGasLimit:
+              $ref: '#/components/schemas/VerificationGasLimit'
+            preVerificationGas:
+              $ref: '#/components/schemas/PreVerificationGas'
+    CreateContractExecutionTransactionForDeveloper:
+      title: CreateContractExecutionTransactionForDeveloperResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - state
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+            state:
+              $ref: '#/components/schemas/TransactionState'
+    NewScaCore:
+      type: string
+      description: >-
+        `newScaCore` displays the version of the SCA available for upgrade. For
+        a list of supported versions, refer to the developer documentation.
+      enum:
+        - circle_6900_singleowner_v2
+      example: circle_6900_singleowner_v2
+    CreateWalletUpgradeTransactionForDeveloper:
+      title: CreateWalletUpgradeTransactionForDeveloperResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - state
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+            state:
+              $ref: '#/components/schemas/TransactionState'
+    CancelTransactionForDeveloper:
+      title: CancelTransactionForDeveloperResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - state
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+            state:
+              $ref: '#/components/schemas/TransactionState'
+    AccelerateTransactionForDeveloper:
+      type: object
+      title: AccelerateTransactionForDeveloperResponse
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      description: >
+        Developer-provided identifier for this request, used for tracing
+        requests in Wallets API logs and the Developer Console, and when
+        communicating with Circle Support.
+
+        **Must be a UUID to appear in logs.** Non-UUID values are accepted by
+        the API but are ignored by logging and tracing systems.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+    From:
+      name: from
+      description: >-
+        Queries items created since the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    To:
+      name: to
+      description: >-
+        Queries items created before the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    PageBefore:
+      name: pageBefore
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive end of a page. When provided, the collection
+        resource will return the next n items before
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified. 
+
+
+        SHOULD NOT be used in conjunction with pageAfter.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageAfter:
+      name: pageAfter
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive begin of a page. When provided, the collection
+        resource will return the next n items after
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified.
+
+
+        SHOULD NOT be used in conjunction with pageBefore.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageSize:
+      name: pageSize
+      description: >
+        Limits the number of items to be returned.
+
+
+        Some collections have a strict upper bound that will disregard this
+        value. In case the specified value is higher
+
+        than the allowed limit, the collection limit will be used.
+
+
+        If avoided, the collection will determine the page size itself.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 50
+        minimum: 1
+    Order:
+      name: order
+      description: |
+        Specifies the sort order of the collection by `CreateDate`.
+
+        Valid values:
+        - `ASC` – Sort results in ascending order.
+        - `DESC` – Sort results in descending order (default).
+      in: query
+      schema:
+        type: string
+        enum:
+          - ASC
+          - DESC
+        default: DESC
+    Id:
+      name: id
+      description: The universally unique identifier of the resource.
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: b3d9d2d5-4c12-4946-a09d-953e82fae2b0
+    WalletAddress:
+      name: address
+      description: Filter by the blockchain address of the wallet.
+      in: query
+      schema:
+        $ref: '#/components/schemas/Address'
+    Blockchain:
+      name: blockchain
+      description: Filter by blockchain.
+      in: query
+      schema:
+        $ref: '#/components/schemas/Blockchain'
+    ScaCore:
+      name: scaCore
+      description: Filters results by the SCA version.
+      in: query
+      schema:
+        $ref: '#/components/schemas/ScaCore'
+    WalletSetId:
+      name: walletSetId
+      description: Filter by the wallet set.
+      in: query
+      schema:
+        $ref: '#/components/schemas/Id'
+    ReferenceId:
+      name: refId
+      description: Filter by the reference identifier.
+      in: query
+      schema:
+        $ref: '#/components/schemas/ReferenceId'
+    AmountGte:
+      name: amount__gte
+      description: >-
+        Filters wallets with a balance greater than or equal to the specified
+        amount. If `tokenAddress` is provided, the filter applies to the
+        specified token; otherwise, it applies to the native token.
+      in: query
+      schema:
+        $ref: '#/components/schemas/AmountOperator'
+    TokenAddress:
+      name: tokenAddress
+      description: Filter by token address.
+      in: query
+      schema:
+        $ref: '#/components/schemas/Address'
+    CustodyType:
+      name: custodyType
+      description: Filter by the custody type.
+      in: query
+      schema:
+        $ref: '#/components/schemas/CustodyType'
+    DestinationAddress:
+      name: destinationAddress
+      description: Filter by the destination address.
+      in: query
+      schema:
+        $ref: '#/components/schemas/Address'
+    IncludeAll:
+      name: includeAll
+      description: Return all recourses with monitored and non-monitored tokens.
+      in: query
+      required: false
+      schema:
+        type: boolean
+        example: true
+    DeveloperOperation:
+      name: operation
+      description: Filter by the operation of the transaction.
+      in: query
+      schema:
+        enum:
+          - TRANSFER
+          - CONTRACT_EXECUTION
+          - CONTRACT_DEPLOYMENT
+        type: string
+    TransactionState:
+      name: state
+      description: Filter by the state of the transaction.
+      in: query
+      schema:
+        $ref: '#/components/schemas/TransactionState'
+    TransactionHash:
+      name: txHash
+      description: Filter on the transaction hash of the transaction.
+      in: query
+      schema:
+        $ref: '#/components/schemas/TransactionHash'
+    TransactionType:
+      name: txType
+      description: Filter by on the transaction type.
+      in: query
+      schema:
+        $ref: '#/components/schemas/TransactionType'
+    WalletIds:
+      name: walletIds
+      description: >-
+        Filter by the wallet IDs, this parameter is a comma separated list of
+        ids.
+      in: query
+      schema:
+        type: string
+      example: >-
+        a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,3a375080-9da2-4bd8-b548-0de59c1471e9
+    WalletId:
+      name: walletId
+      description: Filter by the wallet ID
+      in: query
+      schema:
+        type: string
+        format: uuid
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+    AccountType:
+      name: accountType
+      description: Query by the account type.
+      in: query
+      schema:
+        $ref: '#/components/schemas/AccountType'
+    TokenName:
+      name: name
+      description: Filter by token name.
+      in: query
+      schema:
+        type: string
+    TokenStandard:
+      name: standard
+      description: >-
+        Filter by the token standard. ERC20/ERC721/ERC1155 are the standards for
+        EVM chains,
+        Fungible/FungibleAsset/NonFungible/NonFungibleEdition/ProgrammableNonFungible/ProgrammableNonFungibleEdition
+        are the standards for the Solana chain, FungibleAsset is the standard
+        for the Aptos chain.
+      in: query
+      schema:
+        $ref: '#/components/schemas/TokenStandard'
+  headers:
+    XRequestId:
+      description: >
+        Developer-provided header parameter or Circle-generated universally
+        unique identifier (UUID v4). Useful for identifying a specific request
+        when communicating with Circle Support.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+    PaginationLink:
+      description: >
+        Pagination cursor information. Format includes the following link
+        relations: - self: URL pointing to the current page. - first: URL
+        pointing to the first page. - next: URL pointing to the next page
+        (omitted on the last page). - prev: URL pointing to the previous page
+        (omitted on the first page).
+
+        It's important to form calls with Link header values instead of
+        constructing your own URLs.
+      schema:
+        type: string
+        example: >-
+          <https://api.circle.com/v1/w3s/wallets?pageAfter=32d1b923-c30d-58de-a42e-157bf7148b85&pageSize=2>;
+          rel="next"
+  responses:
+    NotAuthorized:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: NotAuthorizedResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                description: Code that corresponds to the error.
+              message:
+                type: string
+                description: Message that describes the error.
+            example:
+              code: 401
+              message: Malformed authorization.
+      description: >-
+        Request has not been applied because it lacks valid authentication
+        credentials.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    NotFound:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: NotFoundResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                description: Code that corresponds to the error.
+              message:
+                type: string
+                description: Message that describes the error.
+            example:
+              code: 404
+              message: Not found.
+      description: Specified resource was not found.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: BadRequestResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                description: Code that corresponds to the error.
+              message:
+                type: string
+                description: Message that describes the error.
+            example:
+              code: 400
+              message: Bad request.
+      description: Request cannot be processed due to a client error.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    DefaultError:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Error response
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+  requestBodies:
+    CreateWalletSet:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - entitySecretCiphertext
+              - idempotencyKey
+            properties:
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              name:
+                $ref: '#/components/schemas/Name'
+      required: true
+      description: Schema for the request payload to create a new wallet set.
+    UpdateWalletSet:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/Name'
+      required: true
+      description: Schema for the request payload to update an existing wallet set.
+    CreateWallet:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - blockchains
+              - entitySecretCiphertext
+              - walletSetId
+              - idempotencyKey
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              accountType:
+                $ref: '#/components/schemas/AccountType'
+              blockchains:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Blockchain'
+                description: Blockchain(s) the requested wallets will be created on.
+              count:
+                type: integer
+                description: >-
+                  Number of wallets that will be created per specified
+                  blockchain.
+                example: 2
+                maximum: 200
+                minimum: 1
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              metadata:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WalletMetadata'
+                description: >-
+                  List of metadata fields to associate with the corresponding
+                  wallet. If count is specified, the amount of items in the
+                  array should match the count field.
+              walletSetId:
+                $ref: '#/components/schemas/Id'
+      description: Schema for the request payload to create a new wallet.
+      required: true
+    UpdateWallet:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                example: my wallet
+                $ref: '#/components/schemas/Name'
+              refId:
+                $ref: '#/components/schemas/ReferenceId'
+      required: true
+      description: Schema for the request payload to update an existing wallet.
+    DeriveWalletByAddress:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - sourceBlockchain
+              - walletAddress
+              - targetBlockchain
+            properties:
+              sourceBlockchain:
+                $ref: '#/components/schemas/EvmBlockchain'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+              targetBlockchain:
+                $ref: '#/components/schemas/EvmBlockchain'
+              metadata:
+                $ref: '#/components/schemas/WalletMetadata'
+      description: >-
+        Request payload to derive a wallet by source blockchain + address onto a
+        target blockchain.
+      required: true
+    SignMessage:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - entitySecretCiphertext
+            properties:
+              walletId:
+                $ref: '#/components/schemas/Id'
+              encodedByHex:
+                $ref: '#/components/schemas/EncodedByHex'
+              message:
+                $ref: '#/components/schemas/Message'
+              memo:
+                $ref: '#/components/schemas/Memo'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+      required: true
+      description: Schema for the request payload to sign a message.
+    SignTypedData:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+              - entitySecretCiphertext
+            properties:
+              walletId:
+                $ref: '#/components/schemas/Id'
+              data:
+                $ref: '#/components/schemas/TypedData'
+              memo:
+                $ref: '#/components/schemas/Memo'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+      required: true
+      description: Schema for the request payload to sign typed data.
+    SignTransaction:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - entitySecretCiphertext
+            properties:
+              walletId:
+                $ref: '#/components/schemas/Id'
+              rawTransaction:
+                $ref: '#/components/schemas/RawTransaction'
+              transaction:
+                $ref: '#/components/schemas/TransactionObject'
+              memo:
+                $ref: '#/components/schemas/Memo'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+      required: true
+      description: Schema for the request payload to sign a transaction.
+    SignDelegateAction:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - unsignedDelegateAction
+              - walletId
+              - entitySecretCiphertext
+            properties:
+              walletId:
+                $ref: '#/components/schemas/Id'
+              unsignedDelegateAction:
+                $ref: '#/components/schemas/UnsignedDelegateAction'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+      required: true
+      description: Schema for the request payload to sign a delegate action.
+    CreateTransferTransactionForDeveloper:
+      content:
+        application/json:
+          schema:
+            title: CreateTransferTransactionForDeveloperRequest
+            type: object
+            required:
+              - destinationAddress
+              - entitySecretCiphertext
+              - idempotencyKey
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              amounts:
+                $ref: '#/components/schemas/TransferAmounts-2'
+              destinationAddress:
+                $ref: '#/components/schemas/Address'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              feeLevel:
+                $ref: '#/components/schemas/FeeLevel'
+              gasLimit:
+                $ref: '#/components/schemas/GasLimit'
+              gasPrice:
+                $ref: '#/components/schemas/GasPrice'
+              maxFee:
+                $ref: '#/components/schemas/MaxFee'
+              priorityFee:
+                $ref: '#/components/schemas/PriorityFee'
+              nftTokenIds:
+                $ref: '#/components/schemas/NftTokenIds'
+              refId:
+                $ref: '#/components/schemas/TransactionReferenceId'
+              tokenId:
+                $ref: '#/components/schemas/TokenId'
+              tokenAddress:
+                $ref: '#/components/schemas/TokenAddress'
+              blockchain:
+                anyOf:
+                  - $ref: '#/components/schemas/TransferBlockchain'
+                  - $ref: '#/components/schemas/TokenBlockchain'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+      description: Create transaction for developer request
+      required: true
+    DeriveWallet:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                $ref: '#/components/schemas/WalletMetadata'
+      description: Defines the request payload schema for deriving a new wallet.
+      required: false
+    ValidateAddress:
+      content:
+        application/json:
+          schema:
+            title: ValidateAddressRequest
+            type: object
+            required:
+              - address
+              - blockchain
+            properties:
+              address:
+                $ref: '#/components/schemas/Address'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+      description: Validate address request
+      required: true
+    EstimateContractExecutionTransactionFee:
+      content:
+        application/json:
+          schema:
+            title: EstimateContractExecutionTransactionFeeRequest
+            type: object
+            required:
+              - contractAddress
+            properties:
+              abiFunctionSignature:
+                $ref: '#/components/schemas/AbiFunctionSignature'
+              abiParameters:
+                $ref: '#/components/schemas/AbiParameters'
+              callData:
+                $ref: '#/components/schemas/CallData'
+              amount:
+                $ref: '#/components/schemas/Amount'
+              blockchain:
+                $ref: '#/components/schemas/ContractExecutionBlockchain'
+              contractAddress:
+                $ref: '#/components/schemas/ContractAddress'
+              sourceAddress:
+                $ref: '#/components/schemas/SourceAddress'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+      description: Estimate transaction fee request
+      required: true
+    EstimateTransferTransactionFee:
+      content:
+        application/json:
+          schema:
+            title: EstimateTransferTransactionFeeRequest
+            type: object
+            required:
+              - amounts
+              - destinationAddress
+            properties:
+              amounts:
+                $ref: '#/components/schemas/TransferAmounts-2'
+              destinationAddress:
+                $ref: '#/components/schemas/Address'
+              nftTokenIds:
+                $ref: '#/components/schemas/NftTokenIds'
+              sourceAddress:
+                $ref: '#/components/schemas/SourceAddress'
+              tokenId:
+                $ref: '#/components/schemas/TokenId'
+              tokenAddress:
+                $ref: '#/components/schemas/TokenAddress'
+              blockchain:
+                $ref: '#/components/schemas/TokenBlockchain'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+      description: Estimate transaction fee request
+      required: true
+    CreateContractExecutionTransactionForDeveloper:
+      required: true
+      description: Create transaction for developer request
+      content:
+        application/json:
+          schema:
+            title: CreateContractExecutionTransactionForDeveloperRequest
+            type: object
+            required:
+              - contractAddress
+              - entitySecretCiphertext
+              - idempotencyKey
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              abiFunctionSignature:
+                $ref: '#/components/schemas/AbiFunctionSignature'
+              abiParameters:
+                $ref: '#/components/schemas/AbiParameters'
+              callData:
+                $ref: '#/components/schemas/CallData'
+              amount:
+                $ref: '#/components/schemas/Amount'
+              contractAddress:
+                $ref: '#/components/schemas/ContractAddress'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              feeLevel:
+                $ref: '#/components/schemas/FeeLevel'
+              gasLimit:
+                $ref: '#/components/schemas/GasLimit'
+              gasPrice:
+                $ref: '#/components/schemas/GasPrice'
+              maxFee:
+                $ref: '#/components/schemas/MaxFee'
+              priorityFee:
+                $ref: '#/components/schemas/PriorityFee'
+              refId:
+                $ref: '#/components/schemas/TransactionReferenceId'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+              blockchain:
+                $ref: '#/components/schemas/ContractExecutionBlockchain'
+              walletAddress:
+                $ref: '#/components/schemas/Address'
+    CreateWalletUpgradeTransactionForDeveloper:
+      required: true
+      description: Creates a transaction for a developer request.
+      content:
+        application/json:
+          schema:
+            title: CreateWalletUpgradeTransactionForDeveloperRequest
+            type: object
+            required:
+              - entitySecretCiphertext
+              - idempotencyKey
+              - walletId
+              - newScaCore
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              newScaCore:
+                $ref: '#/components/schemas/NewScaCore'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              feeLevel:
+                $ref: '#/components/schemas/FeeLevel'
+              gasLimit:
+                $ref: '#/components/schemas/GasLimit'
+              gasPrice:
+                $ref: '#/components/schemas/GasPrice'
+              maxFee:
+                $ref: '#/components/schemas/MaxFee'
+              priorityFee:
+                $ref: '#/components/schemas/PriorityFee'
+              refId:
+                $ref: '#/components/schemas/TransactionReferenceId'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+    CancelTransactionForDeveloper:
+      required: true
+      description: Cancel transaction for developer request
+      content:
+        application/json:
+          schema:
+            title: CancelTransactionForDeveloperRequest
+            type: object
+            required:
+              - entitySecretCiphertext
+              - idempotencyKey
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+    AccelerateTransactionForDeveloper:
+      content:
+        application/json:
+          schema:
+            title: AccelerateTransactionForDeveloperRequest
+            type: object
+            required:
+              - entitySecretCiphertext
+              - idempotencyKey
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+      description: Accelerate transaction for developer request
+      required: true

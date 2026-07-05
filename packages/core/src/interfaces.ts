@@ -90,7 +90,7 @@ export interface SettlementAdapter {
   pay(
     endpoint: string,
     body?: unknown,
-  ): Promise<{ amountUsdc: string; txHash: string }>;
+  ): Promise<{ amountUsdc: string; txHash: string; result?: unknown }>;
 }
 
 /**

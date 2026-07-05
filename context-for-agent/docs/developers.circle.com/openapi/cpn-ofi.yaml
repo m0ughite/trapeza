@@ -1,0 +1,3057 @@
+openapi: 3.0.3
+info:
+  description: CPN OFI REST API
+  title: CPN OFI
+  version: '1.0'
+  license:
+    name: Proprietary
+    url: https://www.circle.com/legal
+servers:
+  - url: https://api.circle.com
+security:
+  - BearerAuth: []
+tags:
+  - name: Configurations
+    description: Manage OFI configurations and settings
+  - name: Quotes
+    description: Handle quote-related operations
+  - name: Payments
+    description: Create and manage payment operations
+  - name: Transactions
+    description: Handle transaction-related operations
+  - name: Requests for Information
+    description: Manage Requests for Information (RFIs)
+  - name: Support Tickets
+    description: Manage support ticket operations
+paths:
+  /v1/cpn/configurations/overview:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getPaymentConfigurationsOverview
+      description: >-
+        Returns the overview of supported countries, currencies, payment
+        methods, blockchains.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfigurationOverviewResponse'
+          description: payment configurations retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      summary: Get payment configurations
+      tags:
+        - Configurations
+  /v1/cpn/configurations/routes:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: listRoutes
+      description: >
+        Returns a list of route details including trade limits. This information
+        can determine
+
+        what corridors and parameters are valid for subsequent quote creation.
+      parameters:
+        - $ref: '#/components/parameters/SourceCurrencyParam'
+        - $ref: '#/components/parameters/DestinationCountryParam'
+        - $ref: '#/components/parameters/TransactionVersionParam'
+        - $ref: '#/components/parameters/DestinationCurrencyParam'
+        - $ref: '#/components/parameters/PaymentMethodTypeParam'
+        - $ref: '#/components/parameters/BlockchainParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRoutesResponse'
+          description: payment routes retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      summary: Get supported payment routes
+      tags:
+        - Configurations
+  /v1/cpn/quotes:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: createQuotes
+      description: >
+        Creates one or more quotes for the given source/destination parameters.
+        Returns quotes sorted in the following order:
+
+          - Ascending of `sourceAmount` if your quote is based on `destinationAmount`.
+
+          - Descending of `destinationAmount` if your quote is based on `sourceAmount`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuotes'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotesResponse'
+          description: Quotes created successfully
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      summary: Create a quote
+      tags:
+        - Quotes
+  /v1/cpn/quotes/{quoteId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getQuote
+      description: Retrieve details of a specific quote (e.g., re-check expiration, fees).
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          description: The quote id that was created previously.
+          schema:
+            $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+          description: The quote retrieved successfully.
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get details of a quote
+      tags:
+        - Quotes
+  /v1/cpn/payments:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: listPayments
+      description: Returns a list of all payments that fit the specified parameters.
+      parameters:
+        - $ref: '#/components/parameters/PaymentStatusParam'
+        - $ref: '#/components/parameters/CustomerRefId'
+        - $ref: '#/components/parameters/RefCode'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentsResponse'
+          description: Payments found.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      summary: List payments
+      tags:
+        - Payments
+    post:
+      security:
+        - BearerAuth: []
+      operationId: createPayment
+      description: >-
+        Creates a payment by using the quote created previously and submitting
+        recipient information (travel rule). The payment will remain valid if
+        the onchain settlement occurs before settlementExpireDate.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePayment'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+          description: Payment created successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      summary: Create a payment
+      tags:
+        - Payments
+  /v1/cpn/payments/requirements:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getPaymentRequirements
+      description: >-
+        Retrieves the PII fields needed to collect to make this payment (travel
+        rule and beneficiary account data).
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequirementsResponse'
+          description: Payment requirements retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get payment requirements for a quote
+      tags:
+        - Payments
+  /v1/cpn/payments/{paymentId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getPayment
+      description: >-
+        Returns the PII fields needed to collect to make this payment (i.e.
+        travel rule and beneficiary account data)
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+          description: Payment found.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get a payment
+      tags:
+        - Payments
+  /v1/cpn/payments/{paymentId}/transactions:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: createTransaction
+      description: Creates an unsigned onchain transaction for a specific payment.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransaction'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transaction created successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      summary: Create a transaction
+      tags:
+        - Transactions
+  /v1/cpn/payments/{paymentId}/transactions/{transactionId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getTransaction
+      description: Retrieves a specific transaction by its ID for a given payment
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transaction retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get a transaction
+      tags:
+        - Transactions
+  /v1/cpn/payments/{paymentId}/transactions/{transactionId}/submit:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: submitTransaction
+      description: >-
+        Return the signed hex string of the transaction, Circle will validate
+        the content and broadcast to the chain.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitTransaction'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transaction submitted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Submit a signed transaction for broadcast
+      tags:
+        - Transactions
+  /v1/cpn/payments/{paymentId}/transactions/accelerate:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: accelerateTransaction
+      description: >
+        - Accelerate a transaction based on the payment ID. It should be used
+        when a transaction associated with the payment is broadcasted but not
+        confirmed for a long period of time (i.e 10 minutes). This is usually
+        due to gas fees being too low and not picked up by any miner/validator.
+
+
+        - The /accelerate endpoint essentially creates another transaction with
+        the same params as the broadcasted transaction. If multiple broadcasted
+        transactions exist, it will use the newest created one. Afterwards, OFI
+        can sign with a higher gas fee and submit via /submit endpoint to
+        accelerate blockchain confirmation.
+
+
+        - Requirements for using this endpoint:
+
+          - No COMPLETED transaction exist for the payment (otherwise onchain transaction has completed)
+
+          - No CREATED transaction exist for the payment, otherwise OFI should sign that transaction and submit
+
+          - No PENDING transaction exist for the payment, otherwise OFI should wait for transaction to be broadcasted
+
+        - In another word, all existing transaction for the payment should
+        either be FAILED (which is no longer effective) or BROADCASTED (which
+        means they are stuck onchain and not confirmed)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccelerateTransaction'
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transaction accelerated successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      summary: Accelerate a stuck transaction
+      tags:
+        - Transactions
+  /v1/cpn/payments/{paymentId}/rfis/{rfiId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getRfi
+      description: >
+        Retrieve details of a specific RFI for a payment. If the BFI initiates
+        an RFI after the payment is created, the OFI will be notified via
+        webhook. This webhook will detail what specific information the OFI
+        needs to send. 
+
+
+        After receiving the webhook. The OFI is expected to encrypt the
+        requested data and send it to the BFI using CPN's RFI submit endpoint.
+        Failure to respond to an RFI will result in a failed payment. The OFI
+        will receive webhooks with the decision based on the submitted
+        information.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/RfiId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RfiResponse'
+          description: The RFI retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get details for an RFI
+      tags:
+        - Requests for Information
+  /v1/cpn/payments/{paymentId}/rfis/{rfiId}/submit:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: submitRfi
+      description: Submit encrypted RFI data to complete an RFI request from the BFI.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/RfiId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRfi'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RfiResponse'
+          description: RFI data submitted successfully
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Payment or RFI not found
+        '500':
+          description: Internal server error.
+      summary: Submit RFI data
+      tags:
+        - Requests for Information
+  /v1/cpn/payments/{paymentId}/rfis/{rfiId}/files:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: uploadRfiFile
+      description: Upload encrypted RFI file.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/RfiId'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadRfiFile'
+        required: true
+      responses:
+        '204':
+          description: RFI File uploaded successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Payment or RFI not found
+        '500':
+          description: Internal server error.
+      summary: Upload RFI file
+      tags:
+        - Requests for Information
+  /v1/cpn/payments/{paymentId}/refunds/{refundId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getRefund
+      summary: Get refund details
+      description: >-
+        Retrieves the full refund object associated with a specific payment.
+        This can be used by OFIs to reconcile refund status and verify refund
+        completion.
+      tags:
+        - Payments
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/RefundId'
+      responses:
+        '200':
+          description: Refund found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/cpn/supportTickets:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: createSupportTicket
+      description: >
+        Create transaction-related issues (for example, settlement delays,
+        missing information, or refunds). These tickets are stored centrally in
+        the CPN platform and routed to the appropriate party for resolution.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupportTicket'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+          description: Support ticket created successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      summary: Create a support ticket
+      tags:
+        - Support Tickets
+  /v2/cpn/payments/{paymentId}/transactions:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: createTransactionV2
+      description: Create a V2 transaction for signing
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionV2'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseV2'
+          description: Transaction created successfully or idempotency conflict.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Create a transaction (V2)
+      tags:
+        - Transactions
+  /v2/cpn/payments/{paymentId}/transactions/{transactionId}:
+    get:
+      security:
+        - BearerAuth: []
+      operationId: getTransactionV2
+      description: Get a transaction by ID
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseV2'
+          description: Transaction retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      summary: Get a transaction by ID (V2)
+      tags:
+        - Transactions
+  /v2/cpn/payments/{paymentId}/transactions/{transactionId}/submit:
+    post:
+      security:
+        - BearerAuth: []
+      operationId: submitTransactionV2
+      description: Submit a signed V2 transaction for broadcast
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitTransactionV2'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseV2'
+          description: Transaction submitted successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      summary: Submit a signed transaction for broadcast (V2)
+      tags:
+        - Transactions
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PREFIX:ID:SECRET
+      description: >-
+        Circle's API Keys are formatted in the following structure
+        "PREFIX:ID:SECRET". All three parts are requred to make a successful
+        request.
+  schemas:
+    XRequestId:
+      type: string
+      description: >-
+        A unique identifier, which can be helpful for identifying a request when
+        communicating with Circle support.
+      example: 2adba88e-9d63-44bc-b975-9b6ae3440dde
+    Country:
+      type: string
+      description: >-
+        ISO 3166-1 alpha-2 two-letter country code supported by the Circle
+        Payment Network
+      enum:
+        - AT
+        - BE
+        - BG
+        - BR
+        - CH
+        - CN
+        - CO
+        - CY
+        - CZ
+        - DE
+        - DK
+        - EE
+        - ES
+        - FI
+        - FR
+        - GB
+        - GR
+        - HK
+        - HR
+        - HU
+        - IE
+        - IN
+        - IT
+        - LI
+        - LT
+        - LU
+        - MT
+        - MX
+        - NG
+        - NL
+        - 'NO'
+        - PL
+        - PT
+        - RO
+        - SE
+        - SI
+        - SK
+        - US
+      example: MX
+    FiatCurrency:
+      type: string
+      description: Supported fiat currencies
+      enum:
+        - BRL
+        - CNY
+        - COP
+        - EUR
+        - GBP
+        - HKD
+        - INR
+        - MXN
+        - NGN
+        - USD
+      example: MXN
+    PaymentMethodType:
+      type: string
+      description: The method used for the payment (e.g., PIX, WIRE, CHATS)
+      enum:
+        - AANI
+        - BANK-TRANSFER
+        - CHATS
+        - CIPS
+        - FAST
+        - FPS
+        - FTS
+        - IMPS
+        - INSTA-PAY
+        - NEFT
+        - NEQUI
+        - PESONET
+        - PIX
+        - RTGS
+        - SEPA
+        - SPEI
+        - WIRE
+      example: SPEI
+    CryptoCurrency:
+      type: string
+      description: Supported cryptocurrencies
+      enum:
+        - USDC
+      example: USDC
+    Blockchain:
+      type: string
+      description: Supported blockchain networks
+      enum:
+        - SOL
+        - MATIC
+        - ETH
+        - SOL-DEVNET
+        - MATIC-AMOY
+        - ETH-SEPOLIA
+      example: ETH-SEPOLIA
+    PaymentConfigurationOverview:
+      type: object
+      description: >-
+        Overview of available payment configurations including supported
+        blockchains, countries, currencies, and payment methods.
+      properties:
+        destinationCountries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Country'
+          description: List of supported countries where payments can be received.
+        destinationCurrencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiatCurrency'
+          description: List of supported fiat currencies.
+        paymentMethodTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethodType'
+          description: List of supported payment methods.
+        sourceCurrencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CryptoCurrency'
+          description: List of supported source cryptocurrencies.
+        blockchains:
+          type: array
+          items:
+            $ref: '#/components/schemas/Blockchain'
+          description: List of supported blockchains.
+    PaymentConfigurationOverviewResponse:
+      title: PaymentConfigurationOverviewResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/PaymentConfigurationOverview'
+    ErrorCode:
+      title: ErrorCode
+      type: integer
+      description: Code that corresponds to the error.
+      enum:
+        - -1
+        - 0
+        - 1
+        - 2
+        - 3
+        - 290000
+        - 290001
+        - 290100
+        - 290101
+        - 290102
+        - 290103
+        - 290200
+        - 290201
+        - 290202
+        - 290203
+        - 290204
+        - 290205
+        - 290206
+        - 290300
+        - 290301
+        - 290303
+        - 290304
+        - 290305
+        - 290306
+        - 290307
+        - 290308
+        - 290309
+        - 290310
+        - 290311
+        - 290312
+        - 290313
+        - 290314
+        - 290315
+        - 290316
+        - 290317
+        - 290318
+        - 290319
+        - 290320
+        - 290321
+        - 290322
+        - 290323
+        - 290324
+        - 290325
+        - 290327
+        - 290328
+        - 290329
+        - 290330
+        - 290331
+        - 290332
+        - 290333
+        - 290338
+        - 290339
+        - 290340
+        - 290341
+        - 290400
+        - 290401
+        - 290500
+        - 290502
+        - 290503
+        - 290600
+        - 290601
+        - 290602
+        - 290603
+        - 290604
+        - 290605
+        - 290606
+      x-enum-descriptions:
+        - Unknown error
+        - Success
+        - API parameter missing
+        - API parameter invalid
+        - Forbidden
+        - >-
+          Parameters of request do not match the tenancy environment associated
+          with request
+        - A request with this idempotency key has already been processed.
+        - Amount provided is outside our supported limits
+        - No bfis available to create requested quote
+        - Parameters of request do not match any supported payment routes
+        - Route does not support the requested use case
+        - Quote not found with provided id
+        - Quote already used by another payment
+        - Quote past timestamp at which it expires
+        - Blockchain for sender address does not blockchain requested in quote
+        - Provided wallet address is on sanctioned lists
+        - Pending RFI verification
+        - RFI rejected
+        - Payment already has an associated active or completed transaction
+        - Blockchain is not supported by CPN
+        - Submitting a transaction not in submittable status
+        - Payment not in correct status for processing a onchain transfer
+        - The payment is not found
+        - The transaction is not found
+        - A signed transaction for the transaction has already been submitted
+        - The payment is expired
+        - >-
+          The signed transaction is expired. Solana has a concept of recent
+          blockhash in a transaction that expires after 150 blocks (~1 min)
+        - >-
+          The nonce in the signed transaction is lower than the current wallet
+          nonce
+        - The signed transaction payload does not match the payment
+        - The sender's wallet balance is insufficient
+        - The fee payer wallet lacks enough gas
+        - >-
+          The CPN Payment ID provided in the signed data (e.g., in the Solana
+          memo or EIP-712 structure) does not match the expected value
+        - >-
+          The gas price in the signed transaction is below network thresholds.
+          The fee must exceed the estimated high fee to ensure prompt
+          confirmation
+        - >-
+          When resubmitting (e.g., for acceleration), the wallet address to sign
+          the raw transaction or nonce does not match the original submission
+        - >-
+          The full node used by CPN is currently unavailable or returns an
+          unexpected error during transaction validation
+        - The Payment Ref ID has already been used on-chain
+        - >-
+          For EVM chains, the gas limit in the signed transaction is
+          insufficient to cover the execution costs. For Solana, the allocated
+          compute budget falls short of the transaction's requirements,
+          preventing successful execution
+        - >-
+          The nonce has already been used with the same sender in another signed
+          transaction submission for a CPN payment. The OFI must use a unique
+          nonce
+        - The signature in the transaction is invalid
+        - Provided wallet address is on sanctioned lists
+        - The blockchain is not supported by CPN
+        - The cross-chain is not supported by CPN yet
+        - Completed transaction exist. No need to accelerate
+        - The signed transaction cannot be decoded or is invalid
+        - The Solana account specified for transaction is not found
+        - The targetted transaction for action is expired
+        - >-
+          Please sign existing transaction or wait for signed transaction to be
+          broadcast
+        - No broadcasted transaction to be accelerated
+        - The Solana account specified for transaction is invalid
+        - >-
+          Another transaction for the same CPN payment has already been
+          submitted and is being broadcasted
+        - >-
+          A signature for the transaction has already been submitted and
+          accepted.
+        - >-
+          The submitted signature cannot be verified against the typed data to
+          be signed. This typically indicates that the signature signed with the
+          wrong private key, or the typed data gets manipulated before signing.
+        - >-
+          The ERC-20 allowance granted to the Permit2 contract is insufficient
+          to cover the total required token amount for the payment, including
+          both the payment amount and associated fees.
+        - >-
+          The Permit2 nonce included in the typed data for the sender has
+          already been used.
+        - RFI is past timestamp at which it expires
+        - RFI cannot be submitted in current status
+        - >-
+          The decryption process failed, possibly due to an invalid key or
+          corrupted data
+        - >-
+          The JWE compact payload is not formatted correctly or is missing
+          required components
+        - >-
+          The JWE compact payload was not encrypted with a supported encryption
+          algorithm
+        - Ticket reference ID is required for escalation tickets
+        - Original ticket not found with provided reference ID
+        - Issue type is not allowed for this origin
+        - Payment not found with provided ID
+        - Failed to create Circle Salesforce support ticket
+        - Failed to create a BFI support ticket
+        - Support ticket not found with provided ID
+    DescriptiveErrorType:
+      title: DescriptiveErrorType
+      type: string
+      enum:
+        - MISSING_OR_INVALID_FIELD
+      description: Type of descriptive error
+    DescriptiveError:
+      title: DescriptiveError
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          $ref: '#/components/schemas/DescriptiveErrorType'
+        location:
+          type: string
+          nullable: true
+          description: The key or path where the error occurred
+        message:
+          type: string
+          description: Detailed description of the error
+    TransactionVersion:
+      type: string
+      description: The version of the transaction. If not provided, defaults to VERSION_1.
+      enum:
+        - VERSION_1
+        - VERSION_2
+      example: VERSION_2
+    CryptoCurrencyLimit:
+      type: object
+      description: >-
+        Minimum and maximum transaction limits for a specific cryptocurrency.
+        These limits define the acceptable range for transaction amounts in the
+        specified currency.
+      properties:
+        currency:
+          $ref: '#/components/schemas/CryptoCurrency'
+        max:
+          type: number
+          example: 1000
+        min:
+          type: number
+          example: 10
+    FiatCurrencyLimit:
+      type: object
+      description: >-
+        Minimum and maximum transaction limits for a specific fiat currency.
+        These limits define the acceptable range for transaction amounts in the
+        specified currency.
+      properties:
+        currency:
+          $ref: '#/components/schemas/FiatCurrency'
+        max:
+          type: number
+          example: 1000
+        min:
+          type: number
+          example: 10
+    PaymentRoute:
+      type: object
+      properties:
+        destinationCurrency:
+          $ref: '#/components/schemas/FiatCurrency'
+        paymentMethodType:
+          $ref: '#/components/schemas/PaymentMethodType'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        cryptoLimit:
+          $ref: '#/components/schemas/CryptoCurrencyLimit'
+        fiatLimit:
+          $ref: '#/components/schemas/FiatCurrencyLimit'
+    PaymentRoutesResponse:
+      title: PaymentRoutesResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          description: >-
+            Array of payment routes containing all the necessary information for
+            routing payments
+          items:
+            $ref: '#/components/schemas/PaymentRoute'
+    SenderRecipientType:
+      type: string
+      description: Type of entity sending or receiving the payment
+      enum:
+        - BUSINESS
+        - INDIVIDUAL
+      example: BUSINESS
+    QuoteOptions:
+      type: object
+      description: Additional information for the OFI to provide a more precise quote
+      properties:
+        isFirstParty:
+          type: boolean
+          description: >
+            Whether the sender and recipient are the same entity. Some BFIs may
+            provide discounts for first party payments.
+    CreateQuotes:
+      type: object
+      description: Request body for creating payment quotes with exchange rates and fees
+      properties:
+        paymentMethodType:
+          $ref: '#/components/schemas/PaymentMethodType'
+        senderCountry:
+          $ref: '#/components/schemas/Country'
+        sourceAmount:
+          type: object
+          properties:
+            amount:
+              type: string
+              example: '10'
+            currency:
+              $ref: '#/components/schemas/CryptoCurrency'
+          description: >-
+            The amount of fiat currency to be delivered to the destination. This
+            field is an object containing the currency code and the amount. This
+            field is required; however, if your query is based on the
+            `destinationAmount`, leave the `amount` field blank and only
+            populate the `currency` field.
+        destinationCountry:
+          $ref: '#/components/schemas/Country'
+        destinationAmount:
+          type: object
+          properties:
+            amount:
+              type: string
+              example: ''
+            currency:
+              $ref: '#/components/schemas/FiatCurrency'
+          description: >-
+            The amount of fiat currency to be delivered to the destination. This
+            field is an object containing the currency code and the amount. This
+            field is required; however, if your query is based on the
+            `sourceAmount`, leave the `amount` field blank and only populate the
+            `currency` field.
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        senderType:
+          $ref: '#/components/schemas/SenderRecipientType'
+        recipientType:
+          $ref: '#/components/schemas/SenderRecipientType'
+        quoteOptions:
+          $ref: '#/components/schemas/QuoteOptions'
+        transactionVersion:
+          $ref: '#/components/schemas/TransactionVersion'
+      required:
+        - blockchain
+        - destinationAmount
+        - destinationCountry
+        - recipientType
+        - senderCountry
+        - senderType
+        - sourceAmount
+    Id:
+      type: string
+      format: uuid
+      description: System-generated unique identifier of the resource.
+      example: c4d1da72-111e-4d52-bdbf-2e74a2d803d5
+    CreateDate:
+      type: string
+      format: date-time
+      description: Date and time when the resource was created
+      example: '2023-01-01T12:04:05Z'
+    ExpireDate:
+      type: string
+      format: date-time
+      description: Date and time when the resource expires
+      example: '2023-01-01T12:04:05Z'
+    CryptoMoney:
+      type: object
+      description: >-
+        Represents an amount of cryptocurrency, including both the numerical
+        amount and the specific cryptocurrency type.
+      properties:
+        amount:
+          type: string
+          example: '110.270000'
+        currency:
+          $ref: '#/components/schemas/CryptoCurrency'
+      example:
+        amount: '110.270000'
+        currency: USDC
+    FiatMoney:
+      type: object
+      description: >-
+        Represents an amount of money in a specific fiat currency, including
+        both the numerical amount and the currency type.
+      properties:
+        amount:
+          type: string
+          example: '183.24'
+        currency:
+          $ref: '#/components/schemas/FiatCurrency'
+    ArrivalTime:
+      type: object
+      description: >-
+        Estimated time range for when funds will arrive at their destination
+        after a transfer is initiated. The time varies depending on the fiat
+        payment method used (e.g., ACH, SEPA, Wire). The time is represented as
+        a range with minimum and maximum values in the specified unit.
+      properties:
+        max:
+          type: string
+          example: '3'
+        min:
+          type: string
+          example: '1'
+        unit:
+          type: string
+          enum:
+            - MINUTES
+            - HOURS
+            - DAYS
+            - WEEKS
+          example: DAYS
+    ExchangeRate:
+      type: object
+      properties:
+        pair:
+          type: string
+          description: The currency pair in format cryptoCurrency/localFiatCurrency
+          example: USDC/MXN
+        rate:
+          type: string
+          description: The exchange rate between source and destination currencies
+          example: '18.324000'
+    PaymentFee:
+      type: object
+      description: >-
+        Represents a fee associated with a payment transaction, including the
+        fee amount and type.
+      properties:
+        amount:
+          $ref: '#/components/schemas/CryptoMoney'
+        type:
+          description: The type of fee being charged for the transaction.
+          type: string
+          enum:
+            - TAX_FEE
+            - BFI_TRANSACTION_FEE
+          example: BFI_TRANSACTION_FEE
+      example:
+        amount:
+          amount: '0.240000'
+          currency: USDC
+        type: BFI_TRANSACTION_FEE
+    PaymentFees:
+      type: object
+      description: >-
+        A collection of fees associated with a payment transaction, including
+        both individual fee breakdowns and the total amount.
+      properties:
+        breakdown:
+          type: array
+          description: >-
+            Detailed breakdown of individual fees that make up the total payment
+            fees.
+          items:
+            $ref: '#/components/schemas/PaymentFee'
+        totalAmount:
+          $ref: '#/components/schemas/CryptoMoney'
+    JWK:
+      type: object
+      description: The public key for the BFI defined in RFC 7517
+      properties:
+        crv:
+          type: string
+          description: The curve used for the EC key
+          example: P-256
+        kid:
+          type: string
+          description: Key ID
+          example: '263521881931753643998528753619816524468853605762'
+        kty:
+          type: string
+          description: Key type
+          example: EC
+        x:
+          type: string
+          description: X coordinate for the EC public key
+          example: KnxBe8fb2mL_Ve9-tqjGSkGgE9f0yohMkAvH_InaFtE
+        'y':
+          type: string
+          description: Y coordinate for the EC public key
+          example: D41cVUpiKcey4LJKNFtUtmVHDWRmhjZapPLfryX5b1o
+    Certificate:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        certPem:
+          type: string
+          format: base64
+          description: Base64 encoded certificate in PEM format
+          example: LS0tLS1CRUdJT...
+        domain:
+          type: string
+          description: >-
+            BFI domain which is available in the CommonName attribute of the
+            cert
+          example: api.circle.com
+        jwk:
+          $ref: '#/components/schemas/JWK'
+    Quote:
+      type: object
+      description: >-
+        A quote containing all the necessary information for a cryptocurrency
+        payment transaction, including source and destination amounts, fees,
+        exchange rates, and relevant timing information.
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - quote
+          example: quote
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentMethodType:
+          $ref: '#/components/schemas/PaymentMethodType'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        senderCountry:
+          $ref: '#/components/schemas/Country'
+        destinationCountry:
+          $ref: '#/components/schemas/Country'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        quoteExpireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        cryptoFundsSettlementExpireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        sourceAmount:
+          $ref: '#/components/schemas/CryptoMoney'
+          example:
+            amount: '10.000000'
+            currency: USDC
+        destinationAmount:
+          $ref: '#/components/schemas/FiatMoney'
+          example:
+            amount: '183.24'
+            currency: MXN
+        fiatSettlementTime:
+          $ref: '#/components/schemas/ArrivalTime'
+        exchangeRate:
+          $ref: '#/components/schemas/ExchangeRate'
+          example:
+            pair: USDC/MXN
+            rate: '18.324000'
+        rawExchangeRate:
+          $ref: '#/components/schemas/ExchangeRate'
+          description: >-
+            The raw exchange rate between `sourceAmount` and
+            `destinationAmount`, exclusive of fees.
+          example:
+            pair: USDC/MXN
+            rate: '18.778689'
+        fees:
+          $ref: '#/components/schemas/PaymentFees'
+          example:
+            breakdown:
+              - type: BFI_TRANSACTION_FEE
+                amount:
+                  amount: '0.240000'
+                  currency: USDC
+            totalAmount:
+              amount: '0.240000'
+              currency: USDC
+        senderType:
+          $ref: '#/components/schemas/SenderRecipientType'
+        recipientType:
+          $ref: '#/components/schemas/SenderRecipientType'
+        certificate:
+          $ref: '#/components/schemas/Certificate'
+        quoteOptions:
+          $ref: '#/components/schemas/QuoteOptions'
+    QuotesResponse:
+      title: QuotesResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          description: >-
+            Array of quotes containing all the necessary information for
+            payments
+          items:
+            $ref: '#/components/schemas/Quote'
+    QuoteResponse:
+      title: QuoteResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Quote'
+    PaymentStatus:
+      type: string
+      description: The current status of a payment
+      enum:
+        - CREATED
+        - CRYPTO_FUNDS_PENDING
+        - FIAT_PAYMENT_INITIATED
+        - COMPLETED
+        - FAILED
+      example: COMPLETED
+    ReferenceId:
+      type: string
+      description: Reference or description used to identify the object.
+      example: custom_ref_id
+    BlockchainAddress:
+      type: string
+      description: >-
+        A blockchain address that can be used to send or receive transactions on
+        a blockchain network.
+      example: '0xe01be9cdd9e744ae6a709794bfe531ec3ec0671c'
+    PaymentFailureReason:
+      type: string
+      enum:
+        - TRAVEL_RULE_FAILED
+        - BANK_VERIFICATION_FAILED
+        - RFI_VERIFICATION_FAILED
+        - EXISTING_RFI_PENDING
+        - ONCHAIN_SETTLEMENT_FAILED
+        - COMPLIANCE_CHECK_FAILED
+        - CANCELLED
+        - PAYMENT_EXPIRED
+        - OTHER
+      example: CANCELLED
+    PaymentFailureCode:
+      type: string
+      description: >-
+        The code for the detailed description of the payment failure reason. For
+        more details see [Payment Failure
+        Codes](https://developers.circle.com/cpn/references/payment-failure-codes).
+      pattern: ^PM\d{5}$
+      example: PM01001
+    UseCase:
+      type: string
+      enum:
+        - B2B
+        - B2C
+        - C2C
+        - C2B
+      example: B2B
+      description: The type of payment use case
+    ReasonForPayment:
+      type: string
+      description: >-
+        The reason code for the payment. For more details see [Payment Reason
+        Codes](https://developers.circle.com/cpn/references/payment-reason-codes).
+      pattern: ^PMT\d{3}$
+      enum:
+        - PMT001
+        - PMT002
+        - PMT003
+        - PMT004
+        - PMT005
+        - PMT006
+        - PMT007
+        - PMT008
+        - PMT009
+        - PMT010
+        - PMT011
+        - PMT012
+        - PMT013
+        - PMT014
+        - PMT015
+        - PMT016
+        - PMT017
+        - PMT018
+        - PMT019
+        - PMT020
+        - PMT021
+        - PMT022
+        - PMT023
+        - PMT024
+        - PMT025
+        - PMT026
+        - PMT027
+        - PMT028
+        - PMT029
+        - PMT030
+      example: PMT001
+    RfiStatus:
+      type: string
+      description: Status of the RFI (Request for Information)
+      enum:
+        - INFORMATION_REQUIRED
+        - IN_REVIEW
+        - APPROVED
+        - REJECTED
+      example: APPROVED
+    RfiLevel:
+      type: string
+      description: Level of the RFI (Request for Information)
+      enum:
+        - LEVEL_1
+        - LEVEL_2
+        - LEVEL_3
+      example: LEVEL_1
+    RfiSchema:
+      type: object
+      properties:
+        version:
+          type: integer
+          description: Version of the RFI requirement schema provided by CPN.
+          example: 1
+        schema:
+          type: object
+          description: >-
+            JSON schema for the RFI requirements. Note that references use 'ref'
+            instead of '$ref' to avoid YAML parsing issues.
+          example:
+            type: object
+            $defs:
+              address:
+                type: object
+                required:
+                  - street
+                  - city
+                  - country
+                properties:
+                  city:
+                    type: string
+                    description: City name
+                  street:
+                    type: string
+                    description: Street address
+                  country:
+                    type: string
+                    pattern: ^[A-Z]{2}$
+                    description: Country code (e.g., US, GB)
+                  postalCode:
+                    type: string
+                    description: Postal or ZIP code
+                  stateProvince:
+                    type: string
+                    description: State or province
+                description: Full address
+              individual:
+                type: object
+                required:
+                  - name
+                  - address
+                  - dateOfBirth
+                properties:
+                  name:
+                    type: string
+                    description: Individual's full name
+                  address:
+                    ref: '#/$defs/address'
+                  dateOfBirth:
+                    type: string
+                    format: date
+                    description: Individual's date of birth (YYYY-MM-DD)
+                description: Individual's RFI data
+              beneficiaryOwner:
+                type: object
+                required:
+                  - name
+                  - address
+                  - dateOfBirth
+                  - percentage
+                properties:
+                  name:
+                    type: string
+                    description: Individual's full name
+                  address:
+                    ref: '#/$defs/address'
+                  percentage:
+                    type: number
+                    description: Company ownership percentage
+                  dateOfBirth:
+                    type: string
+                    format: date
+                    description: Individual's date of birth (YYYY-MM-DD)
+                description: Beneficiary owner's RFI data
+              intermediaryBeneficiaryOwner:
+                type: object
+                required:
+                  - name
+                  - address
+                  - dateOfFormation
+                  - countryOfFormation
+                  - percentage
+                properties:
+                  name:
+                    type: string
+                    description: Business legal name
+                  address:
+                    ref: '#/$defs/address'
+                  percentage:
+                    type: number
+                    description: Company ownership percentage
+                  dateOfFormation:
+                    type: string
+                    format: date
+                    description: Company formation date (YYYY-MM-DD)
+                  countryOfFormation:
+                    type: string
+                    pattern: ^[A-Z]{2}$
+                    description: Entity formation country
+                description: Intermediary beneficiary owner's RFI data
+            title: RFI Requirements
+            $schema: https://json-schema.org/draft/2020-12/schema
+            required:
+              - SOURCE_OF_FUNDS
+              - METHOD_OF_VERIFICATION
+              - NAME
+              - TRADE_NAME
+              - NATIONAL_IDENTIFICATION_NUMBER
+              - DATE_OF_FORMATION
+              - COUNTRY_OF_FORMATION
+              - ENTITY_TYPE
+              - INDUSTRY_TYPE
+              - ADDRESS
+              - AUTHORIZED_SIGNATORIES
+              - BENEFICIARY_OWNERSHIP
+            properties:
+              NAME:
+                type: string
+                description: Business legal registered name
+              EMAIL:
+                type: string
+                description: Business contact email address
+              PHONE:
+                type: string
+                description: Business contact phone number
+              ADDRESS:
+                ref: '#/$defs/address'
+              WEBSITE:
+                type: string
+                description: Business website URL
+              TRADE_NAME:
+                type: string
+                description: Business trade name or DBA (Doing Business As)
+              ENTITY_TYPE:
+                type: string
+                description: Business structure type (Corporation, LLC, Partnership, etc.)
+              INDUSTRY_TYPE:
+                type: string
+                description: Business activity classification
+              SOURCE_OF_FUNDS:
+                type: string
+                description: Transaction source of funds
+              DATE_OF_FORMATION:
+                type: string
+                format: date
+                description: Company formation date (YYYY-MM-DD)
+              BENEFICIARY_OWNERS:
+                ref: '#/$defs/beneficiaryOwner'
+              COUNTRY_OF_FORMATION:
+                type: string
+                pattern: ^[A-Z]{2}$
+                description: Entity formation country
+              BENEFICIARY_OWNERSHIP:
+                type: boolean
+                description: >-
+                  Whether any individuals or intermediaries own 25% or more of
+                  the company
+              AUTHORIZED_SIGNATORIES:
+                ref: '#/$defs/individual'
+              METHOD_OF_VERIFICATION:
+                type: string
+                description: Verification method used
+              NATIONAL_IDENTIFICATION_NUMBER:
+                type: string
+                description: Business identification number (e.g., Tax ID)
+              INTERMEDIARY_BENEFICIARY_OWNERS:
+                ref: '#/$defs/intermediaryBeneficiaryOwner'
+            description: RFI Data Requirements
+    RfiFileKey:
+      type: string
+      description: File Key for RFI (Request for Information)
+      enum:
+        - FORMATION_DOCUMENT
+        - ORG_STRUCTURE
+        - INVOICE
+        - BENEFICIARY_OWNERS_DOCUMENT
+        - ID_DOCUMENT
+        - PROOF_OF_ADDRESS_DOCUMENT
+        - ADDITIONAL_DOCUMENTS
+      example: FORMATION_DOCUMENT
+    Rfi:
+      type: object
+      description: Response schema for Request for Information (RFI) details
+      required:
+        - id
+        - paymentId
+        - status
+        - level
+        - requiredFields
+        - expireDate
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - rfi
+          example: rfi
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/RfiStatus'
+        level:
+          $ref: '#/components/schemas/RfiLevel'
+        expireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        certificate:
+          $ref: '#/components/schemas/Certificate'
+        fieldRequirements:
+          $ref: '#/components/schemas/RfiSchema'
+        fileRequirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/RfiFileKey'
+    TransactionStatus:
+      type: string
+      description: Lifecycle status of a transaction
+      enum:
+        - CREATED
+        - PENDING
+        - BROADCASTED
+        - COMPLETED
+        - FAILED
+      example: PENDING
+    Metadata:
+      type: object
+      description: >-
+        Key-value pairs for storing reference data. Up to 50 keys allowed, with
+        key names up to 40 characters and values up to 500 characters.
+      additionalProperties:
+        type: string
+        description: Metadata value
+        maxLength: 500
+    Payment:
+      type: object
+      description: >-
+        Response schema for a payment containing all payment details including
+        source and destination amounts, fees, status, and related transactions
+      required:
+        - id
+        - quoteId
+        - paymentMethodType
+        - blockchain
+        - senderAddress
+        - refCode
+        - customerRefId
+        - expireDate
+        - createDate
+        - status
+        - useCase
+        - reasonForPayment
+        - sourceAmount
+        - destinationAmount
+        - fees
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - payment
+          example: payment
+        id:
+          $ref: '#/components/schemas/Id'
+        quoteId:
+          $ref: '#/components/schemas/ReferenceId'
+        paymentMethodType:
+          $ref: '#/components/schemas/PaymentMethodType'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        senderAddress:
+          $ref: '#/components/schemas/BlockchainAddress'
+        refundAddress:
+          type: string
+          description: >-
+            The wallet address where funds will be returned if a payment fails.
+            This address must be on the same blockchain as the original sender's
+            address. The `refundAddress` can be different from `senderAddress`.
+          example: '0x7d9f3f9c2b7e4c0a5a9f3e8b4d2c1a0f5e6d7c8b'
+        refCode:
+          $ref: '#/components/schemas/ReferenceId'
+        customerRefId:
+          $ref: '#/components/schemas/ReferenceId'
+        beneficiaryRefId:
+          $ref: '#/components/schemas/ReferenceId'
+        fiatNetworkPaymentRef:
+          $ref: '#/components/schemas/ReferenceId'
+        expireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        failureReason:
+          $ref: '#/components/schemas/PaymentFailureReason'
+        failureCode:
+          $ref: '#/components/schemas/PaymentFailureCode'
+        useCase:
+          $ref: '#/components/schemas/UseCase'
+        reasonForPayment:
+          $ref: '#/components/schemas/ReasonForPayment'
+        activeRfi:
+          $ref: '#/components/schemas/Rfi'
+        rfis:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - status
+            properties:
+              id:
+                $ref: '#/components/schemas/Id'
+              status:
+                $ref: '#/components/schemas/RfiStatus'
+          description: Array of all rfi ids related to payment.
+        onChainTransactions:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - status
+            properties:
+              id:
+                $ref: '#/components/schemas/Id'
+              status:
+                $ref: '#/components/schemas/TransactionStatus'
+          description: Array of on chain transactions related to the payments.
+        sourceAmount:
+          $ref: '#/components/schemas/CryptoMoney'
+        destinationAmount:
+          $ref: '#/components/schemas/FiatMoney'
+        fees:
+          $ref: '#/components/schemas/PaymentFees'
+        fiatSettlementTime:
+          $ref: '#/components/schemas/ArrivalTime'
+        refunds:
+          type: array
+          description: Array of all refunds related to payment.
+          items:
+            type: object
+            required:
+              - id
+              - status
+            properties:
+              id:
+                $ref: '#/components/schemas/Id'
+              status:
+                type: string
+                enum:
+                  - CREATED
+                  - COMPLETED
+                  - FAILED
+                description: Refund status.
+              amount:
+                $ref: '#/components/schemas/CryptoMoney'
+              transactionHash:
+                type: string
+                nullable: true
+                description: Transaction hash if refund has been sent onchain.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        statusAddendum:
+          type: string
+          description: Additional context about the payment status.
+          enum:
+            - IN_MANUAL_REVIEW
+            - PAYMENT_SETTLEMENT_DELAYED
+    PaymentsResponse:
+      title: PaymentsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          description: >-
+            Array of payments containing all payment details including source
+            and destination amounts, fees, status, and related transactions
+          items:
+            $ref: '#/components/schemas/Payment'
+    IdempotencyKey:
+      type: string
+      description: >-
+        Universally unique identifier (UUID v4) idempotency key. This key is
+        utilized to ensure exactly-once execution of mutating requests. To
+        create a UUIDv4 go to
+        [uuidgenerator.net](https://www.uuidgenerator.net). If the same key is
+        reused, it will be treated as the same request and the original response
+        will be returned.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      format: uuid
+    JWE:
+      type: string
+      format: jwe
+      description: A JSON Web Encryption (JWE) compact string format as defined in RFC 7516
+      example: >-
+        eyJhbGciOiJFQ0RILUVTK0ExMjhLVyIsImVuYyI6IkExMjhHQ00iLCJlcGsiOnsiY3J2IjoiUC0yNTYiLCJrdHkiOiJFQyIsIngiOiI1TEtTbUtsNmVYV0dQNHlGb2tVaks4RGppU0l5YWpQdzJ6UUp1YVhFbEZzIiwieSI6IlRVT29MTV8wc294b0UzYVFmSExlUzRlRkZ3RU9tZ1VDRUh1eDVRMXdVYTQifX0.kVGnfB8eIqxq3bMvhedxUmZvkCrRfQOy.bTUOc_ilvZjb9VYP.pOS6Ul8Jnp_pijWtaQYC0b1NLN1Nc-t_MTsfj5EZy6s62ijQWGtAoo3enwx3gOpXIQDIIF7c-F3KSrVO33a5RIF8a4tvU7pRk_JDKVgHFVpSzvOaUHNHsMUvvctAncx1SneVE_gnm5ATkWO4_1i7irTkb-cjWLmvJ1vVEyJiC9ZgsEdK_eBAewpZTyyKxvoxBpo8IZ3g7qax712TvMsNpIJ_faQmsyRKwt2kBxDPyrWILcIvS1qij6uVOsEP2R6LXbWfBqVbklsgNPWjndXSmOJmsTdBjFzublMLSHmLxkfaD9gt3DxgD16rqDlKO9KmaRF3r322VumP4hrlfOsZUHHcVGeTpgjZwI9jrj76PiYtyCOeR7-kz97PamqrOQAfWRE8Rcp8QdCO6yFHFe3N2pI5kWakH783DVDAsm_x2VY_V8vCDe-xkIoJOabx3LqaxHq8_x_ATXZ01NX-5F9VqgtE73FOIGhinxt8G-Kfxvdlx6gv-QSfBvigVuoR1OCSPNB3OHirEKXY3IjWnjZuENNnXl9CqrCsHQZS1eb1KcaIkg_2NF6gi54htX6ijpUtyXS03IGZW6Bn6CSWqmmvMStIAIYO-8ZJrrleeCfU6WY5KjFlIvN6th-tE41JNJWS9mVqhjzwPC7GQ5bGkqq2zJKhALOuN_0oG4jXOYo1s3YAn-xw3kpq46fYyUrX4nLSocaKDeKOMMqh57_jcMDmHrXdmjlHGPMrBPdU_deub121c3ofTKgJg4KRC8mcTYcXe71uflARAr24msd9A_IPPVbhfvs06HOVKL2-jK6r_WL_9vWU3q-OPQHU3eWUOhI18vZ0CkGqJjtEKyBBmc4inWEbrsO02P2Zd5VTBCIoAaNrpY6n5mNyKPo6-PyrxNy27d6u2yoZvjG6QSuUO9DaX4AyGsE87agh_XgLW9RPXfcZQ7F5aUCQwEA0cF9YSEaYYBGziS7oQ99D1th1MQqEPcFxD5YPdyaPykU3Zbf5T8HSZz1risMbgQu97eXoarxm801pdw5cuKijqj39BVrgdLUfaQ9P-iGWcVJk8ZVXfHK3JHGaBuIjYNIy5lHF3TsKgV2x-wWxqER9vPdgejAGirkxHQaKPt2rg0rmbk3R7YTibT7yTKwO1PRiewi0lxKWvZqDbCoedyuYZCR0vup4S1ZVYX6uGBn-F5ODrnLoAZTbnV1tjDJgxFpA8EKsXWTrc78XH0715lY2OnbDtBOLMbxFJjK1_YDRU2UMkZTEx5BrhR4YibBd4-BCZT-dWTxanOHMxTKl823tyggY5lBQ8DlsLj1qZpOxKWYTM8WrLCZa7vZo9FmXw38FxYrqbwespe7xdS7onfmlI4Ug92eTtZ31FbZfcqOiAGgH9Etkj1M9scP0is6zVC6cIUQzC3NmHNxNtPv6XjMUWigijosvs7x9-qyVCqzJZlEGck2BJ6Uk7ug9QKcxHtaWgtuHPnA77KVE3Vi_dikYaXzxIdgjrGtqqUhXEhrAFkesvJ0UeH1ac94e-R8UrJX75w4DDoRyaFxQhDFdHVtD0ceVN7ekYJkmoS2eSAzWDwsKUvUrmafcfpQ922tZGq0RvnMh39SWy6I6xRFyYHarra24Gbawa5_THjB8TkHJ180giPC3KQAa_6Vz8CP-fks6_-MdGXPW0SYhNghNi_14ZXQ3rZYHaTICgeHhBfhJ4MQ6OlRkiRCrIkM5WSOTS_H715aeyUCL-dlZ0TiG2DpAIXkN1KMRp0jL_W12pg5SjKFAlOGnQgkgj9rO_C7pLxMyIhgEUKPHXMGN6Q7tpVhAAyTl0tabd7cvyWnf5L4UiyIpvb1qrt1bY6-VNA4KXz6Y5uiiBYFF_FIN3K6YZCT4l0zuh_gxmP9eba7zM5kgas1tr1IxYWI-mQiE9Rb8rX0hqXpMj27h9Mf_Sn56TJeEmW8d8x2Xy2Nb7KU9vQO-6uc_taXP0Lv5LFcSwZkdVe7FOeZD-GoaNDly9MdhXI4ELP4MOZXZFJeN7aCJvJeLRBPWnoM2aazDwtlA_KfhZVFtCsKKjJazv6J9h6CDHAm7NuexVJiPdtS1yknQDWrIBfneaLJasmtuhuAbRPtiTvvhQOXt51q0G7sjCSmmeNMwb5fFphe4wLJNmsbdgMFDcUVzb0ImIArCxqBEEK8uuRGcYaRifaLv0zkk29NAT99Ux580zaeN_x7aIMpJTt7jLP0-HZ-QU3MAGg3PLJ3_Oly6ABoULkEkmRhF0TtpU8z-kmmN6FtmzZK74kYEC75smgVTnnJK1kBdsZw9cxHeUx8aDJGrS3OK-uYN0dPJls2LC7X1rHD7ES179nPVBeJA2REm-jSlhVlV_I7JrVzlcXs0Fhx0hX-OgMKz_yQNHnM6RbgGnSLDcvND7vXqkEMgHeDRomhU1hMeu0DymctTKawtzIkV7MYwoibLDUeMvaXN8MicMs64D8I3Ld7BLtFf9o8rMeeNJ0Om7xdl9SGD2RYAep0cxw2rEIIr859e1vutBuvrrMz09dZKd05t1lu0jRztkQzUW9N-VZh9muTAoh_s3NrF2ZTFnRAfzxohwNLxxmX-Ov94FXBhuRHBQXb931I5m2URglrYcoAZ8RFoiAWW2AkHcyb5PRoQIt-LQhOM-bcn1VB44Okh10jqWpGbLno6AvE5FcoRVcspb0tor9EbksW2cipoypcaat5NhQgvo2rAPmkHGi8iB-z_xWORvUkaA2xknNW59myO6qTvjYQ_1P1ESbRO30nUeqgP3VoZrC1-bi9IbgSi-na31xEhdr-ZGuvtRSzyhWwqfviJgSMZ6_kkGW3gUI4ldurTwss6gDHWYmdV-lHtPMfYuD2KMQk1EyJ-3vZx0syLKDACL37HqAYvkW5GiOxrK9cNrSInQ8rZMDkXsaCZMEtvs03Qw2DyCBdoFeXPvFHJ6Vetou-7Oo6rdlmSkt5KdA-w9KKVIAt9WtYxNc-wjFm-vOMcOHb_xxzacDzYFJj8NxdW8GaVdrCvh3j5Yakr_3vSvRM5rpzQKMqw-B53SWV3oOHYu29qso5zSTz-dvAlZUL8Z1a3s13qdwhUkkRexIi6oTU0Da21pT-gCan2jSY_VKR8JdirKTLocn74JZ3InF8iH8XhOD0X7ySIbB69HqMLYRd9r13q2odfJ3cN1CWSF71zgIuZoYSbkO9DeFvCImA-WEIWrP1kJiYlpJi8VnFNQs8XWIxdCydft-8zvoXZbi0MoNt3kJExbKx7dReHx6B-6iwjuW8-o5RbeMvdTIYTp-y6YPsFhcVCvTlS7IefXqG4G3OrnNc5JIVnvdYXWCWUdWguiKdqB6FL_LSWOtsWrB6nIv69WP1WJJSa0Oa_EkxEwXK1BGH9-QpMqkP6rATSvsbaTywfCxqUqm7SzYH81lSCIvI5J7bWX5blk9rNZbp3aSeEpVRm03vwLrgUHLv9vMAopNnw5fZGKfcg3I5ZWYHNQo5BZk9LVpebMBYGijwNDnuFu08eF7ShlEzy50NsvgeDxZtfUVx8cviYn0MoTJBPlz1mXRSIr3zDIpefxDGnsQ1KK8LTi0Gbnt_ybeiT4yTmajrPLE4566D6AQIdDmCg_RsBtB_lAw.S2qu0MNMu2WNiEYoHh25ww
+    CreatePayment:
+      type: object
+      description: Request body for creating a new payment transaction
+      properties:
+        quoteId:
+          $ref: '#/components/schemas/Id'
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+        beneficiaryAccountData:
+          $ref: '#/components/schemas/JWE'
+        travelRuleData:
+          $ref: '#/components/schemas/JWE'
+        customerRefId:
+          $ref: '#/components/schemas/ReferenceId'
+        beneficiaryRefId:
+          $ref: '#/components/schemas/ReferenceId'
+        refCode:
+          $ref: '#/components/schemas/ReferenceId'
+        useCase:
+          $ref: '#/components/schemas/UseCase'
+        reasonForPayment:
+          $ref: '#/components/schemas/ReasonForPayment'
+        senderAddress:
+          type: string
+          description: The OFI wallet address.
+          example: '0xe01be9cdd9e744ae6a709794bfe531ec3ec0671c'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        refundAddress:
+          type: string
+          description: >-
+            The wallet address where funds will be returned if a payment fails.
+            This address must be on the same blockchain as the original sender's
+            address. The `refundAddress` can be different from `senderAddress`.
+          example: '0x7d9f3f9c2b7e4c0a5a9f3e8b4d2c1a0f5e6d7c8b'
+      required:
+        - beneficiaryAccountData
+        - customerRefId
+        - idempotencyKey
+        - quoteId
+        - reasonForPayment
+        - travelRuleData
+        - useCase
+        - senderAddress
+        - blockchain
+        - refundAddress
+    PaymentResponse:
+      title: PaymentResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Payment'
+    TravelRuleFieldName:
+      type: string
+      description: The name of the field that needs to be collected
+      enum:
+        - ORIGINATOR_FINANCIAL_INSTITUTION_NAME
+        - ORIGINATOR_FINANCIAL_INSTITUTION_ADDRESS
+        - ORIGINATOR_FINANCIAL_INSTITUTION_ID
+        - ORIGINATOR_NAME
+        - ORIGINATOR_ACCOUNT_NUMBER
+        - ORIGINATOR_ADDRESS
+        - ORIGINATOR_DATE_OF_BIRTH
+        - ORIGINATOR_NATIONALITY
+        - ORIGINATOR_NATIONAL_IDENTIFICATION_NUMBER
+        - BENEFICIARY_NAME
+        - BENEFICIARY_ADDRESS
+        - BENEFICIARY_DATE_OF_BIRTH
+        - BENEFICIARY_NATIONALITY
+        - BENEFICIARY_NATIONAL_IDENTIFICATION_NUMBER
+        - ORIGINATOR_DATE_OF_FORMATION
+        - ORIGINATOR_COUNTRY_OF_FORMATION
+        - BENEFICIARY_DATE_OF_FORMATION
+        - BENEFICIARY_COUNTRY_OF_FORMATION
+      example: ORIGINATOR_FINANCIAL_INSTITUTION_NAME
+    TravelRuleFieldType:
+      type: string
+      description: Enumeration of all possible requirement field types
+      enum:
+        - TEXT
+        - ADDRESS
+        - FILE
+      example: TEXT
+    TravelRuleField:
+      type: object
+      description: >-
+        A field that may need to be collected from the customer to process a
+        payment, specifying its name, whether it's required, and its data type.
+      properties:
+        name:
+          $ref: '#/components/schemas/TravelRuleFieldName'
+        optional:
+          type: boolean
+          description: Whether the presence of this field is optional.
+          example: false
+        type:
+          $ref: '#/components/schemas/TravelRuleFieldType'
+        values:
+          type: array
+          description: An array of acceptable values for this field, if applicable.
+          items:
+            type: string
+          example:
+            - value1
+            - value2
+            - value3
+      required:
+        - name
+        - optional
+        - type
+    BeneficiaryAccountFieldName:
+      type: string
+      description: The name of the field that needs to be collected
+      enum:
+        - BANK_NAME
+        - BANK_ADDRESS
+        - BANK_CITY
+        - BANK_DISTRICT
+        - BANK_COUNTRY
+        - BANK_POSTAL_CODE
+        - SWIFT_CODE
+        - ROUTING_NUMBER
+        - IBAN
+        - ACCOUNT_NUMBER
+        - RECIPIENT_PHONE_COUNTRY_CODE
+        - RECIPIENT_PHONE_NUMBER
+      example: BANK_NAME
+    BeneficiaryAccountFieldType:
+      type: string
+      description: Enumeration of all possible requirement field types
+      enum:
+        - TEXT
+        - ADDRESS
+      example: TEXT
+    BeneficiaryAccountField:
+      type: object
+      description: >-
+        A field that may need to be collected from the customer to process a
+        payment, specifying its name, whether it's required, and its data type.
+      properties:
+        name:
+          $ref: '#/components/schemas/BeneficiaryAccountFieldName'
+        optional:
+          type: boolean
+          description: Whether the presence of this field is optional.
+          example: true
+        type:
+          $ref: '#/components/schemas/BeneficiaryAccountFieldType'
+        values:
+          type: array
+          description: An array of acceptable values for this field, if applicable.
+          items:
+            type: string
+          example:
+            - value1
+            - value2
+            - value3
+      required:
+        - name
+        - optional
+        - type
+    PaymentRequirements:
+      type: object
+      properties:
+        travelRule:
+          type: array
+          description: A list of travel rule fields needed to collect for the payment.
+          items:
+            $ref: '#/components/schemas/TravelRuleField'
+        beneficiaryAccount:
+          type: array
+          description: >-
+            The list of beneficiary account fields needed to send fiat money to
+            the recipient in the final step.
+          items:
+            $ref: '#/components/schemas/BeneficiaryAccountField'
+    PaymentRequirementsResponse:
+      title: PaymentRequirementsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/PaymentRequirements'
+    BlockchainAddressAccountType:
+      type: string
+      description: >-
+        The type of blockchain account (currently supports only EOA - Externally
+        Owned Account).
+      enum:
+        - EOA
+      example: EOA
+    CreateTransaction:
+      title: CreateTransactionRequest
+      type: object
+      description: >-
+        Create an on-chain transaction to fulfil the payment to BFI, the request
+        will assemble an unsigned on chain transaction.
+      required:
+        - idempotencyKey
+        - senderAccountType
+      properties:
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+          description: Idempotency key to ensure transaction is only created once
+          example: ETH-SEPOLIA
+        senderAccountType:
+          $ref: '#/components/schemas/BlockchainAddressAccountType'
+          description: The OFI address. Should include the address and the network.
+    TransactionFailureReason:
+      type: string
+      description: Possible reasons for transaction failure
+      enum:
+        - CPN_PAYMENT_EXPIRED
+        - SIGNED_TRANSACTION_EXPIRED
+        - NONCE_TOO_LOW
+        - NONCE_TOO_HIGH
+        - INSUFFICIENT_TOKEN_BALANCE
+        - INSUFFICIENT_GAS_BALANCE
+        - GAS_PRICE_TOO_LOW
+        - OUT_OF_GAS
+        - TX_REPLACEMENT_FAILED
+        - SOL_TX_ALREADY_IN_CACHE
+        - TX_ALREADY_CONFIRMED
+        - FAILED_ONCHAIN
+        - SOL_BLOCKHASH_EXPIRED
+        - TRANSACTION_EXPIRED
+        - BROADCAST_FAILED
+        - RELAY_FAILED
+        - UNKNOWN_REASON
+      example: FAILED_ONCHAIN
+    EIP1559FeePayload:
+      type: object
+      description: >-
+        Payload containing EIP-1559 fee configuration parameters for Ethereum
+        transactions
+      properties:
+        gasLimit:
+          type: string
+          description: Maximum amount of gas units that can be used for the transaction
+          example: '21000'
+        maxFeePerGas:
+          type: string
+          description: Maximum total fee per gas (base fee + priority fee) in wei
+          example: '5935224468'
+        maxPriorityFeePerGas:
+          type: string
+          description: Maximum priority fee per gas (tip to miners) in wei
+          example: '1022783914'
+    EIP1559EstimatedFee:
+      type: object
+      description: Estimated fee params for EIP1559 transaction.
+      properties:
+        type:
+          type: string
+          enum:
+            - EIP1559
+        payload:
+          $ref: '#/components/schemas/EIP1559FeePayload'
+    SolanaFeePayload:
+      type: object
+      description: Payload containing Solana network fee configuration parameters
+      properties:
+        computeUnitLimit:
+          type: string
+          description: Maximum number of compute units allowed for the transaction
+          example: '200000'
+        computeUnitPrice:
+          type: string
+          description: Price per compute unit in lamports (1 SOL = 1,000,000,000 lamports)
+          example: '20000'
+    SolEstimatedFee:
+      type: object
+      description: Estimated fee params for Solana transaction.
+      properties:
+        type:
+          type: string
+          enum:
+            - SOLANA
+        payload:
+          $ref: '#/components/schemas/SolanaFeePayload'
+      required:
+        - type
+        - payload
+    TransactionMessageType:
+      type: string
+      description: Transaction message type
+      enum:
+        - EIP3009
+        - SOLANA
+      example: EIP3009
+    SignedTransaction:
+      type: string
+      description: >-
+        Signed transaction. Base64 encoded for NEAR and Solana chains. Hex
+        encoded for EVM chains.
+      example: >-
+        AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABpzlAhqqen7eyTe0KQ3w+9NS4E+7sscb+Cr...
+    TransactionHash:
+      type: string
+      description: >-
+        Unique identifier assigned to a blockchain transaction when it is
+        broadcast to the network
+      example: >-
+        2vmEDSBThR143WJyJePkpKVQcERVo9KePuCUwYU8fkoJaQjarTMj6sZG7DNnJ4zjhtRz6hDruqEFEkD4wJpGviiW
+    Transaction:
+      type: object
+      description: >-
+        Response schema for a blockchain transaction containing details about
+        the transaction amount, addresses, fees, and status
+      required:
+        - id
+        - paymentId
+        - status
+        - expireDate
+        - senderAddress
+        - senderAccountType
+        - blockchain
+        - amount
+        - destinationAddress
+        - messageType
+        - messageToBeSigned
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - transaction
+          example: transaction
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        failureReason:
+          $ref: '#/components/schemas/TransactionFailureReason'
+        expireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        senderAddress:
+          $ref: '#/components/schemas/BlockchainAddress'
+        senderAccountType:
+          $ref: '#/components/schemas/BlockchainAddressAccountType'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        amount:
+          $ref: '#/components/schemas/CryptoMoney'
+        destinationAddress:
+          $ref: '#/components/schemas/BlockchainAddress'
+        estimatedFee:
+          oneOf:
+            - $ref: '#/components/schemas/EIP1559EstimatedFee'
+            - $ref: '#/components/schemas/SolEstimatedFee'
+          description: >-
+            The suggested fee is provided to guide the OFI in constructing and
+            signing the transaction object for submission.
+        messageType:
+          $ref: '#/components/schemas/TransactionMessageType'
+        messageToBeSigned:
+          type: object
+          description: >-
+            The message to be signed by OFI on Circle supported EVM chains and
+            Solana (A EVM EOA message or a SOL message).
+        signedTransaction:
+          $ref: '#/components/schemas/SignedTransaction'
+        transactionHash:
+          $ref: '#/components/schemas/TransactionHash'
+    TransactionResponse:
+      title: TransactionResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Transaction'
+    SubmitTransaction:
+      type: object
+      description: Request body for submitting a signed blockchain transaction
+      properties:
+        signedTransaction:
+          $ref: '#/components/schemas/SignedTransaction'
+      required:
+        - signedTransaction
+    AccelerateTransaction:
+      title: AccelerateTransactionRequest
+      type: object
+      description: >-
+        Accelerate a broadcasted transaction, which is stuck in mempool due to
+        low gas fee, by broadcasting the same transaction with high gas fee.
+      required:
+        - idempotencyKey
+      properties:
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+    RfiResponse:
+      title: RfiResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Rfi'
+    Requirement:
+      type: object
+      properties:
+        version:
+          type: integer
+          description: Version of the requirement schema provided by CPN.
+          example: 1
+        data:
+          $ref: '#/components/schemas/JWE'
+    SubmitRfi:
+      type: object
+      description: Request body for submitting encrypted Request for Information (RFI) data
+      properties:
+        rfi:
+          $ref: '#/components/schemas/Requirement'
+      required:
+        - rfi
+    RfiFileType:
+      type: string
+      description: File type for RFI file (Request for Information)
+      enum:
+        - application/pdf
+        - application/postscript
+        - application/msword
+        - application/x-msi
+        - >-
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        - application/vnd.ms-excel
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        - image/jpeg
+        - image/jp2
+        - image/png
+        - image/apng
+        - image/heic
+        - image/heif
+        - text/csv
+      example: application/pdf
+    UploadRfiFile:
+      type: object
+      properties:
+        fileMetadata:
+          type: object
+          description: Contains metadata about the submitted file
+          properties:
+            fileName:
+              type: string
+              description: Name of the file being submitted
+            fileType:
+              $ref: '#/components/schemas/RfiFileType'
+            fileKey:
+              $ref: '#/components/schemas/RfiFileKey'
+        encryption:
+          type: object
+          description: Encryption details required to decrypt the file
+          properties:
+            encryptedAesKey:
+              $ref: '#/components/schemas/JWE'
+            iv:
+              type: string
+              format: base64
+              description: >-
+                A Base64-encoded, 12-byte Initialization Vector (IV) used for
+                AES-GCM encryption
+        encryptedFile:
+          type: string
+          format: binary
+          description: >-
+            The binary file content, encrypted using AES-128-GCM. The
+            corresponding 'encryptedAesKey' and 'iv' must be used for decryption
+      required:
+        - fileMetadata
+        - encryption
+        - encryptedFile
+    Refund:
+      type: object
+      required:
+        - id
+        - paymentId
+        - status
+        - refundAddress
+        - blockchain
+        - createDate
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - refund
+          example: refund
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        status:
+          type: string
+          enum:
+            - CREATED
+            - COMPLETED
+            - FAILED
+          description: Refund status.
+        amount:
+          $ref: '#/components/schemas/CryptoMoney'
+          nullable: true
+          description: >-
+            Amount and currency for the refund (nullable when status is
+            CREATED).
+        transactionHash:
+          type: string
+          nullable: true
+          description: >-
+            Transaction hash if refund has been sent onchain (nullable when
+            status is CREATED).
+        refundAddress:
+          type: string
+          format: blockchain-address
+          description: Blockchain address the refund is sent to.
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+    RefundResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Refund'
+    SupportTicketIssueType:
+      type: string
+      description: Type of the support ticket
+      enum:
+        - PAYMENT_SETTLEMENT_DELAY
+        - PAYMENT_SENT_TO_WRONG_RECIPIENT
+        - PAYMENT_AMOUNT_INCORRECT
+        - REVERSE_FUNDS
+        - OTHER
+      example: PAYMENT_SETTLEMENT_DELAY
+    CreateSupportTicket:
+      type: object
+      description: Request schema for creating a support ticket
+      required:
+        - paymentId
+        - issueType
+        - description
+        - email
+        - idempotencyKey
+      properties:
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        issueType:
+          $ref: '#/components/schemas/SupportTicketIssueType'
+        description:
+          type: string
+          description: Detailed message for the support ticket.
+        email:
+          type: string
+          format: email
+          description: Contact email for follow-up.
+          example: help@ofi.com
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+        ccEmails:
+          type: array
+          items:
+            type: string
+            format: email
+          description: >-
+            Optional CC email address for follow-up conversations on this
+            support ticket.
+          example:
+            - ccsupport01@example.com
+            - ccsupport02@example.com
+    SupportTicket:
+      type: object
+      description: Response schema for a support ticket
+      required:
+        - id
+        - paymentId
+        - issueType
+        - description
+        - caseRefId
+        - email
+        - createDate
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - supportTicket
+          example: supportTicket
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        issueType:
+          $ref: '#/components/schemas/SupportTicketIssueType'
+        description:
+          type: string
+          description: Detailed message for the support ticket.
+        caseRefId:
+          type: string
+          description: External case reference.
+        ticketRefId:
+          $ref: '#/components/schemas/Id'
+        email:
+          type: string
+          format: email
+          description: Contact email for follow-up.
+          example: help@ofi.com
+        ccEmails:
+          type: array
+          items:
+            type: string
+            format: email
+          description: >-
+            Optional CC email address for follow-up conversations on this
+            support ticket.
+          example:
+            - ccsupport01@example.com
+            - ccsupport02@example.com
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+    SupportTicketResponse:
+      title: SupportTicketResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/SupportTicket'
+    CreateTransactionV2:
+      title: CreateTransactionRequestV2
+      type: object
+      description: Create a V2 transaction for signing
+      required:
+        - idempotencyKey
+      properties:
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+          description: Unique identifier to prevent duplicate transaction creation.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+    TransactionMessageTypeV2:
+      type: string
+      description: Transaction message type for V2
+      enum:
+        - EIP3009
+        - SOLANA
+        - PAYMENT_SETTLEMENT_CONTRACT_V1_0_PAYMENT_INTENT
+      example: PAYMENT_SETTLEMENT_CONTRACT_V1_0_PAYMENT_INTENT
+    TransactionV2:
+      type: object
+      description: >-
+        V2 transaction response schema containing details about the transaction
+        amount, addresses, and status
+      required:
+        - id
+        - paymentId
+        - status
+        - expireDate
+        - senderAddress
+        - blockchain
+        - amount
+        - destinationAddress
+        - messageType
+        - messageToBeSigned
+        - type
+      properties:
+        type:
+          type: string
+          description: Resource type identifier
+          readOnly: true
+          enum:
+            - transaction
+          example: transaction
+        id:
+          $ref: '#/components/schemas/Id'
+        paymentId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        expireDate:
+          $ref: '#/components/schemas/ExpireDate'
+        senderAddress:
+          $ref: '#/components/schemas/BlockchainAddress'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        amount:
+          $ref: '#/components/schemas/CryptoMoney'
+        destinationAddress:
+          $ref: '#/components/schemas/BlockchainAddress'
+        messageType:
+          $ref: '#/components/schemas/TransactionMessageTypeV2'
+        messageToBeSigned:
+          type: object
+          description: The message to be signed by OFI for V2 transactions.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        failureReason:
+          $ref: '#/components/schemas/TransactionFailureReason'
+          nullable: true
+        transactionHash:
+          $ref: '#/components/schemas/TransactionHash'
+          nullable: true
+    TransactionResponseV2:
+      title: TransactionResponseV2Wrapper
+      type: object
+      description: V2 Transaction response wrapper
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/TransactionV2'
+    SubmitTransactionV2:
+      title: SubmitTransactionRequestV2
+      type: object
+      description: Submit a V2 transaction to the blockchain
+      required:
+        - signedTransaction
+      properties:
+        signedTransaction:
+          $ref: '#/components/schemas/SignedTransaction'
+  headers:
+    XRequestId:
+      description: >
+        Circle-generated universally unique identifier (UUID v4). Useful for
+        identifying a specific request when communicating with Circle Support.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+  responses:
+    NotAuthorized:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: NotAuthorizedResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                $ref: '#/components/schemas/ErrorCode'
+              message:
+                type: string
+                description: Human-readable message that describes the error.
+                example: Unknown error occurred
+              errors:
+                type: array
+                description: Array of detailed error descriptions
+                items:
+                  $ref: '#/components/schemas/DescriptiveError'
+            example:
+              code: 401
+              message: Malformed authorization.
+      description: >-
+        Request has not been applied because it lacks valid authentication
+        credentials.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    Forbidden:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: ForbiddenResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                $ref: '#/components/schemas/ErrorCode'
+              message:
+                type: string
+                description: Human-readable message that describes the error.
+                example: Unknown error occurred
+              errors:
+                type: array
+                description: Array of detailed error descriptions
+                items:
+                  $ref: '#/components/schemas/DescriptiveError'
+            example:
+              code: 3
+              message: Forbidden
+      description: >-
+        Request provides authentication, but the authenticated user does not
+        have permission to access this resource.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: BadRequestResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                $ref: '#/components/schemas/ErrorCode'
+              message:
+                type: string
+                description: Human-readable message that describes the error.
+                example: Unknown error occurred
+              errors:
+                type: array
+                description: Array of detailed error descriptions
+                items:
+                  $ref: '#/components/schemas/DescriptiveError'
+            example:
+              code: 400
+              message: Bad request.
+      description: Request cannot be processed due to a client error.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    NotFound:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: NotFoundResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                $ref: '#/components/schemas/ErrorCode'
+              message:
+                type: string
+                description: Human-readable message that describes the error.
+                example: Unknown error occurred
+              errors:
+                type: array
+                description: Array of detailed error descriptions
+                items:
+                  $ref: '#/components/schemas/DescriptiveError'
+            example:
+              code: 404
+              message: Not found.
+      description: Specified resource was not found.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    Conflict:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: ConflictResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                $ref: '#/components/schemas/ErrorCode'
+              message:
+                type: string
+                description: Human-readable message that describes the error.
+                example: Unknown error occurred
+              errors:
+                type: array
+                description: Array of detailed error descriptions
+                items:
+                  $ref: '#/components/schemas/DescriptiveError'
+            example:
+              code: 290001
+              message: A request with this idempotency key has already been processed.
+      description: Request cannot be processed due to a conflict error.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+  parameters:
+    SourceCurrencyParam:
+      name: sourceCurrency
+      description: Filter by the source currency, should be the crypto token
+      in: query
+      required: true
+      schema:
+        $ref: '#/components/schemas/CryptoCurrency'
+      example: USDC
+    DestinationCountryParam:
+      name: destinationCountry
+      description: Filter by destination country
+      in: query
+      required: true
+      schema:
+        $ref: '#/components/schemas/Country'
+      example: MX
+    TransactionVersionParam:
+      name: transactionVersion
+      description: The version of the transaction. If not provided, defaults to VERSION_1.
+      in: query
+      schema:
+        $ref: '#/components/schemas/TransactionVersion'
+      example: VERSION_2
+    DestinationCurrencyParam:
+      name: destinationCurrency
+      description: >-
+        Filter by destination currency, will return all available
+        destinationCurrency's limit if empty
+      in: query
+      schema:
+        $ref: '#/components/schemas/FiatCurrency'
+      example: MXN
+    PaymentMethodTypeParam:
+      name: paymentMethodType
+      description: >-
+        Filter by payment method, will return all available payment method
+        types' limit if empty
+      in: query
+      schema:
+        $ref: '#/components/schemas/PaymentMethodType'
+      example: SPEI
+    BlockchainParam:
+      name: blockchain
+      description: >-
+        Filter by blockchain, will return all available blockchain limit if
+        empty
+      in: query
+      schema:
+        $ref: '#/components/schemas/Blockchain'
+      example: ETH-SEPOLIA
+    PaymentStatusParam:
+      name: status
+      description: >-
+        Filter by the payment status. If specified, it will only return the
+        payments with the specified status. Otherwise, it will return payments
+        including all the possible statues
+      in: query
+      schema:
+        $ref: '#/components/schemas/PaymentStatus'
+      example: COMPLETED
+    CustomerRefId:
+      name: customerRefId
+      description: >-
+        Filter by the customer reference ID from OFI. If specified, it will
+        return the payments associated with this customer. Otherwise, it will
+        return payments including all customers.
+      in: query
+      schema:
+        $ref: '#/components/schemas/ReferenceId'
+      example: CUST-123456
+    RefCode:
+      name: refCode
+      description: >-
+        Filter by the payment ref code. If specified it will return the payments
+        associated with this refcode. Otherwise, it will return payments across
+        all ref codes.
+      in: query
+      schema:
+        $ref: '#/components/schemas/ReferenceId'
+      example: pay_001234567890
+    From:
+      name: from
+      description: >-
+        Queries items created since the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    To:
+      name: to
+      description: >-
+        Queries items created before the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    PageAfter:
+      name: pageAfter
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive begin of a page. When provided, the collection
+        resource will return the next n items after
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified.
+
+
+        SHOULD NOT be used in conjunction with pageBefore.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageBefore:
+      name: pageBefore
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive end of a page. When provided, the collection
+        resource will return the next n items before
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified. 
+
+
+        SHOULD NOT be used in conjunction with pageAfter.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageSize:
+      name: pageSize
+      description: >
+        Limits the number of items to be returned.
+
+
+        Some collections have a strict upper bound that will disregard this
+        value. In case the specified value is higher
+
+        than the allowed limit, the collection limit will be used.
+
+
+        If avoided, the collection will determine the page size itself.
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 200
+        minimum: 1
+    QuoteId:
+      name: quoteId
+      description: >-
+        The quote id that was created previously. The ID of the selected quote.
+        The quote cannot be reused across multiple payments.
+      in: query
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    PaymentId:
+      name: paymentId
+      description: The payment id created previously.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    TransactionId:
+      name: transactionId
+      description: The transaction id created previously.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    RfiId:
+      name: rfiId
+      description: The RFI id created previously.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    RefundId:
+      name: refundId
+      in: path
+      description: The ID of the refund.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'

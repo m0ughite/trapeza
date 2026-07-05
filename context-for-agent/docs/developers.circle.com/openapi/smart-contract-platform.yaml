@@ -1,0 +1,1869 @@
+openapi: 3.0.3
+info:
+  description: This is the Circle Contracts API documentation.
+  title: Circle Contracts
+  version: '1.0'
+servers:
+  - url: https://api.circle.com
+security:
+  - BearerAuth: []
+tags:
+  - name: Templates
+  - name: View / Update
+  - name: Interact
+  - name: Deploy / Import
+  - name: Event Monitors
+paths:
+  /v1/w3s/templates/{id}/deploy/estimateFee:
+    post:
+      tags:
+        - Templates
+      summary: Estimate fee for a contract template deployment
+      description: Estimate the fee required to deploy contract by template.
+      operationId: estimateContractTemplateDeploy
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/ContractDeploymentEstimate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeEstimation'
+          description: Response object with estimated transaction fee values.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/templates/{id}/deploy:
+    post:
+      tags:
+        - Templates
+      summary: Deploy a contract from a template
+      description: Deploy a smart contract using a template.
+      operationId: deployContractTemplate
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/TemplateContractDeployment'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateContractDeployment'
+          description: Contract already created in previous request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateContractDeployment'
+          description: New contract deployed.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts:
+    get:
+      tags:
+        - View / Update
+      summary: List contracts
+      description: Fetch a list of contracts that you've imported and/or deployed.
+      operationId: listContracts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: blockchain
+          description: Filter by blockchain.
+          in: query
+          schema:
+            $ref: '#/components/schemas/Blockchain'
+        - name: contractInputType
+          description: Filter contracts by input type.
+          in: query
+          schema:
+            $ref: '#/components/schemas/ContractInputType'
+        - name: deployerAddress
+          description: Filter contracts by deployer address.
+          in: query
+          schema:
+            $ref: '#/components/schemas/DeployerAddress'
+        - name: name
+          description: Filter contracts by name.
+          in: query
+          schema:
+            type: string
+        - name: status
+          description: Filter contracts by status.
+          in: query
+          schema:
+            $ref: '#/components/schemas/ContractStatus'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contracts'
+          description: Contract list retrieved.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/{id}:
+    get:
+      tags:
+        - View / Update
+      summary: Get a contract
+      description: >-
+        Get a single contract that you've imported or deployed. Retrieved using
+        the contracts ID as opposed to the on-chain address.
+      operationId: getContract
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractResponse'
+          description: Contract retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+    patch:
+      tags:
+        - View / Update
+      summary: Update a contract
+      description: >-
+        Update the off-chain properties, such as description, of a contract that
+        you've imported or deployed. Updated using the contracts ID as opposed
+        to the on-chain address.
+      operationId: updateContract
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/PatchContract'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractResponse'
+          description: Contract is updated.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/query:
+    post:
+      tags:
+        - Interact
+      summary: Execute a query function on a contract
+      description: Query the state of a contract by providing the address and blockchain.
+      operationId: queryContract
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/ReadContractState'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadContractState'
+          description: Contract read successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/import:
+    post:
+      tags:
+        - Deploy / Import
+      summary: Import a contract
+      description: >-
+        Add an existing smart contract to your library of contracts. It also can
+        be done in the Developer Services Console.
+      operationId: importContract
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/ImportContract'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractResponse'
+          description: Idempotent request. Contract was already imported.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractResponse'
+          description: Contract successfully imported.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/deploy/estimateFee:
+    post:
+      tags:
+        - Deploy / Import
+      summary: Estimate a contract deployment
+      description: >-
+        Estimate the network fee for deploying a smart contract on a specified
+        blockchain, given the contract bytecode.
+      operationId: estimateContractDeploy
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/ContractDeploymentEstimateFee'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeEstimation'
+          description: Estimate is successful.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/deploy:
+    post:
+      tags:
+        - Deploy / Import
+      summary: Deploy a contract
+      description: >-
+        Deploy a smart contract on a specified blockchain using the contract's
+        ABI and bytecode. The deployment will originate from one of your Circle
+        Wallets.
+      operationId: deployContract
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        $ref: '#/components/requestBodies/ContractDeployment'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDeployment'
+          description: Idempotent request. Contract deployment request already submitted.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDeployment'
+          description: New contract is deployed.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error response for the request.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/monitors:
+    get:
+      tags:
+        - Event Monitors
+      summary: Get Event Monitors
+      description: >-
+        Fetch a list of event monitors, optionally filtered by blockchain,
+        contract address, and event signature.
+      operationId: getEventMonitors
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: contractAddress
+          description: Filter contracts by address.
+          in: query
+          schema:
+            type: string
+        - name: blockchain
+          description: Filter by blockchain.
+          in: query
+          schema:
+            $ref: '#/components/schemas/Blockchain'
+        - name: eventSignature
+          description: Filter monitors by event signature.
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMonitors'
+          description: List of event monitors retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request parameters.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+    post:
+      tags:
+        - Event Monitors
+      summary: Create Event Monitor
+      description: >-
+        Create a new event monitor based on the provided blockchain, contract
+        address, and event signature.
+      operationId: createEventMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/CreateEventMonitor'
+      responses:
+        '200':
+          description: Event monitor already exists.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMonitorResponse'
+        '201':
+          description: Event monitor created successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMonitorResponse'
+        '400':
+          description: Invalid request payload.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/w3s/contracts/monitors/{id}:
+    delete:
+      tags:
+        - Event Monitors
+      summary: Delete Event Monitor
+      description: Delete an existing event monitor given its ID.
+      operationId: deleteEventMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          description: Event Monitor ID.
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: Event monitor deleted successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          description: Invalid request parameters.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Event monitor not found.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Event Monitors
+      summary: Update an Event Monitor
+      description: Update an existing event monitor given its ID.
+      operationId: updateEventMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          description: Event Monitor ID.
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/UpdateEventMonitor'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMonitorResponse'
+          description: Event monitor updated successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request payload.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Event monitor not found.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+  /v1/w3s/contracts/events:
+    get:
+      tags:
+        - Event Monitors
+      summary: Get Event Logs
+      description: >-
+        Fetch all event logs, optionally filtered by blockchain and contract
+        address.
+      operationId: listEventLogs
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: contractAddress
+          description: Filter contracts by address.
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: blockchain
+          description: Filter by blockchain.
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Blockchain'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/XRequestId'
+      responses:
+        '200':
+          description: List of event logs retrieved successfully.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            Link:
+              $ref: '#/components/headers/PaginationLink'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventLogs'
+        '400':
+          description: Invalid request parameters.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PREFIX:ID:SECRET
+      description: >-
+        Circle's API Keys are formatted in the following structure
+        "PREFIX:ID:SECRET". All three parts are requred to make a successful
+        request.
+  parameters:
+    Id:
+      name: id
+      description: The universally unique identifier of the resource.
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: b3d9d2d5-4c12-4946-a09d-953e82fae2b0
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      description: >
+        Developer-provided identifier for this request, used for tracing
+        requests in Wallets API logs and the Developer Console, and when
+        communicating with Circle Support.
+
+        **Must be a UUID to appear in logs.** Non-UUID values are accepted by
+        the API but are ignored by logging and tracing systems.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+    From:
+      name: from
+      description: >-
+        Queries items created since the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    To:
+      name: to
+      description: >-
+        Queries items created before the specified date-time (inclusive) in ISO
+        8601 format.
+      in: query
+      schema:
+        type: string
+        format: date-time
+        example: '2023-01-01T12:04:05Z'
+    PageBefore:
+      name: pageBefore
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive end of a page. When provided, the collection
+        resource will return the next n items before
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified. 
+
+
+        SHOULD NOT be used in conjunction with pageAfter.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageAfter:
+      name: pageAfter
+      description: >
+        A collection ID value used for pagination.
+
+
+        It marks the exclusive begin of a page. When provided, the collection
+        resource will return the next n items after
+
+        the id, with n being specified by pageSize.
+
+
+        The items will be returned in the natural order of the collection.
+
+
+        The resource will return the first page if neither pageAfter nor
+        pageBefore are specified.
+
+
+        SHOULD NOT be used in conjunction with pageBefore.
+      in: query
+      schema:
+        type: string
+        format: uuid
+    PageSize:
+      name: pageSize
+      description: >
+        Limits the number of items to be returned.
+
+
+        Some collections have a strict upper bound that will disregard this
+        value. In case the specified value is higher
+
+        than the allowed limit, the collection limit will be used.
+
+
+        If avoided, the collection will determine the page size itself.
+      in: query
+      schema:
+        type: integer
+        default: 10
+        maximum: 50
+        minimum: 1
+  schemas:
+    XRequestId:
+      type: string
+      format: uuid
+      description: >-
+        A unique identifier, which can be helpful for identifying a request when
+        communicating with Circle support.
+      example: 2adba88e-9d63-44bc-b975-9b6ae3440dde
+    Blockchain:
+      type: string
+      description: >
+        The blockchain network that the resource is to be created on or is
+        currently on. 
+
+        Required along with `sourceAddress` if you don't provide `walletId`. The
+        `blockchain` and `walletId` fields are mutually exclusive.
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - MATIC
+        - MATIC-AMOY
+        - ARB
+        - ARB-SEPOLIA
+        - UNI
+        - UNI-SEPOLIA
+        - BASE
+        - BASE-SEPOLIA
+        - OP
+        - OP-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - ARC-TESTNET
+        - MONAD
+        - MONAD-TESTNET
+      example: MATIC-AMOY
+    SourceAddress:
+      type: string
+      description: >
+        Source address of the transaction. Required along with `blockchain` if
+        `walletId` is not provided. 
+
+        The `sourceAddress` and `walletId` fields are mutually exclusive.
+      example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+    TemplateParameters:
+      type: object
+      description: >-
+        JSON object that contains the template deployment parameters used to
+        initialize the contract(s) on-chain.
+      additionalProperties: {}
+    WalletId:
+      title: WalletId
+      type: string
+      format: uuid
+      description: |
+        Unique system generated identifier of the wallet.
+        For contract deploys this wallet ID will be used as the source.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+    GasLimit:
+      type: string
+      description: >
+        The maximum units of gas to use for the transaction. Required if
+        `feeLevel` is not provided.
+
+        Estimates for this limit can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        An insufficient gas limit may cause the transaction to fail on-chain.
+        Use this field with care when manually providing values.
+
+        GasLimit override (only supported for EOA wallets): Using `gasLimit`
+        together with `feeLevel`, the provided `gasLimit` will override the
+        estimation's gasLimit.
+      example: '21000'
+    GasPrice:
+      type: string
+      description: >
+        For blockchains without EIP-1559 support, the maximum price of gas, in
+        gwei, to use per each unit of gas (see `gasLimit`). Requires `gasLimit`.
+        Cannot be used with `feeLevel`, `priorityFee`, or `maxFee`.
+
+        Estimates for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        The wallet service enforces a dynamic minimum `gasPrice` based on
+        current network conditions. Requests specifying a `gasPrice` below this
+        minimum will be rejected
+    MaxFee:
+      type: string
+      example: '5.935224468'
+      description: >
+        For blockchains with EIP-1559 support, the maximum price per unit of gas
+        (see `gasLimit`), in gwei. Requires `priorityFee`, and `gasLimit` to be
+        present. Cannot be used with `feeLevel` or `gasPrice`.
+
+        Estimates for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+    PriorityFee:
+      type: string
+      example: '1.022783914'
+      description: >
+        For blockchains with EIP-1559 support, the “tip”, in gwei, to add to the
+        base fee as an incentive for validators.
+
+        Please note that the `maxFee` and `gasLimit` parameters are required
+        alongside the `priorityFee`. The `feeLevel` and `gasPrice` parameters
+        cannot be used with the `priorityFee`. 
+
+        Estimations for this fee can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+
+        The wallet service enforces a dynamic minimum `priorityFee` based on
+        current network conditions. Requests specifying a `priorityFee` below
+        this minimum will be rejected
+    BaseFee:
+      type: string
+      example: '1.022783914'
+      description: >
+        For blockchains with EIP-1559 support, the estimated base fee represents
+        the minimum fee required for a transaction to be included in a block on
+        the blockchain. 
+
+        It is measured in gwei and compensates for the computational resources
+        validators consume to process the transaction. 
+
+        The base fee is supplemented by a separate "tip" called the priority
+        fee, which acts as an extra incentive for validators to prioritize the
+        transaction. 
+
+        The priority fee is added to the base fee to calculate the final
+        transaction fee.
+    NetworkFee:
+      type: string
+      example: '0.0001246397138'
+      description: >
+        The estimated network fee is the maximum amount of cryptocurrency (such
+        as ETH, ARB, or SOL) that you will pay for your transaction. This fee
+        depends on the parameters you set, including Gas Limit, Priority Fee,
+        and Max Fee.
+
+        It compensates for the computational resources that validators consume
+        to process the transaction. It is measured in native token such as ETH,
+        SOL.
+
+        For blockchains with L1 data fees such as OP/BASE, the network fee is a
+        combination of the Execution Gas Fee and the L1 Data Fee.
+
+        Each blockchain might use different formula for network fee. Refer to
+        each specific blockchain's documentation to understand how `networkFee`
+        is calculated.
+    NetworkFeeRaw:
+      type: string
+      example: '0.0001246397138'
+      description: >
+        Similar to `networkFee`, `networkFeeRaw` is an estimation with lower
+        buffer and thus should be closer to the actual on-chain expense. 
+
+        This field will only be returned in the estimation response.
+    L1Fee:
+      type: string
+      example: '0.000000000000140021'
+      description: >
+        This fee represents the Layer 1 (L1) rollup charge associated with
+        transactions on Layer 2 blockchains. The amount is expressed in the
+        native currency, such as ETH. This field is relevant for Layer 2
+        blockchains utilizing a rollup mechanism and for specific account types,
+        such as externally owned accounts (EOAs) on the Optimism (OP)
+        blockchain.
+    TransactionFee:
+      type: object
+      properties:
+        gasLimit:
+          $ref: '#/components/schemas/GasLimit'
+        gasPrice:
+          $ref: '#/components/schemas/GasPrice'
+        maxFee:
+          $ref: '#/components/schemas/MaxFee'
+        priorityFee:
+          $ref: '#/components/schemas/PriorityFee'
+        baseFee:
+          $ref: '#/components/schemas/BaseFee'
+        networkFee:
+          $ref: '#/components/schemas/NetworkFee'
+        networkFeeRaw:
+          $ref: '#/components/schemas/NetworkFeeRaw'
+        l1Fee:
+          $ref: '#/components/schemas/L1Fee'
+    FeeEstimation:
+      title: FeeEstimationResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          properties:
+            high:
+              $ref: '#/components/schemas/TransactionFee'
+            low:
+              $ref: '#/components/schemas/TransactionFee'
+            medium:
+              $ref: '#/components/schemas/TransactionFee'
+    Error:
+      title: Error
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: Code that corresponds to the error.
+        message:
+          type: string
+          description: Message that describes the error.
+    IdempotencyKey:
+      type: string
+      description: >-
+        Universally unique identifier (UUID v4) idempotency key. This key is
+        utilized to ensure exactly-once execution of mutating requests. To
+        create a UUIDv4 go to
+        [uuidgenerator.net](https://www.uuidgenerator.net). If the same key is
+        reused, it will be treated as the same request and the original response
+        will be returned.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      format: uuid
+    Id:
+      type: string
+      format: uuid
+      description: System-generated unique identifier of the resource.
+      example: c4d1da72-111e-4d52-bdbf-2e74a2d803d5
+    EntitySecretCiphertext:
+      type: string
+      description: >
+        A base64 string expression of the entity secret ciphertext. The entity
+        secret should be encrypted by the entity public key. Circle mandates
+        that the entity secret ciphertext is unique for each API request.
+      format: byte
+      example: >-
+        M8OAwbJ8rMsPd8+NT4xRDBDJSNqUKAvJeWPyuwZSlVXgRucogAlBxjvjIw4nsKeJ4hejjlpmyaaJrusHm6zsvy4BLuL1an3dYn3wORjYf3sU4QN9Rdk9OJxZvE5hDNPq7okucvb1eElxPVREZvr4ew7sh4ktmwDrwWFUYwKoly4fEzxYI9zvVpCY9xPSgkA5m3u1/P2vMYZ0QFtn8lRZxCuTyc4wRLpT9TOaK46CEXCakmAYaYWnLkl18QXOSY6FhCbGm+zQ2Uu4cUPU/bqjIyQIB80ut3drInDzysQLE/FJjcJW9+q+E75LKGKnrp2zCg/Xv3TEvru9a2A0vd7InZ9kNuxnPPFc1JSO7BT2TPP89YcLO0OmtRiGoXPlYzXuNIfUsVQ5/FW9FPp4qp+iMPrAidsjQrskHPxhW92GeezLpOSkUl7lAWQoioYED979mqGfzNIZTF5Ob6fJifboiwhOab6sAKnxmvWjgFnW/bZ5a8xkzgPc4RHpIejot1Q7fpT+67eA+DVxvUqakJI6t3iEaZTNITCSU2Cfj1oyCQfrZGf9tauW49rO1zYHKoV4z9ylymOWtCUk641iyxwFCNSW47CDsc0M8iI4J6JqsNMpQuR9sdWVhROi5yn9UR7ac7pizB3dFmc0/qjtTRoYStaaSEYg3L5woALv5kAA2j4=
+    FeeLevel:
+      type: string
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+      example: MEDIUM
+      description: >
+        A dynamic blockchain fee level setting (`LOW`, `MEDIUM`, or `HIGH`) that
+        will be used to pay gas for the transaction. Calculated based on network
+        traffic, supply of validators, and demand for transaction verification.
+        Cannot be used with `gasPrice`, `priorityFee`, or `maxFee`.
+
+        Estimates for each fee level can be obtained through the [`POST
+        /transactions/transfer/estimateFee`](/api-reference/w3s/developer-controlled-wallets/create-transfer-estimate-fee)
+        API.
+    RefId:
+      type: string
+      description: RefID is a custom label field.
+      example: d620d523-b5ab-4541-94b0-efe4f4c825c8
+    TemplateContractDeployment:
+      title: TemplateContractDeploymentResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - contractIds
+            - transactionId
+          properties:
+            contractIds:
+              type: array
+              description: Unique identifiers of the created smart contracts.
+              items:
+                type: string
+                format: uuid
+            transactionId:
+              description: >-
+                Unique identifier of the pending deployment transaction.
+                transaction.
+              type: string
+              format: uuid
+    ContractInputType:
+      type: string
+      description: The input type for the contract.
+      enum:
+        - IMPORT
+        - BYTECODE
+        - TEMPLATE
+        - AUTO_IMPORT
+    DeployerAddress:
+      type: string
+      description: The address that created this contract, if deployed.
+      example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+    ContractStatus:
+      type: string
+      description: The status of the contract.
+      enum:
+        - PENDING
+        - FAILED
+        - COMPLETE
+    DeployerWalletId:
+      type: string
+      format: uuid
+      description: The `id` of the Circle Wallet that deployed this contract.
+      example: f39e3dbd-84af-4d3d-b5ac-98fbe047ce6a
+    DeploymentTransactionId:
+      type: string
+      format: uuid
+      description: The id of the deployment transaction for this contract.
+      example: 00ca46f3-c31b-4e3a-92a9-068d4ff26a63
+    TransactionHash:
+      type: string
+      description: Blockchain generated identifier of the transaction.
+      example: '0x4a25cc5e661d8504b59c5f38ba93f010e8518966f00e2ceda7955c4b8621357d'
+    AbiJson:
+      type: string
+      description: The contract's ABI in a JSON stringified format.
+      example: >-
+        [{"inputs": [],"stateMutability": "nonpayable","type":
+        "constructor"},...
+    Archived:
+      description: >-
+        The archive state of the contract. If true, the contract will not be
+        visible in your dashboard.
+      type: boolean
+      example: false
+    Bytecode:
+      type: string
+      description: Bytecode of the contract being deployed.
+      minLength: 1
+      writeOnly: true
+      example: 0x60806040523480156200001157600080fd5b50604051806040...
+    ContractAddress:
+      type: string
+      description: The on-chain address of this contract.
+      example: '0x1e124d7384cd34448ea5907bd0052a79355ab5eb'
+    ContractName:
+      type: string
+      description: The name for a contract. Must be alphanumeric [a-zA-Z0-9].
+      example: First Contract
+    ContractDescription:
+      type: string
+      description: The description for a contract.
+      example: My first hello world contract
+    VerificationStatus:
+      type: string
+      description: The verification status of the contract.
+      enum:
+        - UNVERIFIED
+        - VERIFIED
+    MetadataLink:
+      type: string
+      description: The ipfs metadata link of the contract.
+      example: https://ipfs.io/ipfs/Qme7ss3ARVgxv6rXqVPiikMJ8u2NLgmgszg13pYrDKEoiu
+    UpdateDate:
+      type: string
+      format: date-time
+      description: Date and time the resource was last updated, in ISO-8601 UTC format.
+      example: '2023-01-01T12:04:05Z'
+    CreateDate:
+      type: string
+      format: date-time
+      description: Date and time the resource was created, in ISO-8601 UTC format.
+      example: '2023-01-01T12:04:05Z'
+    SolFile:
+      type: object
+      description: Source code of a contract from Etherscan.
+      required:
+        - fileContent
+      properties:
+        fileName:
+          type: string
+          description: Name of the file.
+          example: openzeppelin-solidity/contracts/math/SafeMath.sol
+        fileContent:
+          type: string
+          description: >-
+            Content of the file. If the contract's source code was flattened
+            before verification, this may be the entire source code.
+          example: |-
+            pragma solidity ^0.4.24;
+
+            /**
+             * @title SafeMath
+             * @dev Math operations with safety checks...
+    SourceCode:
+      type: array
+      readOnly: true
+      items:
+        $ref: '#/components/schemas/SolFile'
+    AnyValue:
+      description: Can be any value - string, number, boolean, array or object.
+    ParamType:
+      type: object
+      properties:
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnyValue'
+        indexed:
+          type: boolean
+        name:
+          type: string
+          example: to
+        type:
+          type: string
+          example: address
+        flattenedType:
+          type: string
+    Function:
+      type: object
+      required:
+        - type
+      properties:
+        name:
+          type: string
+          example: approve
+        stateMutability:
+          type: string
+          example: nonpayable
+        type:
+          type: string
+          example: function
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParamType'
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParamType'
+    Functions:
+      type: array
+      description: Functions supported by this contract. Parsed from abi_json.
+      items:
+        $ref: '#/components/schemas/Function'
+    Event:
+      type: object
+      required:
+        - type
+      properties:
+        name:
+          type: string
+          example: Approval
+        type:
+          type: string
+          example: event
+        anonymous:
+          type: boolean
+          example: false
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParamType'
+    Events:
+      type: array
+      description: Events this contract can emit. Parsed from abi_json.
+      items:
+        $ref: '#/components/schemas/Event'
+    Contract:
+      type: object
+      required:
+        - id
+        - name
+        - contractInputType
+        - createDate
+        - updateDate
+        - archived
+        - blockchain
+        - status
+        - functions
+        - events
+        - verificationStatus
+        - sourceCode
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        deployerWalletID:
+          $ref: '#/components/schemas/DeployerWalletId'
+        deploymentTransactionId:
+          $ref: '#/components/schemas/DeploymentTransactionId'
+        txHash:
+          $ref: '#/components/schemas/TransactionHash'
+        abiJson:
+          $ref: '#/components/schemas/AbiJson'
+        archived:
+          $ref: '#/components/schemas/Archived'
+        blockchain:
+          $ref: '#/components/schemas/Blockchain'
+        bytecode:
+          $ref: '#/components/schemas/Bytecode'
+        contractAddress:
+          $ref: '#/components/schemas/ContractAddress'
+        contractInputType:
+          $ref: '#/components/schemas/ContractInputType'
+        deployerAddress:
+          $ref: '#/components/schemas/DeployerAddress'
+        deployerUserID:
+          format: uuid
+          type: string
+        deploymentErrorReason:
+          type: string
+        deploymentErrorDetails:
+          type: string
+        name:
+          $ref: '#/components/schemas/ContractName'
+        description:
+          $ref: '#/components/schemas/ContractDescription'
+        status:
+          $ref: '#/components/schemas/ContractStatus'
+        verificationStatus:
+          $ref: '#/components/schemas/VerificationStatus'
+        metadataLink:
+          $ref: '#/components/schemas/MetadataLink'
+        updateDate:
+          $ref: '#/components/schemas/UpdateDate'
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+        sourceCode:
+          $ref: '#/components/schemas/SourceCode'
+        functions:
+          $ref: '#/components/schemas/Functions'
+        events:
+          $ref: '#/components/schemas/Events'
+        implementationContract:
+          type: object
+          description: Object of the implementation contract.
+    Contracts:
+      title: ContractsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - contracts
+          properties:
+            contracts:
+              type: array
+              description: Contracts are all the contracts that match criteria.
+              items:
+                $ref: '#/components/schemas/Contract'
+    ContractResponse:
+      title: ContractResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - contract
+          properties:
+            contract:
+              $ref: '#/components/schemas/Contract'
+    AbiFunctionSignature:
+      title: AbiFunctionSignature
+      type: string
+      description: "The contract ABI function signature or\_`callData`\_field is required for interacting with the smart contract. The ABI function signature cannot be used simultaneously with\_`callData`. e.g. burn(uint256)"
+      example: burn(uint256)
+    AbiParameters:
+      title: AbiParameters
+      type: array
+      items:
+        anyOf:
+          - type: string
+          - type: integer
+          - type: boolean
+          - type: array
+            items: {}
+      description: "The contract ABI function signature parameters for executing the contract interaction. Supported parameter types include string, integer, boolean, and array. These parameters should be used exclusively with the abiFunctionSignature and cannot be used with\_`callData`."
+      example:
+        - '100'
+        - '1'
+    ReadContractState:
+      title: ReadContractStateResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - outputValues
+            - outputData
+          properties:
+            outputValues:
+              type: array
+              description: Output for the ABI interaction.
+              items:
+                $ref: '#/components/schemas/AnyValue'
+            outputData:
+              description: OutputData is output in hex format.
+              format: hex
+              type: string
+    RefreshVerification:
+      description: >-
+        If true, refreshes the contract's ABI and source code from the
+        blockchain explorer for contracts that have since been verified
+        on-chain.
+      type: boolean
+      example: true
+    ConstructorSignature:
+      title: ConstructorSignature
+      type: string
+      description: >-
+        Signature of the constructor if the contract has one. constructor() by
+        default.
+      maxLength: 1000
+      minLength: 1
+      example: constructor(string ticker, uint256 totalSupply)
+    ConstructorParameters:
+      title: ConstructorParameters
+      type: array
+      description: >-
+        A list of arguments to pass to the contract's constructor function. Must
+        be an empty array if there are no constructor parameters.
+      items:
+        $ref: '#/components/schemas/AnyValue'
+      example:
+        - TICK
+        - 10000
+    TransactionReferenceId:
+      type: string
+      example: grouptransaction123
+      description: Optional reference or description used to identify the transaction.
+    ContractDeployment:
+      title: ContractDeploymentResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - contractId
+            - transactionId
+          properties:
+            contractId:
+              type: string
+              description: Unique identifier of the created smart contract.
+              example: 676f83a8-81a1-4dd5-b738-e2509b8f5460
+            transactionId:
+              type: string
+              description: Unique identifier of the deployment transaction.
+              example: 36790743-b78d-4061-9558-1af9a9c837bd
+    EventMonitor:
+      type: object
+      required:
+        - id
+        - blockchain
+        - contractAddress
+        - eventSignature
+        - eventSignatureHash
+        - isEnabled
+        - createDate
+        - updateDate
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: e3c998a5-bdf1-4f3e-812f-24da238c0fff
+        blockchain:
+          allOf:
+            - $ref: '#/components/schemas/Blockchain'
+        contractAddress:
+          $ref: '#/components/schemas/ContractAddress'
+        eventSignature:
+          type: string
+          example: Transfer(address indexed from, address indexed to, uint256 value)
+        eventSignatureHash:
+          type: string
+          example: '0xd3d3dd4b1fd3e53f94deb24e763485b4c925345c5abfa9ad529c67aa55a3b784'
+        isEnabled:
+          type: boolean
+          example: true
+    EventMonitors:
+      title: EventMonitorResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - eventMonitors
+          properties:
+            eventMonitors:
+              description: Event monitors that match criteria.
+              type: array
+              items:
+                $ref: '#/components/schemas/EventMonitor'
+              example:
+                - id: e3c998a5-bdf1-4f3e-812f-24da238c0fff
+                  blockchain: ETH
+                  contractAddress: '0x6bc50ff08414717f000431558c0b585332c2a53d'
+                  eventSignature: >-
+                    Transfer(address indexed from, address indexed to, uint256
+                    value)
+                  eventSignatureHash: >-
+                    0xd3d3dd4b1fd3e53f94deb24e763485b4c925345c5abfa9ad529c67aa55a3b784
+                  isEnabled: true
+                  createDate: '2023-01-01T12:00:00Z'
+                  updateDate: '2023-01-10T15:30:00Z'
+    EventMonitorResponse:
+      title: EventMonitorResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - eventMonitor
+          properties:
+            eventMonitor:
+              $ref: '#/components/schemas/EventMonitor'
+    EventLog:
+      type: object
+      required:
+        - id
+        - blockHash
+        - blockHeight
+        - blockchain
+        - contractAddress
+        - data
+        - eventSignature
+        - eventSignatureHash
+        - logIndex
+        - topics
+        - txHash
+        - userOpHash
+        - firstConfirmDate
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: e3c998a5-bdf1-4f3e-812f-24da238c0fff
+        blockHash:
+          type: string
+          example: '0xabc123def4567890'
+        blockHeight:
+          type: integer
+          example: 123456
+        blockchain:
+          allOf:
+            - $ref: '#/components/schemas/Blockchain'
+        contractAddress:
+          $ref: '#/components/schemas/ContractAddress'
+        data:
+          type: string
+          example: '0xabcdef1234567890'
+        eventSignature:
+          type: string
+          example: Transfer(address indexed from, address indexed to, uint256 value)
+        eventSignatureHash:
+          type: string
+          example: '0xd3d3dd4b1fd3e53f94deb24e763485b4c925345c5abfa9ad529c67aa55a3b784'
+        logIndex:
+          type: string
+          example: '1'
+        topics:
+          type: array
+          items:
+            type: string
+        txHash:
+          type: string
+          example: '0xe787956fa895b9debe3c43ec5db01938cf6dc4933e7470cdda7cbe492f530d'
+        userOpHash:
+          type: string
+          example: '0x4ceda08efcbed700caf0d47ddd5ecc9b86fca94b9aa4e349bc16837a643fb498'
+        firstConfirmDate:
+          type: string
+          example: '2023-01-01T12:00:00Z'
+    EventLogs:
+      title: EventLogsResponse
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - eventLogs
+          properties:
+            eventLogs:
+              type: array
+              description: >-
+                A list of event logs generated from the specified contract
+                events.
+              items:
+                $ref: '#/components/schemas/EventLog'
+              example:
+                - blockHash: '0xabc123def4567890'
+                  blockHeight: 123456
+                  blockchain: ETH
+                  contractAddress: '0x6bc50ff08414717f000431558c0b585332c2a53d'
+                  data: '0xabcdef1234567890'
+                  eventSignature: Transfer(address,address,uint256)
+                  eventSignatureHash: >-
+                    0xd3d3dd4b1fd3e53f94deb24e763485b4c925345c5abfa9ad529c67aa55a3b784
+                  firstConfirmDate: '2023-01-01T12:00:00Z'
+                  id: b56ee4eb-7f48-4ce6-ba55-b71d63a082d4
+                  logIndex: '1'
+                  topics:
+                    - >-
+                      0xd3d3dd4b1fd3e53f94deb24e763485b4c925345c5abfa9ad529c67aa55a3b784
+                  txHash: >-
+                    0xe787956fa895b9debe3c43ec5db01938cf6dc4933e7470cdda7cbe492f530d17
+                  userOpHash: >-
+                    0x4ceda08efcbed700caf0d47ddd5ecc9b86fca94b9aa4e349bc16837a643fb498
+  requestBodies:
+    ContractDeploymentEstimate:
+      content:
+        application/json:
+          schema:
+            title: ContractDeploymentEstimateRequest
+            type: object
+            required:
+              - blockchain
+            properties:
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              sourceAddress:
+                $ref: '#/components/schemas/SourceAddress'
+              templateParameters:
+                $ref: '#/components/schemas/TemplateParameters'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+      description: >-
+        Request object for estimating the transaction fees for deploying a
+        contract from a template.
+      required: true
+    TemplateContractDeployment:
+      content:
+        application/json:
+          schema:
+            title: TemplateContractDeploymentRequest
+            type: object
+            required:
+              - blockchain
+              - entitySecretCiphertext
+              - idempotencyKey
+              - name
+              - walletId
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              walletId:
+                $ref: '#/components/schemas/Id'
+              name:
+                description: Name of the contract in your Circle console.
+                maxLength: 100
+                minLength: 1
+                type: string
+                example: My Template Contract
+              description:
+                description: Description of the contract.
+                type: string
+                example: My first template contract deployment!
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              templateParameters:
+                $ref: '#/components/schemas/TemplateParameters'
+              feeLevel:
+                $ref: '#/components/schemas/FeeLevel'
+              gasLimit:
+                $ref: '#/components/schemas/GasLimit'
+              gasPrice:
+                $ref: '#/components/schemas/GasPrice'
+              maxFee:
+                $ref: '#/components/schemas/MaxFee'
+              priorityFee:
+                $ref: '#/components/schemas/PriorityFee'
+              refId:
+                $ref: '#/components/schemas/RefId'
+      description: Deploy contract by template request.
+      required: true
+    PatchContract:
+      content:
+        application/json:
+          schema:
+            title: PatchContractRequest
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/ContractName'
+              description:
+                $ref: '#/components/schemas/ContractDescription'
+              archived:
+                $ref: '#/components/schemas/Archived'
+      description: Update contract properties request
+      required: true
+    ReadContractState:
+      content:
+        application/json:
+          schema:
+            title: ReadContractStateRequest
+            type: object
+            required:
+              - address
+              - blockchain
+            properties:
+              abiFunctionSignature:
+                $ref: '#/components/schemas/AbiFunctionSignature'
+              abiParameters:
+                $ref: '#/components/schemas/AbiParameters'
+              abiJson:
+                $ref: '#/components/schemas/AbiJson'
+              address:
+                description: Address of the contract to be queried.
+                type: string
+                example: '0x1e124d7384cd34448ea5907bd0052a79355ab5eb'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              callData:
+                description: CallData is input data that encodes method and parameters.
+                type: string
+              fromAddress:
+                description: >-
+                  FromAddress is the address that will populate msg.sender in
+                  the contract call.
+                type: string
+      description: Read contract state by executing a read ABI function.
+      required: true
+    ImportContract:
+      content:
+        application/json:
+          schema:
+            title: ImportContractRequest
+            type: object
+            required:
+              - address
+              - blockchain
+              - idempotencyKey
+              - name
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              name:
+                $ref: '#/components/schemas/ContractName'
+              description:
+                $ref: '#/components/schemas/ContractDescription'
+              address:
+                $ref: '#/components/schemas/ContractAddress'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              refreshVerification:
+                $ref: '#/components/schemas/RefreshVerification'
+      description: Import contract request
+      required: true
+    ContractDeploymentEstimateFee:
+      content:
+        application/json:
+          schema:
+            title: ContractDeploymentEstimateFeeRequest
+            type: object
+            required:
+              - bytecode
+            properties:
+              abiJson:
+                $ref: '#/components/schemas/AbiJson'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              bytecode:
+                $ref: '#/components/schemas/Bytecode'
+              constructorSignature:
+                $ref: '#/components/schemas/ConstructorSignature'
+              constructorParameters:
+                $ref: '#/components/schemas/ConstructorParameters'
+              sourceAddress:
+                $ref: '#/components/schemas/SourceAddress'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+          examples:
+            Wallet ID:
+              value:
+                walletId: 004735f6-d9fc-44f8-933c-672cdf3d240d
+                bytecode: 0x60806040523480156200001157600080fd5b50604051806040...
+                constructorSignature: constructor(string, uint256)
+                constructorParameters:
+                  - TICK
+                  - 10000
+            Source Address:
+              value:
+                sourceAddress: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+                blockchain: MATIC-AMOY
+                bytecode: 0x60806040523480156200001157600080fd5b50604051806040...
+                constructorSignature: constructor(string ticker, uint256 totalSupply)
+                constructorParameters:
+                  - TICK
+                  - 10000
+      description: Estimate a transaction fee for deploying a smart contract
+      required: true
+    ContractDeployment:
+      content:
+        application/json:
+          schema:
+            title: ContractDeploymentRequest
+            type: object
+            required:
+              - abiJson
+              - blockchain
+              - bytecode
+              - entitySecretCiphertext
+              - idempotencyKey
+              - name
+              - walletId
+            properties:
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+              name:
+                $ref: '#/components/schemas/ContractName'
+              description:
+                $ref: '#/components/schemas/ContractDescription'
+              walletId:
+                $ref: '#/components/schemas/WalletId'
+              abiJson:
+                $ref: '#/components/schemas/AbiJson'
+              bytecode:
+                $ref: '#/components/schemas/Bytecode'
+              entitySecretCiphertext:
+                $ref: '#/components/schemas/EntitySecretCiphertext'
+              blockchain:
+                $ref: '#/components/schemas/Blockchain'
+              constructorParameters:
+                $ref: '#/components/schemas/ConstructorParameters'
+              feeLevel:
+                $ref: '#/components/schemas/FeeLevel'
+              gasLimit:
+                $ref: '#/components/schemas/GasLimit'
+              gasPrice:
+                $ref: '#/components/schemas/GasPrice'
+              maxFee:
+                $ref: '#/components/schemas/MaxFee'
+              priorityFee:
+                $ref: '#/components/schemas/PriorityFee'
+              refId:
+                $ref: '#/components/schemas/TransactionReferenceId'
+          examples:
+            Wallet ID:
+              value:
+                idempotencyKey: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+                name: First Contract
+                description: My first hello world contract
+                walletId: 004735f6-d9fc-44f8-933c-672cdf3d240d
+                blockchain: ETH
+                abiJson: "[\n\t{\n\t\t\"inputs\": [],\n\t\t\"stateMutability\": \"nonpayable\",\n\t\t\"type\": \"constructor\"\n\t},\n\t..."
+                bytecode: 0x60806040523480156200001157600080fd5b50604051806040...
+                constructorParameters:
+                  - TICK
+                  - 10000
+                feeLevel: MEDIUM
+                entitySecretCiphertext: >-
+                  DjIdkhAWMvKDQKx70jH4tJE00EPAKUgT34++bnpfuK6BU2FqfuGR7Y9nZp4tStJYEdDAIw5yNNGoX3jtj8uWsC4ee31Y+ltPgciYNRjcmEuHy4+qWySlt5ao2ZfgyxBdmRLqcS3nwT0EwgSugijzCjWOmhge2eB/JOZYW2RjSJBJvfTS5uWghbebtpzPca0x+0IAYUIQdanWU7aog2vk0BWmGSEiDw7dRlcan6m8t2BbiVMCffQ/LF76PyXyqVUhnPk4JHPQ/Iee4vLk7M79d2zerzA2KBLQ5xcpVoUqr31YhbrV5OIcIDaOuG09aQ67b6L/zDzCpvb2YdGLdou3YllitrSktE9Ocxmbrlq2iQM1zcsrg3FN5HIY3QuzcQCUWW1k+46hvtGi/xMgFPHrM1kJV8Dlj93+VYQ4EWoIUukQGrERd9SxWjmCh3guii793Ndfe7KZb7QF6Cm+8Q4aYVbP9zZLGtZn50jmm7J2VOyO0fxAlcha2KcUIZU8WqZppvCIKAGlSuMrfGZly/P9i1NjN3kYv1CE13f/FuBh0aLIb5IXG/oeHHv6IZVOOWwvET7XhyOzeeS6zZXWL6Xuxap+ctdMT+ik7DK2rfzIi2NtkzMKuJ/TWRHdfwTMv7qBP7IhiWgPDICPTJSQk+MTFycg4rECbI/Bc2LIclpyrlo=
+      description: Deploy contract request
+      required: true
+    CreateEventMonitor:
+      content:
+        application/json:
+          schema:
+            title: CreateEventMonitorRequest
+            type: object
+            required:
+              - blockchain
+              - contractAddress
+              - eventSignature
+              - idempotencyKey
+            properties:
+              blockchain:
+                allOf:
+                  - $ref: '#/components/schemas/Blockchain'
+              contractAddress:
+                $ref: '#/components/schemas/ContractAddress'
+              eventSignature:
+                type: string
+                description: >-
+                  The specific event to which you want to subscribeven. Please
+                  ensure no spaces are included.
+              idempotencyKey:
+                $ref: '#/components/schemas/IdempotencyKey'
+          examples:
+            CreateEventMonitorRequest:
+              value:
+                blockchain: ETH
+                contractAddress: '0x6bc50ff08414717f000431558c0b585332c2a53d'
+                eventSignature: Transfer(address,address,uint256)
+                idempotencyKey: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      description: Create Event Monitor Request
+    UpdateEventMonitor:
+      content:
+        application/json:
+          schema:
+            title: UpdateEventMonitorRequest
+            type: object
+            required:
+              - isEnabled
+            properties:
+              isEnabled:
+                type: boolean
+                description: >-
+                  Indicates whether the event monitor should be active (true) or
+                  inactive (false).
+          examples:
+            UpdateEventMonitorRequest:
+              value:
+                isEnabled: false
+      description: Update Event Monitor Request
+  headers:
+    XRequestId:
+      description: >
+        Developer-provided header parameter or Circle-generated universally
+        unique identifier (UUID v4). Useful for identifying a specific request
+        when communicating with Circle Support.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+    PaginationLink:
+      description: >
+        Pagination cursor information. Format includes the following link
+        relations: - self: URL pointing to the current page. - first: URL
+        pointing to the first page. - next: URL pointing to the next page
+        (omitted on the last page). - prev: URL pointing to the previous page
+        (omitted on the first page).
+
+        It's important to form calls with Link header values instead of
+        constructing your own URLs.
+      schema:
+        type: string
+        example: >-
+          <https://api.circle.com/v1/w3s/wallets?pageAfter=32d1b923-c30d-58de-a42e-157bf7148b85&pageSize=2>;
+          rel="next"

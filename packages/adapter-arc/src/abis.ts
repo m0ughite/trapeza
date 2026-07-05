@@ -100,3 +100,49 @@ export const validationRegistryAbi = [
     ],
   },
 ] as const;
+
+/** Minimal RefundProtocol ABI (arc-escrow sample). */
+export const refundProtocolAbi = [
+  {
+    name: "pay",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "refundTo", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    name: "refundByArbiter",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "paymentID", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    name: "PaymentCreated",
+    type: "event",
+    inputs: [
+      { name: "paymentID", type: "uint256", indexed: true },
+      { name: "to", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "releaseTimestamp", type: "uint256", indexed: false },
+      { name: "refundTo", type: "address", indexed: true },
+    ],
+  },
+] as const;
+
+export const erc20Abi = [
+  {
+    name: "approve",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;

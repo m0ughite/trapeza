@@ -1,0 +1,45 @@
+---
+description: Arc/Circle adapter conventions for packages/adapter-*
+globs: packages/adapter-*/**/*
+alwaysApply: false
+---
+
+# Trapeza adapter rules
+
+All Circle/Arc SDK calls stay in `packages/adapter-arc/` or `packages/adapter-gateway/`.
+Never import chain SDKs from `@trapeza/core`.
+
+## Locked constants
+
+Check existing values before adding new ones:
+
+- `packages/adapter-gateway/src/constants.ts` — USDC, Gateway Wallet, Arc testnet chain
+- `packages/adapter-arc/src/constants.ts` — ERC-8004 registry addresses, Arc testnet
+
+## Arc USDC gotcha
+
+On Arc testnet, USDC is the native gas token. The ERC-20 at `0x3600000000000000000000000000000000000000`
+uses **6 decimals**; the native gas view uses **18 decimals**. They reflect the same balance.
+A single faucet drop funds both gas and x402 payments.
+
+## Skills to read first
+
+| Topic | File |
+| --- | --- |
+| Gateway / x402 / nanopayments | `context-for-agent/docs/circlefin-skills/use-gateway.md` |
+| Arc chain config | `context-for-agent/docs/circlefin-skills/use-arc.md` |
+| USDC transfers | `context-for-agent/docs/circlefin-skills/use-usdc.md` |
+
+## SDK docs
+
+Before changing adapter code, verify viem, `@circle-fin/x402-batching`, `@x402/*`, and Circle SDK
+APIs via **Context7** (`user-context7`: `resolve-library-id` → `query-docs`). Use **web search**
+if Context7 is inconclusive.
+
+## Spikes
+
+- `npm run spike:nanopayment` — full x402 verify → settle loop
+- `npm run spike:erc8004` — register ERC-8004 identity
+
+Both require funded wallets per SETUP.md. Exit non-zero on failure; print explorer URLs
+for real transactions only.

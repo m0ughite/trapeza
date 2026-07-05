@@ -1,0 +1,26 @@
+{
+  "name": "@trapeza/sim",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Seeded requester + provider agent loop for Trapeza traction demos.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@trapeza/clearinghouse": "*",
+    "@trapeza/core": "*",
+    "@trapeza/runtime": "*",
+    "seedrandom": "^3.0.5"
+  }
+}

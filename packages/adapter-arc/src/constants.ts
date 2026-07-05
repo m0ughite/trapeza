@@ -51,6 +51,13 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
+/** Optional RefundProtocol escrow — set TRAPEZA_ESCROW_ADDRESS after deploy. */
+export const ESCROW_CONTRACT = process.env.TRAPEZA_ESCROW_ADDRESS as
+  | `0x${string}`
+  | undefined;
+
+export const USDC_DECIMALS = 6;
+
 /** Default ERC-8004 metadata URI from the Arc quickstart (skip IPFS upload). */
 export const DEFAULT_METADATA_URI =
   "ipfs://bafkreibdi6623n3xpf7ymk62ckb4bo75o3qemwkpfvp5i25j66itxvsoei";

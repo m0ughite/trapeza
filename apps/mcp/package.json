@@ -1,0 +1,31 @@
+{
+  "name": "@trapeza/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Trapeza MCP server — hire the calibration-aware market from any agent.",
+  "type": "module",
+  "bin": {
+    "trapeza-mcp": "./dist/cli.js",
+    "trapeza-mcp-http": "./dist/http-cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@trapeza/clearinghouse": "*",
+    "@trapeza/core": "*",
+    "@trapeza/runtime": "*",
+    "zod": "^3.24.2"
+  }
+}

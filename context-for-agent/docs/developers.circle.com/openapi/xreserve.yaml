@@ -1,0 +1,1026 @@
+openapi: 3.0.2
+info:
+  title: Circle xReserve
+  version: 1.0.0
+  description: >
+    xReserve enables transfers between USDC and USDC-backed tokens across
+    supported blockchain networks using a secure attestation system.
+servers:
+  - url: https://xreserve-api-testnet.circle.com
+    description: Testnet
+  - url: https://xreserve-api.circle.com
+    description: Mainnet
+tags:
+  - name: xReserve
+    description: xReserve endpoints
+paths:
+  /v1/attestations:
+    get:
+      operationId: getAttestationsByTxHash
+      summary: Get attestations by source transaction hash
+      description: >
+        Returns all attestations associated with the specified source chain
+        transaction hash.
+
+        A single transaction may produce multiple attestations across different
+        remote domains.
+      tags:
+        - xReserve
+      parameters:
+        - $ref: '#/components/parameters/TxHash'
+      responses:
+        '200':
+          $ref: '#/components/responses/AttestationsByTxHashResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/attestations/{depositMessageHash}:
+    get:
+      operationId: getAttestation
+      summary: Get an attestation for a crosschain transfer
+      description: >-
+        Returns the attestation for a specified crosschain transfer using the
+        deposit message hash.
+      tags:
+        - xReserve
+      parameters:
+        - $ref: '#/components/parameters/DepositMessageHash'
+      responses:
+        '200':
+          $ref: '#/components/responses/AttestationResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/remote-domains/{remoteDomain}/attestations:
+    get:
+      operationId: listAttestations
+      summary: List attestations for crosschain transfers
+      description: >
+        Returns an array of attestations for the specified crosschain transfers,
+        filtered by remote domain.
+
+
+        Use the Link header in the response to navigate between pages.
+      tags:
+        - xReserve
+      parameters:
+        - $ref: '#/components/parameters/RemoteDomain'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageAfter'
+        - $ref: '#/components/parameters/PageBefore'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        '200':
+          $ref: '#/components/responses/AttestationsListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/balances/{remoteDomain}:
+    get:
+      operationId: getBalances
+      summary: Get token balances on a remote domain
+      description: >-
+        Returns the expected token balances for a specified remote domain based
+        on the deposit amounts made into xReserve.
+      tags:
+        - xReserve
+      parameters:
+        - $ref: '#/components/parameters/RemoteDomain'
+        - $ref: '#/components/parameters/TokenQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/BalancesResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/info:
+    get:
+      operationId: getInfo
+      summary: Get domain information
+      description: >-
+        Returns information on source and remote domains, including its
+        supported tokens and configuration details.
+      tags:
+        - xReserve
+      responses:
+        '200':
+          $ref: '#/components/responses/DomainsInfoResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/prepare-withdrawal:
+    post:
+      operationId: prepareWithdrawal
+      summary: Prepare a withdrawal request
+      description: >
+        Turns the user's burn transaction data on the remote chain into fully
+        encoded burn intents to send to the `/withdraw` endpoint. This endpoint
+        performs the following:
+
+        - Resolves contract and token addresses across networks.
+
+        - Determines the optimal forwarding strategy, such as redepositing to
+        another xReserve remote domain or forwarding to a CCTP domain.
+
+        - Calculates transfer amounts and fees.
+
+        - Encodes forwarding call data with the calculated transfer amounts.
+
+        - Generates `maxBlockHeight` and `maxFee` values with safety buffers.
+
+        - Returns data in the structure expected by the withdraw endpoint.
+
+
+        Note: The `/withdraw` endpoint requires signatures and the remote chain
+        `burnTxId` in addition to the burn intent prepared by this endpoint.
+      tags:
+        - xReserve
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrepareWithdrawalRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PrepareWithdrawalResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/withdraw:
+    post:
+      operationId: submitWithdrawal
+      summary: Submit signed burn intents for withdrawal
+      description: >-
+        Submits up to five signed burn intent batches per request call. Each
+        batch may contain one burn intent or a set of up to 10.
+      tags:
+        - xReserve
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WithdrawSubmissionResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '409':
+          description: >-
+            Conflict occurred. The burn transaction ID is already associated
+            with an active withdrawal.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                    description: Indicates that the request was not successful.
+                  message:
+                    type: string
+                    example: >-
+                      The remote `burnTxId` is already associated with an active
+                      withdrawal.
+                    description: An error message describing the conflict.
+                  conflict:
+                    type: object
+                    description: >-
+                      Information about the conflicting withdrawal. In the rare
+                      case of a race condition, this object might only contain
+                      the `burnTxId`.
+                    properties:
+                      withdrawalId:
+                        type: string
+                        format: uuid
+                        example: 550e8400-e29b-41d4-a716-446655440000
+                        description: The ID of the existing withdrawal in conflict.
+                      burnTxId:
+                        type: string
+                        pattern: ^0x[a-fA-F0-9]{64}$
+                        example: >-
+                          0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+                        description: The burn transaction hash that caused the conflict.
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/withdrawal/{withdrawalId}:
+    get:
+      operationId: getWithdrawalStatus
+      summary: Get withdrawal status
+      description: Returns the status and transfer details of a specified withdrawal group.
+      tags:
+        - xReserve
+      parameters:
+        - $ref: '#/components/parameters/WithdrawalId'
+      responses:
+        '200':
+          $ref: '#/components/responses/WithdrawalResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  parameters:
+    TxHash:
+      in: query
+      name: txHash
+      required: true
+      schema:
+        type: string
+        pattern: ^0x[a-fA-F0-9]{64}$
+      description: The source chain transaction hash as a 32-byte hexadecimal string.
+      example: '0x1234567890123456789012345678901234567890123456789012345678901234'
+    DepositMessageHash:
+      in: path
+      name: depositMessageHash
+      required: true
+      schema:
+        type: string
+        pattern: ^0x[a-fA-F0-9]{64}$
+      description: The hash of the deposit message as a 32-byte hexadecimal string.
+      example: '0x1234567890123456789012345678901234567890123456789012345678901234'
+    RemoteDomain:
+      in: path
+      name: remoteDomain
+      required: true
+      schema:
+        type: integer
+        minimum: 0
+      description: The remote domain ID by which to filter results.
+      example: 1
+    PageSize:
+      in: query
+      name: pageSize
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+      description: The number of results to return per page.
+      example: 50
+    PageAfter:
+      in: query
+      name: pageAfter
+      required: false
+      schema:
+        type: string
+      description: >-
+        Base64-encoded pagination cursor that returns the next page of results.
+        Do not use with `pageBefore`.
+    PageBefore:
+      in: query
+      name: pageBefore
+      required: false
+      schema:
+        type: string
+      description: >-
+        Base64-encoded pagination cursor that returns the previous page of
+        results. Do not use with `pageAfter`.
+    From:
+      in: query
+      name: from
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: >
+        Filters results starting from the specified timestamp, in ISO 8601
+        format.
+
+        Example: 2025-11-17T23:59:59Z
+    To:
+      in: query
+      name: to
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: |
+        Filters results up to the specified timestamp, in ISO 8601 format.
+        Example: 2025-11-17T23:59:59Z
+    TokenQuery:
+      in: query
+      name: token
+      required: false
+      schema:
+        type: string
+      description: The token by which to query balances, such as `USDC`.
+    WithdrawalId:
+      in: path
+      name: withdrawalId
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >-
+        Unique identifier of the withdrawal group returned by the `/withdraw`
+        endpoint.
+      example: 123e4567-e89b-12d3-a456-426614174000
+  schemas:
+    AttestationObject:
+      type: object
+      description: Contains attestation data.
+      properties:
+        payload:
+          type: string
+          pattern: ^0x[a-fA-F0-9]*$
+          description: The encoded attestation payload data.
+          example: '0x123456'
+        messageHash:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: The deposit message hash that identifies the attestation.
+        attestation:
+          type: string
+          pattern: ^0x[a-fA-F0-9]*$
+          description: The xReserve attestation signature.
+      required:
+        - payload
+        - messageHash
+        - attestation
+    AttestationWithRemoteDomainObject:
+      allOf:
+        - $ref: '#/components/schemas/AttestationObject'
+        - type: object
+          required:
+            - remoteDomain
+          properties:
+            remoteDomain:
+              type: integer
+              minimum: 1
+              description: The remote domain identifier for this attestation.
+              example: 42161
+    AttestationsByTxHashResponse:
+      type: object
+      description: Contains attestations associated with a source chain transaction.
+      properties:
+        attestations:
+          type: array
+          description: Contains an array of attestations for the transaction.
+          items:
+            $ref: '#/components/schemas/AttestationWithRemoteDomainObject'
+      required:
+        - attestations
+    ErrorResponse:
+      type: object
+      description: Standard error response.
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+    AttestationResponse:
+      type: object
+      description: Contains attestation data.
+      required:
+        - attestation
+      properties:
+        attestation:
+          $ref: '#/components/schemas/AttestationObject'
+    AttestationsListResponse:
+      type: object
+      description: Contains a list of returned attestations.
+      properties:
+        attestations:
+          type: array
+          description: Contains an array of attestations.
+          items:
+            $ref: '#/components/schemas/AttestationObject'
+      required:
+        - attestations
+    BalancesResponse:
+      type: object
+      description: Contains token balances for a remote domain.
+      properties:
+        balances:
+          type: array
+          description: List token balance entries.
+          items:
+            type: object
+            properties:
+              token:
+                type: string
+                description: The token symbol.
+                example: USDC
+              balance:
+                type: string
+                description: The token balance amount.
+                example: '1000000'
+            required:
+              - token
+              - balance
+      required:
+        - balances
+    SourceDomainInfo:
+      type: object
+      description: Contains information about a source domain.
+      properties:
+        chain:
+          type: string
+          description: Human-readable name of the blockchain.
+          example: Ethereum
+        network:
+          type: string
+          description: Human-readable name of the network.
+          example: Sepolia
+        domain:
+          type: integer
+          description: Unique identifier of the domain.
+          example: 0
+        contractAddress:
+          type: string
+          description: Address of the xReserve smart contract deployed on this network.
+          example: '0x1234567890123456789012345678901234567890'
+        tokens:
+          type: array
+          description: >-
+            List of supported token symbols for the xReserve smart contract
+            deployed on this network.
+          items:
+            type: string
+          example:
+            - USDC
+      required:
+        - chain
+        - network
+        - domain
+        - contractAddress
+        - tokens
+    RemoteTokenInfo:
+      type: object
+      description: Contains information about a supported token on a remote domain.
+      properties:
+        remoteToken:
+          type: string
+          description: Symbol of the remote token.
+          example: USDCx
+        remoteTokenIdentifier:
+          type: string
+          description: Remote token contract address or identifier.
+          example: '0xb5c6b65f13c0c3b4bbf572ec78e63b262bd386c1'
+        associatedNativeToken:
+          type: string
+          description: Symbol of the associated native token.
+          example: USDC
+      required:
+        - remoteToken
+        - remoteTokenIdentifier
+        - associatedNativeToken
+    RemoteDomainInfo:
+      type: object
+      description: Contains information about a remote domain.
+      properties:
+        chain:
+          type: string
+          description: Human-readable chain name.
+          example: Ethereum
+        network:
+          type: string
+          description: Human-readable network name.
+          example: Mainnet
+        domain:
+          type: integer
+          description: Unique identifier of the domain.
+          example: 0
+        tokens:
+          type: array
+          description: List of supported tokens on the remote network.
+          items:
+            $ref: '#/components/schemas/RemoteTokenInfo'
+      required:
+        - chain
+        - network
+        - domain
+        - tokens
+    DomainsInfoResponse:
+      type: object
+      description: Contains source and remote domain data.
+      properties:
+        sourceDomains:
+          type: array
+          description: List of source domains.
+          items:
+            $ref: '#/components/schemas/SourceDomainInfo'
+        remoteDomains:
+          type: array
+          description: List of remote domains.
+          items:
+            $ref: '#/components/schemas/RemoteDomainInfo'
+      required:
+        - sourceDomains
+        - remoteDomains
+    ForwardingOptions:
+      type: object
+      description: Contains forwarding strategies, either a redeposit or CCTP forwarding.
+      properties:
+        maxFee:
+          type: string
+          pattern: ^\d+(\.\d{1,6})?$
+          description: >-
+            Maximum fee for redeposits or CCTP forwarding. This required fee is
+            in addition to the `burnIntent.maxFee`.
+        hookData:
+          type: string
+          pattern: ^0x[a-fA-F0-9]*$
+          description: Optional hook data for forwarding, in hexadecimal format.
+        usesFastFinality:
+          type: boolean
+          description: >-
+            Indicates whether to use fast finality. Required for CCTP
+            forwarding.
+    PrepareBurnIntentInput:
+      type: object
+      description: Contains burn intent data used to prepare burn intents.
+      required:
+        - token
+        - remoteDomain
+        - remoteDepositor
+        - finalDestinationDomain
+        - finalDestinationRecipient
+        - useCircleForwarding
+      properties:
+        token:
+          type: string
+          enum:
+            - USDC
+          description: Symbol of the token to transfer.
+        valueExcludingFees:
+          type: string
+          pattern: ^\d+(\.\d+)?$
+          description: >-
+            Crosschain transfer amount excluding fees, in decimal string
+            formatting. Pass either this field or `valueIncludingFees`, but not
+            both.
+          example: '10.00'
+        valueIncludingFees:
+          type: string
+          pattern: ^\d+(\.\d+)?$
+          description: >-
+            Crosschain transfer amount including fees, in decimal string
+            formatting. Pass either this field or `valueExcludingFees`, but not
+            both.
+          example: '10.00'
+        remoteDomain:
+          type: integer
+          minimum: 1
+          description: >-
+            The remote domain ID. Typically greater than `10000`. Must be
+            different from `finalDestinationDomain`.
+        remoteDepositor:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: >-
+            The remote depositor address as a 32-byte hexadecimal string. This
+            address initiated the withdrawal on the remote chain.
+        finalDestinationDomain:
+          type: integer
+          minimum: 0
+          description: >-
+            The destination domain where forwarded funds are withdrawn, either a
+            CCTP supported domain or another remote domain. Must be different
+            from `remoteDomain`.
+        finalDestinationRecipient:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: >-
+            The recipient address on the final destination domain as a 32-byte
+            hexadecimal string.
+        finalDestinationCaller:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: >-
+            Authorized caller address on the final destination chain as a
+            32-byte hexadecimal string. If this field is present, the caller
+            must be this address.
+        salt:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: >-
+            A salt that is used to ensure uniqueness in the burn intent as a
+            32-byte hexadecimal string. If omitted, this field is randomly
+            generated.
+        useCircleForwarding:
+          type: boolean
+          description: >-
+            Indicates whether Circle should forward the transaction and release
+            funds on either a CCTP supported blockchain or another remote
+            blockchain.
+        forwardingOptions:
+          description: Options for forwarding the transaction.
+          $ref: '#/components/schemas/ForwardingOptions'
+    PrepareWithdrawalRequest:
+      type: object
+      description: Contains data that prepares burn intents for withdrawal.
+      properties:
+        batches:
+          type: array
+          description: Array of burn intent batches.
+          items:
+            $ref: '#/components/schemas/PrepareBurnIntentInput'
+      required:
+        - batches
+    StructuredHookData:
+      type: object
+      description: >-
+        Contains structured hook data for withdrawals, including forwarding and
+        remote chain information.
+      required:
+        - remoteDomain
+        - remoteDepositor
+        - remoteToken
+        - forwardingContractAddress
+        - forwardingCalldata
+      properties:
+        remoteDomain:
+          type: integer
+          description: Remote chain domain identifier.
+          example: 10001
+        remoteDepositor:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Remote depositor address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000a0b86a33e6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6'
+        remoteToken:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Remote token address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000b1c97a44e7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7'
+        forwardingContractAddress:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{40}$
+          description: >-
+            Forwarding contract address as a 20-byte hexadecimal string. If you
+            are not forwarding funds, set to `0x0`.
+          example: '0x0000000000000000000000000000000000000000'
+        forwardingCalldata:
+          type: string
+          pattern: ^0x([a-fA-F0-9]{8}[a-fA-F0-9]*)?$
+          description: >-
+            Forwarding call data. If you are forwarding funds, set to `0x` + a
+            4-byte function selector + optional data. If not forwarding, set to
+            `0x`.
+          example: 0x
+    TransferSpec:
+      type: object
+      description: Contains transfer specifications for a withdrawal.
+      required:
+        - version
+        - sourceDomain
+        - destinationDomain
+        - sourceContract
+        - destinationContract
+        - sourceToken
+        - destinationToken
+        - sourceDepositor
+        - destinationRecipient
+        - sourceSigner
+        - destinationCaller
+        - value
+        - salt
+        - hookData
+      properties:
+        version:
+          type: integer
+          description: Transfer specification version.
+          example: 1
+        sourceDomain:
+          type: integer
+          description: Source domain ID.
+          example: 0
+        destinationDomain:
+          type: integer
+          description: Destination domain ID.
+          example: 1
+        sourceContract:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Source contract address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000a0b86a33e6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6'
+        destinationContract:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Destination contract address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000b1c97a44e7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7'
+        sourceToken:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Source token address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000c2d8b55f8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c'
+        destinationToken:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Destination token address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000d3e9c66f9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d'
+        sourceDepositor:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Source depositor address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000e4fad77fadadadadadadadadadadadadadadadad'
+        destinationRecipient:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Destination recipient address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000f5abc88abebebebebebebebebebebebebebebebe'
+        sourceSigner:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Source signer address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0'
+        destinationCaller:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Destination caller address as a 32-byte hexadecimal string.
+          example: '0x000000000000000000000000b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1'
+        value:
+          type: string
+          pattern: ^\d+$
+          description: The transfer amount in the smallest token unit.
+          example: '1000000'
+        salt:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: Random salt that ensures uniqueness as a 32-byte hexadecimal string.
+          example: '0xc3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4'
+        hookData:
+          $ref: '#/components/schemas/StructuredHookData'
+    BurnIntent:
+      type: object
+      description: A burn intent representing a single withdrawal request.
+      required:
+        - maxBlockHeight
+        - maxFee
+        - spec
+      properties:
+        maxBlockHeight:
+          type: string
+          pattern: ^\d+$
+          description: The maximum block height at which the burn intent is valid.
+          example: '1000000'
+        maxFee:
+          type: string
+          pattern: ^\d+$
+          description: >-
+            The maximum fee allowed for the burn intent in the smallest token
+            unit.
+          example: '100000'
+        spec:
+          $ref: '#/components/schemas/TransferSpec'
+    PrepareWithdrawalResponse:
+      type: object
+      description: Contains prepared burn intents.
+      properties:
+        batches:
+          type: array
+          description: List of prepared burn intents.
+          items:
+            type: object
+            properties:
+              burnIntents:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BurnIntent'
+              encoded:
+                type: string
+                description: Encoded burn intent data
+              messageHashToSign:
+                type: string
+                description: >-
+                  The message hash to sign before submitting the withdrawal
+                  request.
+            required:
+              - burnIntents
+              - encoded
+              - messageHashToSign
+      required:
+        - batches
+    WithdrawBatch:
+      type: object
+      description: >-
+        Contains a single batch of signed burn intents to be included in a
+        withdraw request.
+      required:
+        - burnIntents
+        - burnSignatures
+        - burnTxId
+        - useCircleForwarding
+      properties:
+        burnIntents:
+          type: array
+          description: >-
+            An array of burn intents. Can be either a single burn intent or a
+            burn intent set.
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/BurnIntent'
+        burnSignatures:
+          type: array
+          minItems: 2
+          description: >-
+            An array of signatures for the burn intents. Multiple signatures are
+            needed to meet the multi-sig threshold.
+          items:
+            type: string
+            pattern: ^0x[a-fA-F0-9]*$
+        burnTxId:
+          type: string
+          description: The transaction hash of the burn transaction on the remote chain.
+        useCircleForwarding:
+          type: boolean
+          description: >-
+            Indicates whether Circle should forward the transaction and release
+            funds on either a CCTP supported blockchain or another remote
+            blockchain.
+    WithdrawRequest:
+      type: object
+      description: Contains signed burn intents to submit for withdrawal.
+      required:
+        - batches
+      properties:
+        batches:
+          type: array
+          minItems: 1
+          maxItems: 5
+          description: Array of burn intent batches to submit, up to five per request.
+          items:
+            $ref: '#/components/schemas/WithdrawBatch'
+    WithdrawalResponse:
+      type: object
+      description: Contains withdrawal status and details
+      properties:
+        withdrawalId:
+          type: string
+          format: uuid
+          description: The unique identifier of the withdrawal group.
+          example: 6149dc3d-71bf-4d57-8cc1-5e2d4c0a8e70
+        burnTxId:
+          type: string
+          pattern: ^0x[a-fA-F0-9]+$
+          description: The transaction ID of the burn on the remote network.
+          example: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+        status:
+          type: string
+          enum:
+            - created
+            - verified
+            - confirmed
+            - finalized
+            - expired
+            - failed
+          description: >
+            The status of the withdrawal.
+
+            - 'created': The withdrawal has been created but the burn
+            transaction on the remote network has not been verified yet.
+
+            - 'verified': The burn transaction on the remote network has been
+            successfully verified. The attestation is available but has been
+            submitted on chain yet.
+
+            - 'confirmed': The attestation has been submitted onchain but the
+            transaction has not been finalized yet.
+
+            - 'finalized': The transaction has been successfully finalized. This
+            state is terminal.
+
+            - 'expired': The attestation expired before it was used. This state
+            is terminal and can be retried.
+
+            - 'failed': The verification failed. The withdrawal cannot proceed.
+            This state is terminal and cannot be retried.
+        attestationPayload:
+          type: string
+          pattern: ^0x[a-fA-F0-9]*$
+          description: The full attestation payload.
+        attestation:
+          type: string
+          pattern: ^0x[a-fA-F0-9]*$
+          description: The xReserve attestation signature.
+        useCircleForwarding:
+          type: boolean
+          description: >-
+            Indicates whether Circle should forward the transaction and release
+            funds on either a CCTP supported blockchain or another remote
+            blockchain.
+          example: true
+        transactionHash:
+          type: string
+          pattern: ^0x[a-fA-F0-9]{64}$
+          description: The hash of forwarded transaction.
+          example: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+        failureReason:
+          type: string
+          description: The reason for failure. Returned when the `status` is 'failed'.
+          example: verification_failed
+        transferSpecHashes:
+          type: array
+          description: >-
+            List of transfer specification hashes for all withdrawal intents in
+            the group.
+          items:
+            type: string
+            pattern: ^0x[a-fA-F0-9]{64}$
+          example:
+            - '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+      required:
+        - withdrawalId
+        - burnTxId
+        - status
+        - useCircleForwarding
+        - transferSpecHashes
+    WithdrawSubmissionResponse:
+      type: array
+      description: An array of submission results for withdrawal batches.
+      items:
+        $ref: '#/components/schemas/WithdrawalResponse'
+  responses:
+    AttestationsByTxHashResponse:
+      description: Successfully retrieved attestations for the transaction hash.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttestationsByTxHashResponse'
+    ErrorResponse:
+      description: Standard error response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    AttestationResponse:
+      description: Successfully retrieved attestation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttestationResponse'
+    AttestationsListResponse:
+      description: Successfully retrieved attestations.
+      headers:
+        Link:
+          description: |
+            Provides pagination links for navigating result pages:
+            - `rel="self"`: current page
+            - `rel="first"`: first page
+            - `rel="next"`: next page
+            - `rel="prev"`: previous page
+          schema:
+            type: string
+          example: >-
+            <https://xreserve-api.circle.com/v1/remote-domains/1/attestations?pageSize=50>;
+            rel="self",
+            <https://xreserve-api.circle.com/v1/remote-domains/1/attestations?pageSize=50>;
+            rel="first",
+            <https://xreserve-api.circle.com/v1/remote-domains/1/attestations?pageSize=50&pageAfter=eyJ2YWx1ZXM...>;
+            rel="next"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttestationsListResponse'
+    BalancesResponse:
+      description: Successfully retrieved balances.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BalancesResponse'
+    DomainsInfoResponse:
+      description: Successfully retrieved xReserve network information.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainsInfoResponse'
+    PrepareWithdrawalResponse:
+      description: Successfully prepared burn intents ready for withdrawal.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PrepareWithdrawalResponse'
+    WithdrawSubmissionResponse:
+      description: Successfully created withdrawal records.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WithdrawSubmissionResponse'
+    WithdrawalResponse:
+      description: Successfully retrieved withdrawal status.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WithdrawalResponse'

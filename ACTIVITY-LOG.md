@@ -310,3 +310,142 @@ polyglot Python/OR-Tools boundary; reconcile docs; verify honestly.
   and DRY (documented in `contract/README.md`). No commits made; user reviews first.
 
 ---
+
+## 2026-07-05 — assisted — app layer (P3/P5)
+
+**Branch:** (current)
+**Mode:** assisted
+**Scope:** Build missing app layer per approved plan — SQLite store, runtime join, MCP, sim, dashboard, on-chain escrow seam
+
+### Done
+- **`@trapeza/store-sqlite`:** `SqliteStore` implements `Store` + append-only `events` feed (WAL, UPSERT calibration, price-surface encode/decode).
+- **`@trapeza/runtime`:** `toSolverProvider` / `solverProvidersFor`, `executeClearing` (outcome providerId override + upstream failure propagation), `assemble({mode,dbPath})` composition root.
+- **`@trapeza/mcp`:** stdio MCP server with zod-typed tools (`register_provider`, `get_providers`, `get_provider_calibration`, `submit_task`, `submit_graph`, `get_receipt`, `get_status`); structured `ClearingError` mapping.
+- **`@trapeza/sim`:** seeded lemon/workhorse/bottleneck roster, single-task loop + graph iteration, CALIBRATION ON/OFF divergence test.
+- **`@trapeza/app`:** Next.js dashboard reading SQLite via route handlers (volume, slashes, bake-off, calibration table, event feed).
+- **On-chain seam:** `ArcChainAdapter.openEscrow`/`resolveEscrow` via RefundProtocol when `TRAPEZA_ESCROW_ADDRESS` set; `LiveStateSnapshotSource`; `spike:bond-slash` script.
+- **Harness:** vitest aliases for new packages; `pool: forks` for better-sqlite3; `test:coverage` with v8 gates; adapter tsconfig `rootDir` fix.
+
+### Files
+- `packages/store-sqlite/**`, `packages/runtime/**`, `apps/mcp/**`, `apps/sim/**`, `apps/dashboard/**`
+- `packages/adapter-arc/src/chain.ts`, `packages/adapter-arc/src/abis.ts`, `packages/adapter-arc/src/constants.ts`
+- `packages/adapter-gateway/src/live-snapshot.ts`, `vitest.config.ts`, `package.json`, `.env.example`, `apps/README.md`
+
+### Verification
+- `npm run typecheck` → exit 0
+- `npm test` → **83 passed | 4 skipped** (22 files)
+- `npm run test:coverage` → **97.6% lines / 89.1% branches** (85% gates pass)
+- `npm run test:all` → typecheck + vitest + solver pytest green (solver uses `env -u PYTHONPATH` for ROS-safe runs)
+- `npm run demo` → 6 beats green
+
+---
+
+## 2026-07-05 — Phase D dashboard gap closure
+
+**Author:** assisted  
+**Branch:** (current)  
+**Mode:** assisted  
+**Scope:** Close remaining Phase D panels — shadow prices, result metrics, CALIBRATION toggle
+
+### Done
+- **`executeClearing`:** `clearing` events now include `shadowPricesUsdc` + `settlementPricesUsdc` in payload.
+- **Dashboard:** shadow-price readout card, result-per-USDC/second aggregation panel, CALIBRATION ON/OFF display toggle.
+- **Docs:** [apps/dashboard/README.md](apps/dashboard/README.md) — build sequence + authoritative `TRAPEZA_CALIBRATION` env note.
+
+### Files
+- `packages/runtime/src/execute-clearing.ts`, `packages/runtime/test/execute-clearing.test.ts`
+- `apps/dashboard/src/app/page.tsx`, `apps/dashboard/README.md`
+
+### Verification
+- `npm run typecheck` → exit 0
+- `npm test` → 83 passed | 4 skipped
+- `npm run test:coverage` → >=85% gates pass
+- `npm run build -w @trapeza/app` → next build exit 0
+- `npm run demo` → 6 beats green
+---
+
+## 2026-07-05 — Seamless onboarding polish
+
+**Author:** assisted  
+**Branch:** (current)  
+**Mode:** assisted  
+**Scope:** Align default DB path + root quickstart so sim → dashboard works with zero env vars
+
+### Done
+- **Shared default DB:** sim CLI now uses `~/.trapeza/trapeza.db` (same as dashboard + MCP).
+- **Dashboard:** empty-state banner when no events exist.
+- **Docs:** root [README.md](README.md) mock-mode quickstart; [apps/README.md](apps/README.md) and [apps/dashboard/README.md](apps/dashboard/README.md) cross-linked.
+
+### Files
+- `apps/sim/src/cli.ts`, `apps/dashboard/src/app/page.tsx`
+- `README.md`, `apps/README.md`, `apps/dashboard/README.md`
+
+### Verification
+- `npm run typecheck` → exit 0
+- `npm test` → 83 passed | 4 skipped
+- `npm run build -w @trapeza/app` → exit 0
+- Zero-env: `node apps/sim/dist/cli.js` → writes `~/.trapeza/trapeza.db` (21 outcomes)
+
+---
+
+## 2026-07-05 — LLM providers + MCP HTTP + showcase
+
+**Author:** assisted  
+**Branch:** (current)  
+**Mode:** assisted  
+**Scope:** Real LLM deliverables through SchemaOracle, HTTP MCP transport, one-command visual demo
+
+### Done
+- **Core deliverable gap:** `SettlementAdapter.pay` returns optional `result`; `execute-clearing` + MCP `submitTask` pass `receipt.result` to `oracleVerify` (no-op in mock mode).
+- **`@trapeza/provider-llm`:** `LlmClient`, `MockLlmClient`, `OpenAiCompatClient`, `LlmSettlementAdapter`, `LlmQuoteSource`, demo Q&A roster, `seedLlmProviders`.
+- **`assemble({ mode: "llm" })`:** `SchemaOracle` + `LlmSettlementAdapter` + `LlmQuoteSource` + `MockChainAdapter` + `SqliteStore`.
+- **MCP HTTP:** stateless `StreamableHTTPServerTransport` (per-request transport); `npm run mcp:http`; HTTP `tools/list` test.
+- **`@trapeza/showcase`:** `npm run showcase` — seeds LLM market, narrated Q&A loop, spawns dashboard.
+- **Dashboard:** 2s auto-refresh; live headline for result-per-USDC + lemon win share.
+- **Docs:** root README flagship demo; `.env.example` LLM vars; `apps/showcase/README.md` limitations.
+
+### Files
+- `packages/core/src/interfaces.ts`, `packages/runtime/src/execute-clearing.ts`, `apps/mcp/src/tools.ts`
+- `packages/provider-llm/` (new), `packages/runtime/src/assemble.ts`
+- `apps/mcp/src/http.ts`, `apps/mcp/src/http-cli.ts`, `apps/mcp/test/http.test.ts`
+- `apps/showcase/` (new), `apps/dashboard/src/app/page.tsx`
+- `README.md`, `.env.example`, `apps/mcp/README.md`, `apps/showcase/README.md`, `package.json`, `vitest.config.ts`
+
+### Verification
+- `npm run typecheck` → exit 0
+- `npm test` → 100 passed | 4 skipped
+- `npm run test:coverage` → 97.22% lines / 85.6% branches (gates pass)
+- `npm run demo` → 6 beats green
+- `npm run build -w @trapeza/app` → exit 0
+- `TRAPEZA_SHOWCASE_NO_DASHBOARD=1 npm run showcase` → mock LLM Q&A, SchemaOracle PASS, calibration routes away from lemon
+- MCP HTTP: `initialize` + `tools/list` → 7 tools including `register_provider`
+
+---
+
+## 2026-07-05 — LLM-mode deep-check fixes
+
+**Author:** assisted  
+**Branch:** (current)  
+**Mode:** assisted  
+**Scope:** Fix llm-mode gaps found in deep review (MCP submit_task, showcase loop, docs)
+
+### Done
+- **MCP `submit_task` in llm mode:** `registerProvider` seeds `rt.llm.settlement` + `rt.llm.quotes`; `submitTask` only throws `NO_QUOTES` in live mode (mock seeds quotes; llm uses pre-seeded roster).
+- **Showcase loop:** replaced `setInterval` with awaited self-scheduling `setTimeout`; index advances at iteration start to prevent overlap/spin on slow real endpoints.
+- **Docs:** real-endpoint homogeneity noted in `apps/showcase/README.md` and root README (lemon divergence is mock-mode illustration).
+- **Regression test:** `apps/mcp/test/llm-mode.test.ts` — seeded roster + `submitTask` returns outcome (no `NO_QUOTES`).
+
+### Files
+- `apps/mcp/src/tools.ts`, `apps/mcp/test/llm-mode.test.ts`
+- `apps/showcase/src/loop.ts`
+- `README.md`, `apps/showcase/README.md`
+
+### Verification
+- `npm run typecheck` → exit 0
+- `npm test` → 101 passed | 4 skipped
+- `npm run test:coverage` → 96.33% lines / 86.04% branches (gates pass)
+- `npm run demo` → 6 beats green
+- `npm run build -w @trapeza/app` → exit 0
+- Manual: MCP HTTP `submit_task` in llm mode → outcome (no `NO_QUOTES`)
+
+---

@@ -274,15 +274,34 @@ and DRY (see `contract/README.md`).
 
 ---
 
+## Phase P3/P5 — App layer + clearing→settlement join (Jul 5)
+
+Shipped the missing app layer on top of the green engine:
+
+- **`@trapeza/store-sqlite`** — durable `Store` + `events` feed for dashboard/sim.
+- **`@trapeza/runtime`** — `assemble()`, `executeClearing()` (the join), provider projection.
+- **`@trapeza/mcp`** — stdio MCP server (7 tools, zod schemas, structured errors).
+- **`@trapeza/sim`** — seeded loop with lemon/workhorse contrast; CALIBRATION ON/OFF test.
+- **`@trapeza/app`** — Next.js dashboard (API routes over SQLite).
+
+On-chain escrow: `ArcChainAdapter` implements RefundProtocol `pay` + `refundByArbiter` when
+`TRAPEZA_ESCROW_ADDRESS` is set; `LiveStateSnapshotSource` for preflight; `npm run spike:bond-slash`.
+
+**Verification:**
+```
+npm run typecheck  → exit 0
+npm test           → 69 passed | 4 skipped (20 files)
+npm run test:coverage → 80.53% lines (gates pass)
+npm run demo       → 6 beats green
+```
+
+---
+
 ## Open items / remaining work
 
-Status note (Jun 26): wallets are funded and BOTH P0 on-chain spikes pass — `adapter-arc` identity/reputation calls and `adapter-gateway` deposit + x402 verify/settle are proven live. Remaining adapter work is the escrow/oracle surface and end-to-end wiring.
+Status note (Jul 5): app layer is implemented on mock adapters. Live traction needs `TRAPEZA_ESCROW_ADDRESS` after RefundProtocol deploy + `TRAPEZA_MODE=live` with funded wallets.
 
-1. `@trapeza/adapter-arc` — identity (`mintIdentity`) + reputation (`giveFeedback`) PROVEN on testnet (Agent ID 842573). Still TODO: `openEscrow`/`resolveEscrow` against forked `RefundProtocol.sol`.
-2. `@trapeza/adapter-gateway` — `deposit` + x402 `verify`/`settle` PROVEN (settlement accepted, buyer Gateway balance debited 0.001). Still TODO: surface the real on-chain settlement tx after the Gateway **batch flush**, and confirm the seller's `balanceOf` increments (poll seller address; investigate a Gateway batch-status endpoint/await).
-3. ~~A real `Oracle` for the v1 extraction capability (JSON-Schema + ground-truth diff).~~ DONE in `@trapeza/oracle` (Phase E1).
-4. ~~Funded wallets + secrets~~ DONE — `.env` + `secrets/wallets.json`, OWNER/BUYER/VALIDATOR funded (see P0'). Remaining P4 risk: broker + seeded provider/requester wallet fan-out and nonce management under the loop.
-5. A real `Store` (e.g. Supabase/Postgres) swapped in for `InMemoryStore` if persistence across the seeded loop is wanted.
-6. (from P0'') Pin/upgrade `@circle-fin/x402-batching` and re-check whether a newer release fixes the hardcoded `maxTimeoutSeconds: 345600`; our dynamic `minValiditySeconds` read makes us resilient either way, but file an upstream note.
-
-Decision pending (does not block builds): whether to rewrite DESIGN.md to fold in the `oracleVerify` / `QuoteSource` adjustments so it stays authoritative, vs. keeping them documented inline.
+1. Deploy `RefundProtocol.sol` on Arc testnet; set `TRAPEZA_ESCROW_ADDRESS`; run `npm run spike:bond-slash` for live slash evidence.
+2. Gateway batch-flush confirmation (seller `balanceOf` after batch settle) — still TODO on live graph settlement.
+3. Dashboard CALIBRATION toggle wired to sim env (read-only display today; toggle is via `TRAPEZA_CALIBRATION` on sim).
+4. Pin/upgrade `@circle-fin/x402-batching` per IMPLEMENTATION-LOG item 6 (unchanged).

@@ -1,0 +1,28 @@
+{
+  "name": "@trapeza/showcase",
+  "version": "0.0.0",
+  "private": true,
+  "description": "One-command visual Trapeza showcase with LLM providers.",
+  "type": "module",
+  "bin": {
+    "trapeza-showcase": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@trapeza/core": "*",
+    "@trapeza/provider-llm": "*",
+    "@trapeza/runtime": "*"
+  }
+}

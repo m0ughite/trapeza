@@ -1,0 +1,60 @@
+---
+description: Trapeza project standards — doc hierarchy, module boundary, context routing
+alwaysApply: true
+---
+
+# Trapeza project rules
+
+## Before large changes
+
+Read [AGENTS.md](../../AGENTS.md) and [SOURCE-OF-TRUTH.md](../../SOURCE-OF-TRUTH.md).
+Check the tail of [IMPLEMENTATION-LOG.md](../../IMPLEMENTATION-LOG.md) for current status.
+Check [ACTIVITY-LOG.md](../../ACTIVITY-LOG.md) for recent sessions on this branch.
+
+## Security
+
+- Never commit `.env`, private keys, or Circle API secrets.
+- Arc **testnet only** unless explicitly instructed otherwise.
+
+## Module boundary
+
+- `@trapeza/core` (`packages/core/`) must stay chain-agnostic: no viem, no Circle SDK, no UI, no MCP.
+- All Circle/Arc/on-chain code lives in `packages/adapter-arc/` or `packages/adapter-gateway/`.
+- App layer (`apps/`) imports only `@trapeza/core` public API.
+
+## Arc / Circle integration
+
+Before adapter or on-chain work, read the matching skill from
+`context-for-agent/docs/circlefin-skills/`. Full routing table: `context-for-agent/AGENTS.md`.
+
+When copying patterns, check `context-for-agent/samples/` as **read-only reference** — do not
+modify sample repos in place.
+
+Prefer local bundled docs (`context-for-agent/docs/`) first. Use live MCP servers
+(`arc-docs`, `circle` in `.cursor/mcp.json`) when local docs are insufficient.
+
+## Up-to-date documentation
+
+Do not rely on training data alone for API signatures, config keys, or version-specific behavior.
+
+- **Third-party libraries/SDKs** (viem, vitest, TypeScript, OR-Tools, `@circle-fin/x402-batching`, etc.):
+  query **Context7** MCP (`user-context7`: `resolve-library-id` then `query-docs`) before writing or changing integration code.
+- **Context7 miss or stale docs:** use **web search** for changelogs, migrations, or recent fixes.
+- **Arc/Circle product docs:** local bundle → `arc-docs` / `circle` MCP → web search.
+- Always look up docs when adding a new dependency or debugging SDK/version errors.
+
+## On-chain work
+
+- Follow [SETUP.md](../../SETUP.md) for wallet funding and env vars.
+- Spike scripts must print real tx hashes from observed receipts — never fabricate.
+
+## Logging
+
+- **Every session that modifies files:** append an [ACTIVITY-LOG.md](../../ACTIVITY-LOG.md) entry before finishing.
+- **Milestones / spikes / blockers:** also update [IMPLEMENTATION-LOG.md](../../IMPLEMENTATION-LOG.md).
+- Author: ask the user for their handle if unknown; default Mode to `assisted`.
+- Never log secrets; never fabricate verification results.
+
+## Verification
+
+After core changes: `npm run typecheck && npm test`.

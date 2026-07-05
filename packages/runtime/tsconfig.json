@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../core" },
+    { "path": "../clearinghouse" },
+    { "path": "../oracle" },
+    { "path": "../store-sqlite" },
+    { "path": "../adapter-arc" },
+    { "path": "../adapter-gateway" },
+    { "path": "../provider-llm" }
+  ]
+}

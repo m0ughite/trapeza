@@ -1,0 +1,399 @@
+openapi: 3.0.3
+info:
+  version: '1.0'
+  title: Compliance Engine
+  description: Compliance Engine API documentation.
+servers:
+  - url: https://api.circle.com
+security:
+  - BearerAuth: []
+tags:
+  - name: Address Screening
+paths:
+  /v1/w3s/compliance/screening/addresses:
+    post:
+      tags:
+        - Address Screening
+      summary: Screen a blockchain address
+      description: Create a screening request for a specific blockchain address and chain.
+      operationId: screenAddress
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+        required: true
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockchainAddressScreeningResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PREFIX:ID:SECRET
+      description: >-
+        Circle's API Keys are formatted in the following structure
+        "PREFIX:ID:SECRET". All three parts are requred to make a successful
+        request.
+  schemas:
+    IdempotencyKey:
+      type: string
+      description: >-
+        Universally unique identifier (UUID v4) idempotency key. This key is
+        utilized to ensure exactly-once execution of mutating requests. To
+        create a UUIDv4 go to
+        [uuidgenerator.net](https://www.uuidgenerator.net). If the same key is
+        reused, it will be treated as the same request and the original response
+        will be returned.
+      example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+      format: uuid
+    Chain:
+      type: string
+      description: Blockchain network.
+      example: MATIC-AMOY
+      enum:
+        - ETH
+        - ETH-SEPOLIA
+        - AVAX
+        - AVAX-FUJI
+        - MATIC
+        - MATIC-AMOY
+        - ALGO
+        - ATOM
+        - ARB
+        - ARB-SEPOLIA
+        - HBAR
+        - SOL
+        - SOL-DEVNET
+        - UNI
+        - UNI-SEPOLIA
+        - TRX
+        - XLM
+        - BCH
+        - BTC
+        - BSV
+        - ETC
+        - LTC
+        - XMR
+        - XRP
+        - ZRX
+        - OP
+        - DOT
+    Address:
+      type: object
+      required:
+        - idempotencyKey
+        - address
+        - chain
+      properties:
+        idempotencyKey:
+          $ref: '#/components/schemas/IdempotencyKey'
+        address:
+          type: string
+          description: Blockchain address of the blockchain network.
+          example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+        chain:
+          $ref: '#/components/schemas/Chain'
+    RiskAction:
+      type: string
+      description: An action to to take for the decision.
+      enum:
+        - APPROVE
+        - REVIEW
+        - FREEZE_WALLET
+        - DENY
+      example: REVIEW
+    CreateDate:
+      type: string
+      format: date-time
+      description: Date and time the resource was created, in ISO-8601 UTC format.
+      example: '2023-01-01T12:04:05Z'
+    BaseScreeningDecision:
+      type: object
+      description: >-
+        Screening decision detail about matched rule, actions to take, and all
+        related risk signals.
+      required:
+        - screeningDate
+      properties:
+        ruleName:
+          type: string
+          description: Name of the matched rule found in screening.
+          example: Low Gambling Risk (Owner)
+        actions:
+          type: array
+          description: Actions to take for the decision.
+          items:
+            $ref: '#/components/schemas/RiskAction'
+          example:
+            - REVIEW
+        screeningDate:
+          $ref: '#/components/schemas/CreateDate'
+    RiskScore:
+      type: string
+      description: Risk score of the signal.
+      enum:
+        - UNKNOWN
+        - LOW
+        - MEDIUM
+        - HIGH
+        - SEVERE
+        - BLOCKLIST
+      example: LOW
+    RiskCategory:
+      type: string
+      description: The category of the associated risk of the blockchain address.
+      enum:
+        - SANCTIONS
+        - CSAM
+        - ILLICIT_BEHAVIOR
+        - GAMBLING
+        - TERRORIST_FINANCING
+        - UNSUPPORTED
+        - FROZEN
+        - OTHER
+        - HIGH_RISK_INDUSTRY
+        - PEP
+        - TRUSTED
+        - HACKING
+        - HUMAN_TRAFFICKING
+        - SPECIAL_MEASURES
+      example: GAMBLING
+    RiskType:
+      type: string
+      description: Type of the signal.
+      enum:
+        - OWNERSHIP
+        - COUNTERPARTY
+        - INDIRECT
+      example: OWNERSHIP
+    RiskSignal:
+      type: object
+      description: >-
+        Risk signal that includes source, value, and risk type, risk score and
+        risk category.
+      required:
+        - source
+        - sourceValue
+        - riskScore
+        - riskCategories
+        - type
+      properties:
+        source:
+          type: string
+          description: Source of the risk signal.
+          enum:
+            - ADDRESS
+            - BLOCKCHAIN
+            - ASSET
+          example: ADDRESS
+        sourceValue:
+          type: string
+          description: >-
+            Value of the source. For example, if source is “ADDRESS”. The source
+            value would be an blockchain address.
+          example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+        riskScore:
+          $ref: '#/components/schemas/RiskScore'
+        riskCategories:
+          type: array
+          description: List of risk categories for the signal.
+          items:
+            $ref: '#/components/schemas/RiskCategory'
+          example:
+            - GAMBLING
+        type:
+          $ref: '#/components/schemas/RiskType'
+    Id:
+      type: string
+      format: uuid
+      description: System-generated unique identifier of the resource.
+      example: c4d1da72-111e-4d52-bdbf-2e74a2d803d5
+    SignalSource:
+      type: object
+      description: Source info that is used to look up more information of the signal.
+      required:
+        - rowId
+        - pointer
+      properties:
+        rowId:
+          description: >-
+            System-generated unique identifier of the vendor response the signal
+            is pointing to.
+          allOf:
+            - $ref: '#/components/schemas/Id'
+        pointer:
+          type: string
+          description: Json path of the risk signal in the vendor response.
+          example: /addressRiskIndicator/0
+    RiskSignalWithSignalSource:
+      type: object
+      description: >-
+        Risk signal that includes source, value, and risk type, risk score and
+        risk category. It also includes additional information of the source of
+        the signals.
+      allOf:
+        - $ref: '#/components/schemas/RiskSignal'
+        - type: object
+          required:
+            - signalSource
+          properties:
+            signalSource:
+              $ref: '#/components/schemas/SignalSource'
+    AddressScreeningDecision:
+      type: object
+      description: >-
+        Address decision detail about matched rule, actions to take, and all
+        related risk signals.
+      allOf:
+        - $ref: '#/components/schemas/BaseScreeningDecision'
+        - type: object
+          properties:
+            reasons:
+              type: array
+              description: >-
+                List of risk signals that are associated with the blockchain
+                address.
+              items:
+                $ref: '#/components/schemas/RiskSignalWithSignalSource'
+    ScreeningVendorDetail:
+      type: object
+      description: Vendor response detail.
+      required:
+        - id
+        - vendor
+        - response
+        - createDate
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        vendor:
+          type: string
+          description: Vendor name.
+          example: VENDOR
+        response:
+          type: object
+          description: >-
+            Free form vendor response base on the selected vendor, this field is
+            opaque.
+        createDate:
+          $ref: '#/components/schemas/CreateDate'
+    BlockchainAddressScreeningResponse:
+      type: object
+      required:
+        - result
+        - decision
+        - id
+        - address
+        - chain
+        - details
+      properties:
+        result:
+          type: string
+          description: Summary result of the screening evaluation.
+          enum:
+            - APPROVED
+            - DENIED
+          example: APPROVED
+        decision:
+          $ref: '#/components/schemas/AddressScreeningDecision'
+        id:
+          description: >-
+            Universally unique identifier (UUID v4) that matches the
+            idempotencyKey passed in from the request.
+          example: a77f408e-b0ca-46d0-bc13-987d0f021731
+          allOf:
+            - $ref: '#/components/schemas/Id'
+        address:
+          description: Blockchain address which is screened.
+          type: string
+          example: '0x1bf9ad0cc2ad298c69a2995aa806ee832788218c'
+        chain:
+          $ref: '#/components/schemas/Chain'
+        details:
+          type: array
+          description: List of more details of the screening from vendor response.
+          items:
+            $ref: '#/components/schemas/ScreeningVendorDetail'
+        alertId:
+          description: >-
+            System-generated unique identifier of the alert generated from
+            address screening.
+          example: b372810b-aac5-4425-a40e-4d9c8cf3a08e
+          allOf:
+            - $ref: '#/components/schemas/Id'
+    XRequestId:
+      type: string
+      format: uuid
+      description: >-
+        A unique identifier, which can be helpful for identifying a request when
+        communicating with Circle support.
+      example: 2adba88e-9d63-44bc-b975-9b6ae3440dde
+  headers:
+    XRequestId:
+      description: >
+        Developer-provided header parameter or Circle-generated universally
+        unique identifier (UUID v4). Useful for identifying a specific request
+        when communicating with Circle Support.
+      schema:
+        $ref: '#/components/schemas/XRequestId'
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: BadRequestResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                description: Code that corresponds to the error.
+              message:
+                type: string
+                description: Message that describes the error.
+            example:
+              code: 400
+              message: Bad request.
+      description: Request cannot be processed due to a client error.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+    NotAuthorized:
+      content:
+        application/json:
+          schema:
+            type: object
+            title: NotAuthorizedResponse
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: integer
+                description: Code that corresponds to the error.
+              message:
+                type: string
+                description: Message that describes the error.
+            example:
+              code: 401
+              message: Malformed authorization.
+      description: >-
+        Request has not been applied because it lacks valid authentication
+        credentials.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'

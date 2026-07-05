@@ -1,16 +1,28 @@
-# apps/ — Trapeza app layer (placeholder)
+# apps/ — Trapeza app layer
 
-The **app layer** is built strictly on `@trapeza/core`'s public API and nothing
-below it (DESIGN.md §4.3 hard rule). Nothing is implemented here in P0 — this
-directory only reserves the boundary.
+The **app layer** is built on `@trapeza/core` / `assemble()` from
+`@trapeza/runtime` — never re-implementing the clearing pipeline (DESIGN.md §4.3).
 
-Planned packages (DESIGN.md §6 phase plan):
-
-| Package | Phase | Role |
+| Package | Role | Entry |
 | --- | --- | --- |
-| `@trapeza/mcp` | P4 | MCP server exposing `submit_task`, `get_quote`, `get_providers`, `get_receipt` (and later `submit_graph` per DESIGN-CLEARINGHOUSE.md). |
-| `@trapeza/sim` | P4 | Seeded requester + provider agent loop generating continuous testnet-USDC volume. |
-| `@trapeza/app` | P5 | Next.js 16 dashboard: tx graph, calibration curves, slash feed, CALIBRATION ON/OFF toggle. |
+| `@trapeza/mcp` | stdio MCP server — agent pairing surface | `npm run mcp` |
+| `@trapeza/sim` | Seeded requester + provider loop | `npm run sim` |
+| `@trapeza/app` | Next.js dashboard | `npm run dev -w @trapeza/app` |
 
-These import `@trapeza/core` and call the primitive; they never re-implement the
-clearing pipeline.
+## Shared database
+
+All three surfaces default to **`~/.trapeza/trapeza.db`**. Run sim (or MCP
+`submit_graph`) first, then open the dashboard — no env vars required.
+
+```bash
+npm run sim
+npm run dev -w @trapeza/app
+```
+
+Override with `TRAPEZA_DB_PATH` on sim, MCP, and dashboard together.
+
+## Package docs
+
+- [`mcp/README.md`](mcp/README.md) — MCP install stanza + tools
+- [`dashboard/README.md`](dashboard/README.md) — panels + build
+- [`sim/`](sim/) — seeded lemon/workhorse/bottleneck roster

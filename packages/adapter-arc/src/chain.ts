@@ -18,20 +18,30 @@ import {
   http,
   keccak256,
   parseAbiItem,
+  parseUnits,
   toHex,
   type PublicClient,
   type WalletClient,
 } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import type { ChainAdapter } from "@trapeza/core";
+import { parseUsdcToMicro } from "@trapeza/core";
 import {
   arcTestnet,
   ARC_TESTNET_RPC_URL,
+  ARC_TESTNET_USDC,
   DEFAULT_METADATA_URI,
+  ESCROW_CONTRACT,
   IDENTITY_REGISTRY,
   REPUTATION_REGISTRY,
+  USDC_DECIMALS,
 } from "./constants.js";
-import { identityRegistryAbi, reputationRegistryAbi } from "./abis.js";
+import {
+  erc20Abi,
+  identityRegistryAbi,
+  refundProtocolAbi,
+  reputationRegistryAbi,
+} from "./abis.js";
 
 export interface ArcChainAdapterConfig {
   /** Owner wallet: registers the identity / requests validation. */
@@ -58,6 +68,8 @@ export class ArcChainAdapter implements ChainAdapter {
   private readonly ownerWallet: WalletClient;
   private readonly validatorAccount?: PrivateKeyAccount;
   private readonly validatorWallet?: WalletClient;
+  /** taskId → RefundProtocol paymentID */
+  private readonly escrowPayments = new Map<string, bigint>();
 
   constructor(cfg: ArcChainAdapterConfig) {
     const transport = http(cfg.rpcUrl ?? ARC_TESTNET_RPC_URL);
@@ -183,16 +195,89 @@ export class ArcChainAdapter implements ChainAdapter {
     return txHash;
   }
 
-  async openEscrow(): Promise<string> {
-    throw new Error(
-      "openEscrow not implemented in P0 — bonded escrow forks " +
-        "arc-escrow/RefundProtocol.sol and deploys in P3 (DESIGN.md §6).",
+  async openEscrow(
+    taskId: string,
+    providerWallet: `0x${string}`,
+    amountUsdc: string,
+  ): Promise<string> {
+    if (!ESCROW_CONTRACT) {
+      throw new Error(
+        "openEscrow requires TRAPEZA_ESCROW_ADDRESS (deploy RefundProtocol.sol from arc-escrow sample)",
+      );
+    }
+    const amountMicro = parseUsdcToMicro(amountUsdc);
+    const amount = parseUnits(
+      (Number(amountMicro) / 1_000_000).toFixed(USDC_DECIMALS),
+      USDC_DECIMALS,
     );
+
+    const approveHash = await this.ownerWallet.writeContract({
+      address: ARC_TESTNET_USDC,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [ESCROW_CONTRACT, amount],
+      account: this.ownerAccount,
+      chain: arcTestnet,
+    });
+    await this.publicClient.waitForTransactionReceipt({ hash: approveHash });
+
+    const txHash = await this.ownerWallet.writeContract({
+      address: ESCROW_CONTRACT,
+      abi: refundProtocolAbi,
+      functionName: "pay",
+      args: [providerWallet, amount, this.ownerAccount.address],
+      account: this.ownerAccount,
+      chain: arcTestnet,
+    });
+    const receipt = await this.publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+
+    const logs = await this.publicClient.getLogs({
+      address: ESCROW_CONTRACT,
+      event: parseAbiItem(
+        "event PaymentCreated(uint256 indexed paymentID, address indexed to, uint256 amount, uint256 releaseTimestamp, address indexed refundTo)",
+      ),
+      fromBlock: receipt.blockNumber,
+      toBlock: receipt.blockNumber,
+    });
+    const paymentId = logs[0]?.args.paymentID;
+    if (paymentId === undefined) {
+      throw new Error("PaymentCreated event not found after escrow pay()");
+    }
+    this.escrowPayments.set(taskId, paymentId);
+    return txHash;
   }
 
-  async resolveEscrow(): Promise<string> {
-    throw new Error(
-      "resolveEscrow not implemented in P0 — see openEscrow (P3).",
-    );
+  async resolveEscrow(
+    taskId: string,
+    action: "release" | "slash",
+  ): Promise<string> {
+    if (!ESCROW_CONTRACT) {
+      throw new Error(
+        "resolveEscrow requires TRAPEZA_ESCROW_ADDRESS (deploy RefundProtocol.sol)",
+      );
+    }
+    const paymentId = this.escrowPayments.get(taskId);
+    if (paymentId === undefined) {
+      throw new Error(`no escrow payment recorded for task ${taskId}`);
+    }
+
+    if (action === "slash") {
+      const txHash = await this.ownerWallet.writeContract({
+        address: ESCROW_CONTRACT,
+        abi: refundProtocolAbi,
+        functionName: "refundByArbiter",
+        args: [paymentId],
+        account: this.ownerAccount,
+        chain: arcTestnet,
+      });
+      await this.publicClient.waitForTransactionReceipt({ hash: txHash });
+      return txHash;
+    }
+
+    // Release path: provider withdraws via RefundProtocol.withdraw() off-band.
+    // Return a sentinel so the pipeline can continue; production wires provider keys.
+    return `0xrelease_pending_${taskId}`;
   }
 }
