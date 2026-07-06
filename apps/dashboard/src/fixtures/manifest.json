@@ -4,17 +4,216 @@
     {
       "runId": "invoice-workflow",
       "label": "Invoice workflow (6-node DAG)",
-      "description": "A six-node extraction → reconcile → fact-check → format pipeline where braggart providers claim 97–99% but realize ~15%."
+      "description": "A six-node extraction → reconcile → fact-check → format pipeline where braggart providers claim 97–99% but realize ~15%.",
+      "proves": "Calibration ON filters braggarts; OFF buys lemons and collapses end-to-end success.",
+      "tags": [
+        "calibration",
+        "risk",
+        "scheduling"
+      ],
+      "headline": "obj 1.2359 · lift 0.372",
+      "nodeCount": 6,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
     },
     {
       "runId": "budget-bottleneck",
       "label": "Budget bottleneck (greedy busts)",
-      "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router."
+      "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router.",
+      "proves": "Graph-aware clearing reserves budget for the bottleneck; greedy busts.",
+      "tags": [
+        "budget",
+        "degrade"
+      ],
+      "headline": "obj 1.5375 · lift 0.000",
+      "nodeCount": 2,
+      "providerCount": 4,
+      "capabilities": [
+        "cap.logo",
+        "cap.code"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
     },
     {
       "runId": "research-pipeline",
       "label": "Research pipeline (8-node, tight deadline)",
-      "description": "An eight-node research → extract×3 → reconcile → fact-check → format DAG under a tight deadline, stressing the schedule and the twin risk preflight."
+      "description": "An eight-node research → extract×3 → reconcile → fact-check → format DAG under a tight deadline, stressing the schedule and the twin risk preflight.",
+      "proves": "Scheduler + shadow prices + Monte Carlo twin on a dense DAG.",
+      "tags": [
+        "scheduling",
+        "risk",
+        "budget"
+      ],
+      "headline": "obj 2.8142 · lift 0.249",
+      "nodeCount": 8,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "cold-start-calibration",
+      "label": "Cold-start calibration (claim-free ON)",
+      "description": "Brand-new providers with zero observations: calibration ON uses a neutral 0.5 prior; OFF trusts inflated bids.",
+      "proves": "Cold-start policy: ON is claim-free; OFF buys braggarts.",
+      "tags": [
+        "calibration",
+        "cold-start"
+      ],
+      "headline": "obj 0.0868 · lift -0.627",
+      "nodeCount": 3,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "quality-floor",
+      "label": "Quality floor binds",
+      "description": "A global quality floor excludes low-calibrated providers even when they are cheap.",
+      "proves": "Global quality floor excludes low-p providers.",
+      "tags": [
+        "quality-floor",
+        "calibration"
+      ],
+      "headline": "obj 1.1984 · lift 0.826",
+      "nodeCount": 2,
+      "providerCount": 2,
+      "capabilities": [
+        "cap.2",
+        "cap.1"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "scale-stress",
+      "label": "Scale stress (14-node DAG)",
+      "description": "A 14-node workflow with ample budget — stresses solver throughput and schedule depth.",
+      "proves": "Clears a 14-node DAG within budget and deadline.",
+      "tags": [
+        "scheduling",
+        "budget"
+      ],
+      "headline": "obj 1.8172 · lift 0.098",
+      "nodeCount": 14,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "deadline-tight",
+      "label": "Deadline tight (8-node)",
+      "description": "Research pipeline with a very tight global deadline — makespan pressed to the limit.",
+      "proves": "Makespan fits within a tight global deadline.",
+      "tags": [
+        "scheduling",
+        "risk"
+      ],
+      "headline": "obj 2.8142 · lift 0.249",
+      "nodeCount": 8,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "preflight-underfunded",
+      "label": "Preflight rejected (under-funded)",
+      "description": "Same workflow as invoice, but the requester balance is too low — clearing is rejected before settlement.",
+      "proves": "Preflight blocks settlement when the requester is under-funded.",
+      "tags": [
+        "preflight"
+      ],
+      "headline": "rejected: PREFLIGHT_FAILED",
+      "nodeCount": 6,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "rejected"
+    },
+    {
+      "runId": "solver-degrade",
+      "label": "Solver degrade (CP-SAT → greedy)",
+      "description": "CP-SAT service unreachable — clearing degrades gracefully to greedy+LNS.",
+      "proves": "Graceful degrade from CP-SAT to greedy+LNS.",
+      "tags": [
+        "degrade"
+      ],
+      "headline": "degraded → greedy_lns",
+      "nodeCount": 6,
+      "providerCount": 6,
+      "capabilities": [
+        "cap.1",
+        "cap.2",
+        "cap.3"
+      ],
+      "tier": "tier2",
+      "status": "degraded"
+    },
+    {
+      "runId": "concurrency",
+      "label": "Concurrency cap (tier-1)",
+      "description": "Two parallel nodes share one provider with concurrency=1 — CP-SAT serializes execution.",
+      "proves": "CP-SAT respects provider concurrency caps.",
+      "tags": [
+        "scheduling"
+      ],
+      "headline": "obj 0.7932 · lift 0.000",
+      "nodeCount": 3,
+      "providerCount": 2,
+      "capabilities": [
+        "cap.1",
+        "cap.2"
+      ],
+      "tier": "tier1",
+      "status": "cleared"
+    },
+    {
+      "runId": "bond-capacity",
+      "label": "Bond capacity (tier-1)",
+      "description": "Provider bond capacity binds — only one heavy node can lock the limited bond.",
+      "proves": "CP-SAT respects per-provider bond capacity.",
+      "tags": [
+        "budget",
+        "risk"
+      ],
+      "headline": "obj 2.7837 · lift 0.000",
+      "nodeCount": 2,
+      "providerCount": 2,
+      "capabilities": [
+        "cap.3"
+      ],
+      "tier": "tier1",
+      "status": "cleared"
     }
   ]
 }

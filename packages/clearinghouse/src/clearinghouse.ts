@@ -24,6 +24,7 @@ import {
   type SolverKind,
   type SolverProvider,
 } from "./types.js";
+import { type TraceSink } from "./trace.js";
 
 export interface ClearinghouseOptions {
   providers: SolverProvider[];
@@ -42,12 +43,22 @@ export interface ClearinghouseOptions {
   solverTimeoutMs?: number;
   /** State-Twins Monte Carlo robustness scoring (Amendment 1). Default: off. */
   monteCarlo?: { enabled: boolean; iterations?: number };
+  /**
+   * When true (default), p_success comes from the calibration ledger's posterior
+   * mean — claim-free at cold-start (Beta(1,1) = 0.5). When false, trusts the
+   * provider's self-reported claim (the lemons-collapse demo path).
+   */
+  useCalibration?: boolean;
+  /** Optional step-by-step trace sink (no-op when absent). */
+  onStep?: TraceSink;
 }
 
 export function createClearinghouse(
   options: ClearinghouseOptions,
 ): GraphClearinghouse {
   const seed = options.seed ?? 42;
+  const useCalibration = options.useCalibration ?? true;
+  const onStep = options.onStep;
   const clientOpts: SolverClientOptions = {
     baseUrl: options.solverUrl,
     timeoutMs: options.solverTimeoutMs,
@@ -56,11 +67,19 @@ export function createClearinghouse(
   return {
     async submitGraph(graph) {
       validateDag(graph);
+      onStep?.({
+        phase: "validate-dag",
+        level: "info",
+        message: `DAG valid: ${graph.nodes.length} nodes, ${graph.edges.length} edges`,
+        data: { graphId: graph.id, nodeCount: graph.nodes.length, edgeCount: graph.edges.length },
+      });
+
       const input = {
         graph,
         providers: options.providers,
         riskAversion: graph.riskAversion ?? 1,
         seed,
+        useCalibration,
       };
 
       let solver: SolverKind = "greedy_lns";
@@ -81,10 +100,15 @@ export function createClearinghouse(
           cpShadow = cp.shadowPricesUsdc;
           cpMakespan = cp.makespanMs;
           solver = "cp_sat";
-        } catch {
+        } catch (e) {
           // Degrade to TS Tier-2. Solver-level infeasibility that a capability
           // gap causes will re-surface as NO_PROVIDER from greedy below.
           degraded = true;
+          onStep?.({
+            phase: "assign",
+            level: "warn",
+            message: `CP-SAT unavailable — degrading to greedy+LNS (${e instanceof Error ? e.message : String(e)})`,
+          });
         }
       }
 
@@ -95,23 +119,63 @@ export function createClearinghouse(
         solver = "greedy_lns";
       }
 
+      for (const a of assignments) {
+        onStep?.({
+          phase: "assign",
+          nodeId: a.nodeId,
+          level: "info",
+          message: `${a.nodeId}: assigned ${a.providerId} (score ${a.score.toFixed(4)})`,
+          data: { providerId: a.providerId, score: a.score },
+        });
+      }
+
       let schedule: NodeSchedule[];
       let makespanMs: number;
       if (cpSchedule && cpMakespan !== undefined) {
         schedule = cpSchedule;
         makespanMs = cpMakespan;
       } else {
-        const s = computeSchedule(graph, assignments, options.providers);
+        const s = computeSchedule(
+          graph,
+          assignments,
+          options.providers,
+          useCalibration,
+        );
         schedule = s.schedule;
         makespanMs = s.makespanMs;
       }
 
+      onStep?.({
+        phase: "schedule",
+        level: "info",
+        message: `Schedule computed: makespan ${makespanMs}ms`,
+        data: {
+          makespanMs,
+          schedule: schedule.map((s) => ({
+            nodeId: s.nodeId,
+            startMs: s.startMs,
+            endMs: s.endMs,
+          })),
+        },
+      });
+
       if (makespanMs > graph.globalDeadlineMs) {
+        onStep?.({
+          phase: "deadline-check",
+          level: "error",
+          message: `Makespan ${makespanMs}ms exceeds deadline ${graph.globalDeadlineMs}ms`,
+        });
         throw new ClearingError(
           `makespan ${makespanMs}ms exceeds deadline ${graph.globalDeadlineMs}ms`,
           "INFEASIBLE",
         );
       }
+
+      onStep?.({
+        phase: "deadline-check",
+        level: "info",
+        message: `Deadline ok: makespan ${makespanMs}ms ≤ ${graph.globalDeadlineMs}ms`,
+      });
 
       const snapshot = options.snapshot
         ? await options.snapshot.getSettlementState()
@@ -121,11 +185,23 @@ export function createClearinghouse(
       // requester or over-commit a bond never settles.
       const preflight = preflightSettlement(snapshot, input, assignments);
       if (!preflight.passed) {
+        onStep?.({
+          phase: "preflight",
+          level: "error",
+          message: `Preflight failed: ${preflight.errors.join("; ")}`,
+          data: { errors: preflight.errors },
+        });
         throw new ClearingError(
           `preflight failed: ${preflight.errors.join("; ")}`,
           "PREFLIGHT_FAILED",
         );
       }
+
+      onStep?.({
+        phase: "preflight",
+        level: "info",
+        message: "Preflight passed — requester funded and bonds sufficient",
+      });
 
       let shadowPricesUsdc: Record<string, string>;
       if (cpShadow) {
@@ -138,6 +214,7 @@ export function createClearinghouse(
             graph,
             options.providers,
             budgetMicro,
+            useCalibration,
           );
           shadowBudgetDual = sp.budgetDual;
         } catch {
@@ -145,6 +222,13 @@ export function createClearinghouse(
         }
         shadowPricesUsdc = { budget: String(shadowBudgetDual) };
       }
+
+      onStep?.({
+        phase: "shadow-prices",
+        level: "info",
+        message: `Shadow prices computed (${Object.keys(shadowPricesUsdc).length} constraints)`,
+        data: { shadowPricesUsdc },
+      });
 
       const allocations = assignments.map((a) => {
         const node = graph.nodes.find((n) => n.nodeId === a.nodeId)!;
@@ -167,6 +251,13 @@ export function createClearinghouse(
         settlementPricesUsdc[a.nodeId] = formatMicroToUsdc(settle);
         totalMicro += settle;
       }
+
+      onStep?.({
+        phase: "settlement",
+        level: "info",
+        message: `Settlement prices computed: ${formatMicroToUsdc(totalMicro)} total cleared`,
+        data: { settlementPricesUsdc, totalClearedUsdc: formatMicroToUsdc(totalMicro) },
+      });
 
       const clearing: GraphClearing = {
         graphId: graph.id,
@@ -196,9 +287,21 @@ export function createClearinghouse(
             clientOpts,
           );
           clearing.twinSimulation = { ...sim, engine: "python" };
+          onStep?.({
+            phase: "twin",
+            level: "info",
+            message: `Monte Carlo twin (python): failure p=${sim.failureProbability.toFixed(3)}`,
+            data: { engine: "python", ...sim },
+          });
         } catch {
           const mc = runMonteCarlo(input, assignments, iterations, seed);
           clearing.twinSimulation = { ...mc, engine: "ts" };
+          onStep?.({
+            phase: "twin",
+            level: "info",
+            message: `Monte Carlo twin (ts): failure p=${mc.failureProbability.toFixed(3)}`,
+            data: { engine: "ts", ...mc },
+          });
         }
       }
 

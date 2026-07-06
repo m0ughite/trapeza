@@ -717,6 +717,11 @@ table.t tr:last-child td {
   stroke: var(--warn);
   stroke-dasharray: 4 3;
 }
+.dag-node.active rect {
+  fill: rgba(61, 220, 151, 0.12);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
 .dag-node .n-title {
   fill: var(--text);
   font-size: 12px;
@@ -1074,6 +1079,7 @@ table.t tr:last-child td {
 @media (max-width: 680px) {
   .value-grid,
   .scenario-grid,
+  .explorer-grid,
   .bakeoff,
   .hero-stats,
   .grid.cols-2 {
@@ -1082,4 +1088,179 @@ table.t tr:last-child td {
   .section-head h2 {
     font-size: 21px;
   }
+}
+
+/* ── Scenario explorer ─────────────────────────────────────────────────── */
+.explorer-intro h2 {
+  margin: 6px 0 8px;
+  font-size: 26px;
+}
+.explorer-intro p {
+  color: var(--text-dim);
+  max-width: 720px;
+  margin: 0 0 16px;
+}
+.tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.tag-chip {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tag-chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(61, 220, 151, 0.08);
+}
+.explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.explorer-card {
+  text-align: left;
+  cursor: pointer;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.explorer-card:hover {
+  border-color: #33475f;
+}
+.explorer-card.active {
+  border-color: var(--accent);
+  background: rgba(61, 220, 151, 0.06);
+}
+.ec-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ec-title {
+  font-weight: 650;
+  font-size: 14px;
+}
+.ec-proves {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 550;
+}
+.ec-desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.ec-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ec-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  border: 1px solid var(--border-soft);
+}
+.ec-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ec-headline {
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+/* ── Run trace ─────────────────────────────────────────────────────────── */
+.trace-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.trace-pos {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+.trace-current {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--bg-elev);
+}
+.trace-current p {
+  margin: 10px 0 0;
+}
+.trace-data {
+  font-size: 11px;
+  overflow-x: auto;
+  margin: 8px 0 0;
+  max-height: 200px;
+}
+.trace-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+.trace-item button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.trace-item.active button {
+  background: rgba(61, 220, 151, 0.08);
+  color: var(--text);
+}
+.trace-item.past button {
+  opacity: 0.75;
+}
+.trace-seq {
+  font-family: var(--mono);
+  width: 28px;
+  flex-shrink: 0;
+}
+.trace-node {
+  flex-shrink: 0;
+}
+.trace-msg {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

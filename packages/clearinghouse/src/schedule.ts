@@ -17,6 +17,7 @@ export function computeSchedule(
   graph: TaskGraph,
   assignments: NodeAssignment[],
   providers: SolverProvider[],
+  useCalibration = true,
 ): { schedule: import("@trapeza/core").NodeSchedule[]; makespanMs: number } {
   const byId = new Map(providers.map((p) => [p.id, p]));
   const assignMap = new Map(assignments.map((a) => [a.nodeId, a.providerId]));
@@ -27,7 +28,7 @@ export function computeSchedule(
   for (const nodeId of order) {
     const provId = assignMap.get(nodeId)!;
     const prov = byId.get(provId)!;
-    const dur = latencyMs(prov);
+    const dur = latencyMs(prov, useCalibration);
     duration.set(nodeId, dur);
     let earliest = 0;
     for (const e of graph.edges) {

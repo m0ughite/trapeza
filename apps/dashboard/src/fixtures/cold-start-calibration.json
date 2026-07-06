@@ -1,0 +1,614 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "cold-start-calibration",
+    "label": "Cold-start calibration (claim-free ON)",
+    "description": "Brand-new providers with zero observations: calibration ON uses a neutral 0.5 prior; OFF trusts inflated bids.",
+    "narrative": "At cold-start the ledger has no data — calibration ON refuses to trust self-reported success and prices everyone at the Beta(1,1) prior. Calibration OFF buys the braggarts. Same graph, two markets.",
+    "generatedAt": "2026-07-06T21:19:46.119Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-cold-start",
+    "globalBudgetUsdc": "3.00",
+    "globalDeadlineMs": 60000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "stepA",
+        "capability": "cap.1",
+        "valueUsdc": "0.80",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "stepB",
+        "capability": "cap.2",
+        "valueUsdc": "0.80",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "stepC",
+        "capability": "cap.3",
+        "valueUsdc": "0.80",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "stepA",
+        "to": "stepB"
+      },
+      {
+        "from": "stepB",
+        "to": "stepC"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "braggart-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.28",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "honest-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.18",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "braggart-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.32",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "honest-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.22",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "braggart-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.35",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "honest-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.24",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.66,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 0.086795,
+    "makespanMs": 300,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "stepA",
+        "taskId": "task-stepA",
+        "providerId": "honest-1",
+        "score": 0.062264973081037456
+      },
+      {
+        "nodeId": "stepB",
+        "taskId": "task-stepB",
+        "providerId": "honest-2",
+        "score": 0.022264973081037448
+      },
+      {
+        "nodeId": "stepC",
+        "taskId": "task-stepC",
+        "providerId": "honest-3",
+        "score": 0.002264973081037458
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "stepA",
+        "startMs": 0,
+        "durationMs": 100,
+        "endMs": 100
+      },
+      {
+        "nodeId": "stepB",
+        "startMs": 100,
+        "durationMs": 100,
+        "endMs": 200
+      },
+      {
+        "nodeId": "stepC",
+        "startMs": 200,
+        "durationMs": 100,
+        "endMs": 300
+      }
+    ],
+    "settlementPricesUsdc": {
+      "stepA": "0.180000",
+      "stepB": "0.220000",
+      "stepC": "0.240000"
+    },
+    "totalClearedUsdc": "0.640000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:braggart-1": "0.000000",
+      "capacity:honest-1": "0.000000",
+      "capacity:braggart-2": "0.000000",
+      "capacity:honest-2": "0.000000",
+      "capacity:braggart-3": "0.000000",
+      "capacity:honest-3": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 0.086795,
+      "allocations": [
+        {
+          "nodeId": "stepA",
+          "taskId": "task-stepA",
+          "providerId": "honest-1",
+          "score": 0.062264973081037456
+        },
+        {
+          "nodeId": "stepB",
+          "taskId": "task-stepB",
+          "providerId": "honest-2",
+          "score": 0.022264973081037448
+        },
+        {
+          "nodeId": "stepC",
+          "taskId": "task-stepC",
+          "providerId": "honest-3",
+          "score": 0.002264973081037458
+        }
+      ],
+      "realizedEndToEndSuccess": 0.31416,
+      "claimedEndToEndSuccess": 0.31416,
+      "expectedSpendUsdc": "0.640000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.39,
+      "allocations": [
+        {
+          "nodeId": "stepA",
+          "taskId": "task-stepA",
+          "providerId": "braggart-1",
+          "score": 0.51
+        },
+        {
+          "nodeId": "stepB",
+          "taskId": "task-stepB",
+          "providerId": "braggart-2",
+          "score": 0.46
+        },
+        {
+          "nodeId": "stepC",
+          "taskId": "task-stepC",
+          "providerId": "braggart-3",
+          "score": 0.42000000000000004
+        }
+      ],
+      "realizedEndToEndSuccess": 0.9410939999999999,
+      "claimedEndToEndSuccess": 0.9410939999999999,
+      "expectedSpendUsdc": "0.950000"
+    },
+    "divergentNodes": [
+      "stepA",
+      "stepB",
+      "stepC"
+    ],
+    "successLift": -0.6269339999999999
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 0.08679491924311236,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "stepA",
+          "taskId": "task-stepA",
+          "providerId": "honest-1",
+          "score": 0.062264973081037456
+        },
+        {
+          "nodeId": "stepB",
+          "taskId": "task-stepB",
+          "providerId": "honest-2",
+          "score": 0.022264973081037448
+        },
+        {
+          "nodeId": "stepC",
+          "taskId": "task-stepC",
+          "providerId": "honest-3",
+          "score": 0.002264973081037458
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 0.086795,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "stepA",
+          "taskId": "task-stepA",
+          "providerId": "honest-1",
+          "score": 0.062264973081037456
+        },
+        {
+          "nodeId": "stepB",
+          "taskId": "task-stepB",
+          "providerId": "honest-2",
+          "score": 0.022264973081037448
+        },
+        {
+          "nodeId": "stepC",
+          "taskId": "task-stepC",
+          "providerId": "honest-3",
+          "score": 0.002264973081037458
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 0.0868) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 0.0868) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 60000,
+    "failureProbability": 0.868,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.171
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.590000 errors=4",
+      "errors": [
+        "overdraw at stepA: fee 180000 > requester 50000",
+        "overdraw at stepB: fee 220000 > requester -130000",
+        "overdraw at stepC: fee 240000 > requester -350000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 3,
+    "totalClearedUsdc": "0.640000",
+    "resultPerUsdc": 3.7500000000000004,
+    "makespanMs": 300,
+    "paymentChainDepth": 3,
+    "graphDensity": 0.6666666666666666,
+    "providerCount": 6
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 3 nodes, 2 edges",
+      "data": {
+        "graphId": "demo-cold-start",
+        "nodeCount": 3,
+        "edgeCount": 2
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "stepA",
+      "level": "info",
+      "message": "stepA: assigned honest-1 (score 0.0623)",
+      "data": {
+        "providerId": "honest-1",
+        "score": 0.062264973081037456
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "stepB",
+      "level": "info",
+      "message": "stepB: assigned honest-2 (score 0.0223)",
+      "data": {
+        "providerId": "honest-2",
+        "score": 0.022264973081037448
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "stepC",
+      "level": "info",
+      "message": "stepC: assigned honest-3 (score 0.0023)",
+      "data": {
+        "providerId": "honest-3",
+        "score": 0.002264973081037458
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 300ms",
+      "data": {
+        "makespanMs": 300,
+        "schedule": [
+          {
+            "nodeId": "stepA",
+            "startMs": 0,
+            "endMs": 100
+          },
+          {
+            "nodeId": "stepB",
+            "startMs": 100,
+            "endMs": 200
+          },
+          {
+            "nodeId": "stepC",
+            "startMs": 200,
+            "endMs": 300
+          }
+        ]
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 300ms ≤ 60000ms"
+    },
+    {
+      "seq": 7,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 8,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (8 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:braggart-1": "0.000000",
+          "capacity:honest-1": "0.000000",
+          "capacity:braggart-2": "0.000000",
+          "capacity:honest-2": "0.000000",
+          "capacity:braggart-3": "0.000000",
+          "capacity:honest-3": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 0.640000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "stepA": "0.180000",
+          "stepB": "0.220000",
+          "stepC": "0.240000"
+        },
+        "totalClearedUsdc": "0.640000"
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 0.08679491924311236,
+        "optimalObj": 0.086795
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "score-candidates",
+      "nodeId": "stepA",
+      "level": "info",
+      "message": "stepA: 2 candidates — top honest-1 (score 0.0623)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "honest-1",
+            "score": 0.062264973081037456,
+            "pHat": 0.5,
+            "priceUsdc": "0.18"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.03773502691896258,
+            "pHat": 0.5,
+            "priceUsdc": "0.28"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 3 divergent nodes, success lift -0.627",
+      "data": {
+        "divergentNodes": [
+          "stepA",
+          "stepB",
+          "stepC"
+        ],
+        "successLift": -0.6269339999999999
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "score-candidates",
+      "nodeId": "stepB",
+      "level": "info",
+      "message": "stepB: 2 candidates — top honest-2 (score 0.0223)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "honest-2",
+            "score": 0.022264973081037448,
+            "pHat": 0.5,
+            "priceUsdc": "0.22"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.07773502691896256,
+            "pHat": 0.5,
+            "priceUsdc": "0.32"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "score-candidates",
+      "nodeId": "stepC",
+      "level": "info",
+      "message": "stepC: 2 candidates — top honest-3 (score 0.0023)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "honest-3",
+            "score": 0.002264973081037458,
+            "pHat": 0.5,
+            "priceUsdc": "0.24"
+          },
+          {
+            "providerId": "braggart-3",
+            "score": -0.10773502691896253,
+            "pHat": 0.5,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.868",
+      "data": {
+        "failureProbability": 0.868,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.171,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 60000
+      }
+    }
+  ]
+}

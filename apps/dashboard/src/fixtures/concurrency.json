@@ -1,0 +1,508 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "concurrency",
+    "label": "Concurrency cap (tier-1)",
+    "description": "Two parallel nodes share one provider with concurrency=1 — CP-SAT serializes execution.",
+    "narrative": "Resource-constrained project scheduling: a provider can only run one node at a time. Makespan reflects serialization.",
+    "generatedAt": "2026-07-06T21:19:46.506Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-concurrency",
+    "globalBudgetUsdc": "2.00",
+    "globalDeadlineMs": 5000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "parallelA",
+        "capability": "cap.1",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "parallelB",
+        "capability": "cap.1",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "merge",
+        "capability": "cap.2",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "parallelA",
+        "to": "merge"
+      },
+      {
+        "from": "parallelB",
+        "to": "merge"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "solo-cap1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.15",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.65,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.14,
+      "latencyMeanMs": 115,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "workhorse-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 150,
+      "calibratedSuccessProb": 0.8181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 18,
+      "successBeta": 4,
+      "costMeanUsdc": 0.19,
+      "latencyMeanMs": 164.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 0.793229,
+    "makespanMs": 5000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "parallelA",
+        "taskId": "task-parallelA",
+        "providerId": "solo-cap1",
+        "score": 0.2658281289573954
+      },
+      {
+        "nodeId": "parallelB",
+        "taskId": "task-parallelB",
+        "providerId": "solo-cap1",
+        "score": 0.2658281289573954
+      },
+      {
+        "nodeId": "merge",
+        "taskId": "task-merge",
+        "providerId": "workhorse-2",
+        "score": 0.2615729308600539
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "parallelA",
+        "startMs": 115,
+        "durationMs": 115,
+        "endMs": 230
+      },
+      {
+        "nodeId": "parallelB",
+        "startMs": 0,
+        "durationMs": 115,
+        "endMs": 115
+      },
+      {
+        "nodeId": "merge",
+        "startMs": 4835,
+        "durationMs": 165,
+        "endMs": 5000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "parallelA": "0.150000",
+      "parallelB": "0.150000",
+      "merge": "0.200000"
+    },
+    "totalClearedUsdc": "0.500000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:solo-cap1": "0.000000",
+      "capacity:workhorse-2": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 0.793229,
+      "allocations": [
+        {
+          "nodeId": "parallelA",
+          "taskId": "task-parallelA",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "parallelB",
+          "taskId": "task-parallelB",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "merge",
+          "taskId": "task-merge",
+          "providerId": "workhorse-2",
+          "score": 0.2615729308600539
+        }
+      ],
+      "realizedEndToEndSuccess": 0.6102554470323066,
+      "claimedEndToEndSuccess": 0.29575,
+      "expectedSpendUsdc": "0.470000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 0.4375,
+      "allocations": [
+        {
+          "nodeId": "parallelA",
+          "taskId": "task-parallelA",
+          "providerId": "solo-cap1",
+          "score": 0.13125000000000003
+        },
+        {
+          "nodeId": "parallelB",
+          "taskId": "task-parallelB",
+          "providerId": "solo-cap1",
+          "score": 0.13125000000000003
+        },
+        {
+          "nodeId": "merge",
+          "taskId": "task-merge",
+          "providerId": "workhorse-2",
+          "score": 0.17499999999999996
+        }
+      ],
+      "realizedEndToEndSuccess": 0.6102554470323066,
+      "claimedEndToEndSuccess": 0.29575,
+      "expectedSpendUsdc": "0.470000"
+    },
+    "divergentNodes": [],
+    "successLift": 0
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 0.7932291887748446,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "parallelA",
+          "taskId": "task-parallelA",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "parallelB",
+          "taskId": "task-parallelB",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "merge",
+          "taskId": "task-merge",
+          "providerId": "workhorse-2",
+          "score": 0.2615729308600539
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 0.793229,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "parallelA",
+          "taskId": "task-parallelA",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "parallelB",
+          "taskId": "task-parallelB",
+          "providerId": "solo-cap1",
+          "score": 0.2658281289573954
+        },
+        {
+          "nodeId": "merge",
+          "taskId": "task-merge",
+          "providerId": "workhorse-2",
+          "score": 0.2615729308600539
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 0.7932) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 0.7932) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 5000,
+    "failureProbability": 0.35,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.37102
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.420000 errors=4",
+      "errors": [
+        "overdraw at parallelA: fee 140000 > requester 50000",
+        "overdraw at parallelB: fee 140000 > requester -90000",
+        "overdraw at merge: fee 190000 > requester -230000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 3,
+    "totalClearedUsdc": "0.500000",
+    "resultPerUsdc": 3.2,
+    "makespanMs": 5000,
+    "paymentChainDepth": 2,
+    "graphDensity": 0.6666666666666666,
+    "providerCount": 2
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 3 nodes, 2 edges",
+      "data": {
+        "graphId": "demo-concurrency",
+        "nodeCount": 3,
+        "edgeCount": 2
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "parallelA",
+      "level": "info",
+      "message": "parallelA: assigned solo-cap1 (score 0.2658)",
+      "data": {
+        "providerId": "solo-cap1",
+        "score": 0.2658281289573954
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "parallelB",
+      "level": "info",
+      "message": "parallelB: assigned solo-cap1 (score 0.2658)",
+      "data": {
+        "providerId": "solo-cap1",
+        "score": 0.2658281289573954
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "merge",
+      "level": "info",
+      "message": "merge: assigned workhorse-2 (score 0.2616)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.2615729308600539
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 5000ms",
+      "data": {
+        "makespanMs": 5000,
+        "schedule": [
+          {
+            "nodeId": "parallelA",
+            "startMs": 115,
+            "endMs": 230
+          },
+          {
+            "nodeId": "parallelB",
+            "startMs": 0,
+            "endMs": 115
+          },
+          {
+            "nodeId": "merge",
+            "startMs": 4835,
+            "endMs": 5000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 5000ms ≤ 5000ms"
+    },
+    {
+      "seq": 7,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 8,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (4 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:solo-cap1": "0.000000",
+          "capacity:workhorse-2": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 0.500000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "parallelA": "0.150000",
+          "parallelB": "0.150000",
+          "merge": "0.200000"
+        },
+        "totalClearedUsdc": "0.500000"
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 0.7932291887748446,
+        "optimalObj": 0.793229
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "score-candidates",
+      "nodeId": "parallelA",
+      "level": "info",
+      "message": "parallelA: 1 candidates — top solo-cap1 (score 0.2658)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "solo-cap1",
+            "score": 0.2658281289573954,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 0 divergent nodes, success lift 0.000",
+      "data": {
+        "divergentNodes": [],
+        "successLift": 0
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "score-candidates",
+      "nodeId": "parallelB",
+      "level": "info",
+      "message": "parallelB: 1 candidates — top solo-cap1 (score 0.2658)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "solo-cap1",
+            "score": 0.2658281289573954,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "score-candidates",
+      "nodeId": "merge",
+      "level": "info",
+      "message": "merge: 1 candidates — top workhorse-2 (score 0.2616)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.2615729308600539,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.350",
+      "data": {
+        "failureProbability": 0.35,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.37102,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 5000
+      }
+    }
+  ]
+}

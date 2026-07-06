@@ -1,0 +1,1627 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "scale-stress",
+    "label": "Scale stress (14-node DAG)",
+    "description": "A 14-node workflow with ample budget — stresses solver throughput and schedule depth.",
+    "narrative": "Larger graphs expose whether the clearing scales: every node must receive a feasible provider within budget and deadline.",
+    "generatedAt": "2026-07-06T21:19:46.230Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-scale-stress",
+    "globalBudgetUsdc": "8.00",
+    "globalDeadlineMs": 120000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "n1",
+        "capability": "cap.1",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n2",
+        "capability": "cap.2",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n3",
+        "capability": "cap.3",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n4",
+        "capability": "cap.1",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n5",
+        "capability": "cap.2",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n6",
+        "capability": "cap.3",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n7",
+        "capability": "cap.1",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n8",
+        "capability": "cap.2",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n9",
+        "capability": "cap.3",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n10",
+        "capability": "cap.1",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n11",
+        "capability": "cap.2",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n12",
+        "capability": "cap.3",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n13",
+        "capability": "cap.1",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n14",
+        "capability": "cap.2",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n4"
+      },
+      {
+        "from": "n2",
+        "to": "n4"
+      },
+      {
+        "from": "n3",
+        "to": "n5"
+      },
+      {
+        "from": "n4",
+        "to": "n6"
+      },
+      {
+        "from": "n5",
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "to": "n9"
+      },
+      {
+        "from": "n7",
+        "to": "n9"
+      },
+      {
+        "from": "n8",
+        "to": "n10"
+      },
+      {
+        "from": "n9",
+        "to": "n11"
+      },
+      {
+        "from": "n10",
+        "to": "n11"
+      },
+      {
+        "from": "n11",
+        "to": "n12"
+      },
+      {
+        "from": "n12",
+        "to": "n13"
+      },
+      {
+        "from": "n13",
+        "to": "n14"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "workhorse-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.15",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.65,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.14,
+      "latencyMeanMs": 115,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 50,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.29,
+      "latencyMeanMs": 75,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "workhorse-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 150,
+      "calibratedSuccessProb": 0.8181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 18,
+      "successBeta": 4,
+      "costMeanUsdc": 0.19,
+      "latencyMeanMs": 164.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.35",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 80,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.34,
+      "latencyMeanMs": 105,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "workhorse-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.25",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 180,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 194.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.40",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 60,
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.39,
+      "latencyMeanMs": 85,
+      "nObservations": 20,
+      "archetype": "braggart"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.817212,
+    "makespanMs": 120000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "n1",
+        "taskId": "task-n1",
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      },
+      {
+        "nodeId": "n2",
+        "taskId": "task-n2",
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      },
+      {
+        "nodeId": "n3",
+        "taskId": "task-n3",
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      },
+      {
+        "nodeId": "n4",
+        "taskId": "task-n4",
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      },
+      {
+        "nodeId": "n5",
+        "taskId": "task-n5",
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      },
+      {
+        "nodeId": "n6",
+        "taskId": "task-n6",
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      },
+      {
+        "nodeId": "n7",
+        "taskId": "task-n7",
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      },
+      {
+        "nodeId": "n8",
+        "taskId": "task-n8",
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      },
+      {
+        "nodeId": "n9",
+        "taskId": "task-n9",
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      },
+      {
+        "nodeId": "n10",
+        "taskId": "task-n10",
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      },
+      {
+        "nodeId": "n11",
+        "taskId": "task-n11",
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      },
+      {
+        "nodeId": "n12",
+        "taskId": "task-n12",
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      },
+      {
+        "nodeId": "n13",
+        "taskId": "task-n13",
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      },
+      {
+        "nodeId": "n14",
+        "taskId": "task-n14",
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "n1",
+        "startMs": 0,
+        "durationMs": 115,
+        "endMs": 115
+      },
+      {
+        "nodeId": "n2",
+        "startMs": 0,
+        "durationMs": 165,
+        "endMs": 165
+      },
+      {
+        "nodeId": "n3",
+        "startMs": 0,
+        "durationMs": 195,
+        "endMs": 195
+      },
+      {
+        "nodeId": "n4",
+        "startMs": 165,
+        "durationMs": 115,
+        "endMs": 280
+      },
+      {
+        "nodeId": "n5",
+        "startMs": 195,
+        "durationMs": 165,
+        "endMs": 360
+      },
+      {
+        "nodeId": "n6",
+        "startMs": 360,
+        "durationMs": 195,
+        "endMs": 555
+      },
+      {
+        "nodeId": "n7",
+        "startMs": 0,
+        "durationMs": 115,
+        "endMs": 115
+      },
+      {
+        "nodeId": "n8",
+        "startMs": 0,
+        "durationMs": 165,
+        "endMs": 165
+      },
+      {
+        "nodeId": "n9",
+        "startMs": 555,
+        "durationMs": 195,
+        "endMs": 750
+      },
+      {
+        "nodeId": "n10",
+        "startMs": 245,
+        "durationMs": 115,
+        "endMs": 360
+      },
+      {
+        "nodeId": "n11",
+        "startMs": 119360,
+        "durationMs": 165,
+        "endMs": 119525
+      },
+      {
+        "nodeId": "n12",
+        "startMs": 119525,
+        "durationMs": 195,
+        "endMs": 119720
+      },
+      {
+        "nodeId": "n13",
+        "startMs": 119720,
+        "durationMs": 115,
+        "endMs": 119835
+      },
+      {
+        "nodeId": "n14",
+        "startMs": 119835,
+        "durationMs": 165,
+        "endMs": 120000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "n1": "0.150000",
+      "n2": "0.200000",
+      "n3": "0.250000",
+      "n4": "0.150000",
+      "n5": "0.200000",
+      "n6": "0.250000",
+      "n7": "0.150000",
+      "n8": "0.200000",
+      "n9": "0.250000",
+      "n10": "0.150000",
+      "n11": "0.200000",
+      "n12": "0.250000",
+      "n13": "0.150000",
+      "n14": "0.200000"
+    },
+    "totalClearedUsdc": "2.750000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:workhorse-1": "0.000000",
+      "capacity:braggart-1": "0.000000",
+      "capacity:workhorse-2": "0.000000",
+      "capacity:braggart-2": "0.000000",
+      "capacity:workhorse-3": "0.000000",
+      "capacity:braggart-3": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.817212,
+      "allocations": [
+        {
+          "nodeId": "n1",
+          "taskId": "task-n1",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n2",
+          "taskId": "task-n2",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n3",
+          "taskId": "task-n3",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n4",
+          "taskId": "task-n4",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n5",
+          "taskId": "task-n5",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n6",
+          "taskId": "task-n6",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n7",
+          "taskId": "task-n7",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n8",
+          "taskId": "task-n8",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n9",
+          "taskId": "task-n9",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n10",
+          "taskId": "task-n10",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n11",
+          "taskId": "task-n11",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n12",
+          "taskId": "task-n12",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n13",
+          "taskId": "task-n13",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n14",
+          "taskId": "task-n14",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        }
+      ],
+      "realizedEndToEndSuccess": 0.09800029941730268,
+      "claimedEndToEndSuccess": 0.004169583103271769,
+      "expectedSpendUsdc": "2.610000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 0.68,
+      "allocations": [
+        {
+          "nodeId": "n1",
+          "taskId": "task-n1",
+          "providerId": "braggart-1",
+          "score": 0.09000000000000002
+        },
+        {
+          "nodeId": "n2",
+          "taskId": "task-n2",
+          "providerId": "workhorse-2",
+          "score": 0.049999999999999954
+        },
+        {
+          "nodeId": "n3",
+          "taskId": "task-n3",
+          "providerId": "braggart-3",
+          "score": -0.0050000000000000044
+        },
+        {
+          "nodeId": "n4",
+          "taskId": "task-n4",
+          "providerId": "braggart-1",
+          "score": 0.09000000000000002
+        },
+        {
+          "nodeId": "n5",
+          "taskId": "task-n5",
+          "providerId": "workhorse-2",
+          "score": 0.049999999999999954
+        },
+        {
+          "nodeId": "n6",
+          "taskId": "task-n6",
+          "providerId": "braggart-3",
+          "score": -0.0050000000000000044
+        },
+        {
+          "nodeId": "n7",
+          "taskId": "task-n7",
+          "providerId": "braggart-1",
+          "score": 0.09000000000000002
+        },
+        {
+          "nodeId": "n8",
+          "taskId": "task-n8",
+          "providerId": "workhorse-2",
+          "score": 0.049999999999999954
+        },
+        {
+          "nodeId": "n9",
+          "taskId": "task-n9",
+          "providerId": "braggart-3",
+          "score": -0.0050000000000000044
+        },
+        {
+          "nodeId": "n10",
+          "taskId": "task-n10",
+          "providerId": "braggart-1",
+          "score": 0.09000000000000002
+        },
+        {
+          "nodeId": "n11",
+          "taskId": "task-n11",
+          "providerId": "workhorse-2",
+          "score": 0.049999999999999954
+        },
+        {
+          "nodeId": "n12",
+          "taskId": "task-n12",
+          "providerId": "braggart-3",
+          "score": -0.0050000000000000044
+        },
+        {
+          "nodeId": "n13",
+          "taskId": "task-n13",
+          "providerId": "braggart-1",
+          "score": 0.09000000000000002
+        },
+        {
+          "nodeId": "n14",
+          "taskId": "task-n14",
+          "providerId": "workhorse-2",
+          "score": 0.049999999999999954
+        }
+      ],
+      "realizedEndToEndSuccess": 2.519010452154194e-8,
+      "claimedEndToEndSuccess": 0.14593563659778624,
+      "expectedSpendUsdc": "3.960000"
+    },
+    "divergentNodes": [
+      "n1",
+      "n3",
+      "n4",
+      "n6",
+      "n7",
+      "n9",
+      "n10",
+      "n12",
+      "n13"
+    ],
+    "successLift": 0.09800027422719816
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.8172056313600937,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "n1",
+          "taskId": "task-n1",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n2",
+          "taskId": "task-n2",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n3",
+          "taskId": "task-n3",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n7",
+          "taskId": "task-n7",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n8",
+          "taskId": "task-n8",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n4",
+          "taskId": "task-n4",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n10",
+          "taskId": "task-n10",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n11",
+          "taskId": "task-n11",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n13",
+          "taskId": "task-n13",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n14",
+          "taskId": "task-n14",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n5",
+          "taskId": "task-n5",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n6",
+          "taskId": "task-n6",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n9",
+          "taskId": "task-n9",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n12",
+          "taskId": "task-n12",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.817212,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "n1",
+          "taskId": "task-n1",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n2",
+          "taskId": "task-n2",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n3",
+          "taskId": "task-n3",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n4",
+          "taskId": "task-n4",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n5",
+          "taskId": "task-n5",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n6",
+          "taskId": "task-n6",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n7",
+          "taskId": "task-n7",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n8",
+          "taskId": "task-n8",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n9",
+          "taskId": "task-n9",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n10",
+          "taskId": "task-n10",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n11",
+          "taskId": "task-n11",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        },
+        {
+          "nodeId": "n12",
+          "taskId": "task-n12",
+          "providerId": "workhorse-3",
+          "score": 0.08466250316591635
+        },
+        {
+          "nodeId": "n13",
+          "taskId": "task-n13",
+          "providerId": "workhorse-1",
+          "score": 0.18466250316591631
+        },
+        {
+          "nodeId": "n14",
+          "taskId": "task-n14",
+          "providerId": "workhorse-2",
+          "score": 0.11104862057336931
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.8172) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.8172) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 120000,
+    "failureProbability": 0.896,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 1.3688600000000002
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-2.560000 errors=15",
+      "errors": [
+        "overdraw at n1: fee 140000 > requester 50000",
+        "overdraw at n2: fee 190000 > requester -90000",
+        "overdraw at n3: fee 240000 > requester -280000",
+        "overdraw at n4: fee 140000 > requester -520000",
+        "overdraw at n5: fee 190000 > requester -660000",
+        "overdraw at n6: fee 240000 > requester -850000",
+        "overdraw at n7: fee 140000 > requester -1090000",
+        "overdraw at n8: fee 190000 > requester -1230000",
+        "overdraw at n9: fee 240000 > requester -1420000",
+        "overdraw at n10: fee 140000 > requester -1660000",
+        "overdraw at n11: fee 190000 > requester -1800000",
+        "overdraw at n12: fee 240000 > requester -1990000",
+        "overdraw at n13: fee 140000 > requester -2230000",
+        "overdraw at n14: fee 190000 > requester -2370000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 14,
+    "totalClearedUsdc": "2.750000",
+    "resultPerUsdc": 2.0363636363636366,
+    "makespanMs": 120000,
+    "paymentChainDepth": 8,
+    "graphDensity": 0.9285714285714286,
+    "providerCount": 6
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 14 nodes, 13 edges",
+      "data": {
+        "graphId": "demo-scale-stress",
+        "nodeCount": 14,
+        "edgeCount": 13
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "n1",
+      "level": "info",
+      "message": "n1: assigned workhorse-1 (score 0.1847)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "n2",
+      "level": "info",
+      "message": "n2: assigned workhorse-2 (score 0.1110)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "n3",
+      "level": "info",
+      "message": "n3: assigned workhorse-3 (score 0.0847)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "n4",
+      "level": "info",
+      "message": "n4: assigned workhorse-1 (score 0.1847)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "n5",
+      "level": "info",
+      "message": "n5: assigned workhorse-2 (score 0.1110)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "assign",
+      "nodeId": "n6",
+      "level": "info",
+      "message": "n6: assigned workhorse-3 (score 0.0847)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "assign",
+      "nodeId": "n7",
+      "level": "info",
+      "message": "n7: assigned workhorse-1 (score 0.1847)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "assign",
+      "nodeId": "n8",
+      "level": "info",
+      "message": "n8: assigned workhorse-2 (score 0.1110)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "assign",
+      "nodeId": "n9",
+      "level": "info",
+      "message": "n9: assigned workhorse-3 (score 0.0847)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "assign",
+      "nodeId": "n10",
+      "level": "info",
+      "message": "n10: assigned workhorse-1 (score 0.1847)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "assign",
+      "nodeId": "n11",
+      "level": "info",
+      "message": "n11: assigned workhorse-2 (score 0.1110)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "assign",
+      "nodeId": "n12",
+      "level": "info",
+      "message": "n12: assigned workhorse-3 (score 0.0847)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.08466250316591635
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "assign",
+      "nodeId": "n13",
+      "level": "info",
+      "message": "n13: assigned workhorse-1 (score 0.1847)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.18466250316591631
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "assign",
+      "nodeId": "n14",
+      "level": "info",
+      "message": "n14: assigned workhorse-2 (score 0.1110)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.11104862057336931
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 120000ms",
+      "data": {
+        "makespanMs": 120000,
+        "schedule": [
+          {
+            "nodeId": "n1",
+            "startMs": 0,
+            "endMs": 115
+          },
+          {
+            "nodeId": "n2",
+            "startMs": 0,
+            "endMs": 165
+          },
+          {
+            "nodeId": "n3",
+            "startMs": 0,
+            "endMs": 195
+          },
+          {
+            "nodeId": "n4",
+            "startMs": 165,
+            "endMs": 280
+          },
+          {
+            "nodeId": "n5",
+            "startMs": 195,
+            "endMs": 360
+          },
+          {
+            "nodeId": "n6",
+            "startMs": 360,
+            "endMs": 555
+          },
+          {
+            "nodeId": "n7",
+            "startMs": 0,
+            "endMs": 115
+          },
+          {
+            "nodeId": "n8",
+            "startMs": 0,
+            "endMs": 165
+          },
+          {
+            "nodeId": "n9",
+            "startMs": 555,
+            "endMs": 750
+          },
+          {
+            "nodeId": "n10",
+            "startMs": 245,
+            "endMs": 360
+          },
+          {
+            "nodeId": "n11",
+            "startMs": 119360,
+            "endMs": 119525
+          },
+          {
+            "nodeId": "n12",
+            "startMs": 119525,
+            "endMs": 119720
+          },
+          {
+            "nodeId": "n13",
+            "startMs": 119720,
+            "endMs": 119835
+          },
+          {
+            "nodeId": "n14",
+            "startMs": 119835,
+            "endMs": 120000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 120000ms ≤ 120000ms"
+    },
+    {
+      "seq": 18,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 19,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (8 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:workhorse-1": "0.000000",
+          "capacity:braggart-1": "0.000000",
+          "capacity:workhorse-2": "0.000000",
+          "capacity:braggart-2": "0.000000",
+          "capacity:workhorse-3": "0.000000",
+          "capacity:braggart-3": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 20,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 2.750000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "n1": "0.150000",
+          "n2": "0.200000",
+          "n3": "0.250000",
+          "n4": "0.150000",
+          "n5": "0.200000",
+          "n6": "0.250000",
+          "n7": "0.150000",
+          "n8": "0.200000",
+          "n9": "0.250000",
+          "n10": "0.150000",
+          "n11": "0.200000",
+          "n12": "0.250000",
+          "n13": "0.150000",
+          "n14": "0.200000"
+        },
+        "totalClearedUsdc": "2.750000"
+      }
+    },
+    {
+      "seq": 21,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.8172056313600937,
+        "optimalObj": 1.817212
+      }
+    },
+    {
+      "seq": 22,
+      "phase": "score-candidates",
+      "nodeId": "n1",
+      "level": "info",
+      "message": "n1: 2 candidates — top workhorse-1 (score 0.1847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-1",
+            "score": 0.18466250316591631,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.30713319760844887,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 23,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 9 divergent nodes, success lift 0.098",
+      "data": {
+        "divergentNodes": [
+          "n1",
+          "n3",
+          "n4",
+          "n6",
+          "n7",
+          "n9",
+          "n10",
+          "n12",
+          "n13"
+        ],
+        "successLift": 0.09800027422719816
+      }
+    },
+    {
+      "seq": 24,
+      "phase": "score-candidates",
+      "nodeId": "n2",
+      "level": "info",
+      "message": "n2: 2 candidates — top workhorse-2 (score 0.1110)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.11104862057336931,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.3351018541381163,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 25,
+      "phase": "score-candidates",
+      "nodeId": "n3",
+      "level": "info",
+      "message": "n3: 2 candidates — top workhorse-3 (score 0.0847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-3",
+            "score": 0.08466250316591635,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "braggart-3",
+            "score": -0.4289738604704473,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 26,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.896",
+      "data": {
+        "failureProbability": 0.896,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 1.3688600000000002,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 120000
+      }
+    },
+    {
+      "seq": 27,
+      "phase": "score-candidates",
+      "nodeId": "n4",
+      "level": "info",
+      "message": "n4: 2 candidates — top workhorse-1 (score 0.1847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-1",
+            "score": 0.18466250316591631,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.30713319760844887,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 28,
+      "phase": "score-candidates",
+      "nodeId": "n5",
+      "level": "info",
+      "message": "n5: 2 candidates — top workhorse-2 (score 0.1110)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.11104862057336931,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.3351018541381163,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 29,
+      "phase": "score-candidates",
+      "nodeId": "n6",
+      "level": "info",
+      "message": "n6: 2 candidates — top workhorse-3 (score 0.0847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-3",
+            "score": 0.08466250316591635,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "braggart-3",
+            "score": -0.4289738604704473,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 30,
+      "phase": "score-candidates",
+      "nodeId": "n7",
+      "level": "info",
+      "message": "n7: 2 candidates — top workhorse-1 (score 0.1847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-1",
+            "score": 0.18466250316591631,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.30713319760844887,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 31,
+      "phase": "score-candidates",
+      "nodeId": "n8",
+      "level": "info",
+      "message": "n8: 2 candidates — top workhorse-2 (score 0.1110)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.11104862057336931,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.3351018541381163,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 32,
+      "phase": "score-candidates",
+      "nodeId": "n9",
+      "level": "info",
+      "message": "n9: 2 candidates — top workhorse-3 (score 0.0847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-3",
+            "score": 0.08466250316591635,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "braggart-3",
+            "score": -0.4289738604704473,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 33,
+      "phase": "score-candidates",
+      "nodeId": "n10",
+      "level": "info",
+      "message": "n10: 2 candidates — top workhorse-1 (score 0.1847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-1",
+            "score": 0.18466250316591631,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.30713319760844887,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 34,
+      "phase": "score-candidates",
+      "nodeId": "n11",
+      "level": "info",
+      "message": "n11: 2 candidates — top workhorse-2 (score 0.1110)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.11104862057336931,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.3351018541381163,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 35,
+      "phase": "score-candidates",
+      "nodeId": "n12",
+      "level": "info",
+      "message": "n12: 2 candidates — top workhorse-3 (score 0.0847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-3",
+            "score": 0.08466250316591635,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "braggart-3",
+            "score": -0.4289738604704473,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 36,
+      "phase": "score-candidates",
+      "nodeId": "n13",
+      "level": "info",
+      "message": "n13: 2 candidates — top workhorse-1 (score 0.1847)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-1",
+            "score": 0.18466250316591631,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.15"
+          },
+          {
+            "providerId": "braggart-1",
+            "score": -0.30713319760844887,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 37,
+      "phase": "score-candidates",
+      "nodeId": "n14",
+      "level": "info",
+      "message": "n14: 2 candidates — top workhorse-2 (score 0.1110)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "workhorse-2",
+            "score": 0.11104862057336931,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "braggart-2",
+            "score": -0.3351018541381163,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.35"
+          }
+        ]
+      }
+    }
+  ]
+}

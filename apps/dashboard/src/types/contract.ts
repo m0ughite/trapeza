@@ -19,6 +19,32 @@
 export const DEMO_RUN_SCHEMA_VERSION = "1.0.0" as const;
 export const ONCHAIN_RECEIPTS_SCHEMA_VERSION = "1.0.0" as const;
 
+export type TracePhase =
+  | "validate-dag"
+  | "score-candidates"
+  | "assign"
+  | "schedule"
+  | "deadline-check"
+  | "preflight"
+  | "shadow-prices"
+  | "bake-off"
+  | "calibration"
+  | "twin"
+  | "settlement";
+
+export type TraceLevel = "info" | "warn" | "error";
+
+export interface TraceStep {
+  seq: number;
+  phase: TracePhase;
+  nodeId?: string;
+  level: TraceLevel;
+  message: string;
+  data?: Record<string, unknown>;
+}
+
+export type RunStatus = "cleared" | "rejected" | "degraded";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // demo-run.json
 // ─────────────────────────────────────────────────────────────────────────────
@@ -207,6 +233,10 @@ export interface TractionMetrics {
 export interface DemoRun {
   schemaVersion: typeof DEMO_RUN_SCHEMA_VERSION;
   meta: RunMeta;
+  /** Outcome of the headline clearing run. */
+  status?: RunStatus;
+  /** Present when status is rejected or degraded. */
+  error?: { code: string; message: string };
   graph: GraphView;
   providers: ProviderView[];
   clearing: ClearingView;
@@ -215,6 +245,28 @@ export interface DemoRun {
   twin: TwinMonteCarlo | null;
   preflight: PreflightView;
   traction: TractionMetrics;
+  /** Step-by-step execution trace from engine + driver enrichment. */
+  trace?: TraceStep[];
+}
+
+/** Rich manifest entry for the Scenario Explorer. */
+export interface ManifestRun {
+  runId: string;
+  label: string;
+  description: string;
+  proves: string;
+  tags: string[];
+  headline: string;
+  nodeCount: number;
+  providerCount: number;
+  capabilities: string[];
+  tier: "tier1" | "tier2";
+  status: RunStatus;
+}
+
+export interface FixtureManifest {
+  schemaVersion: typeof DEMO_RUN_SCHEMA_VERSION;
+  runs: ManifestRun[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

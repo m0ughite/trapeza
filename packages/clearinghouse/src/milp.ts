@@ -1,12 +1,12 @@
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import {
-  pSuccessMean,
   parseUsdcToMicro,
   scaleLogProbability,
   type TaskGraph,
 } from "@trapeza/core";
 import {
+  pHat,
   providerBondMicro,
   providerCostMicro,
   scoreProviderForNode,
@@ -51,6 +51,7 @@ export async function solveMilp(input: SolverInput): Promise<{
   objectiveValue: number;
 }> {
   const { graph, providers } = input;
+  const useCalibration = input.useCalibration ?? true;
   const pairs: {
     nodeId: string;
     p: SolverProvider;
@@ -78,7 +79,7 @@ export async function solveMilp(input: SolverInput): Promise<{
 
   const objectiveTerms: string[] = [];
   for (const { nodeId, p, varName } of pairs) {
-    const score = scoreProviderForNode(graph, nodeId, p);
+    const score = scoreProviderForNode(graph, nodeId, p, useCalibration);
     const coeff = Math.round(score * 1000);
     if (coeff !== 0) objectiveTerms.push(`${coeff} ${varName}`);
   }
@@ -94,7 +95,7 @@ export async function solveMilp(input: SolverInput): Promise<{
   const budgetUsed = pairs
     .map(({ nodeId, p, varName }) => {
       const node = graph.nodes.find((n) => n.nodeId === nodeId)!;
-      const cost = providerCostMicro(p);
+      const cost = providerCostMicro(p, useCalibration);
       const bond = providerBondMicro(
         p,
         node.task.bondRatio ?? 0.1,
@@ -112,11 +113,7 @@ export async function solveMilp(input: SolverInput): Promise<{
   if (qMin > 0) {
     const logTerms = pairs
       .map(({ p, varName }) => {
-        const pHat =
-          p.calibration.nObservations > 0
-            ? pSuccessMean(p.calibration)
-            : p.claimedSuccessProb;
-        return `${scaleLogProbability(pHat)} ${varName}`;
+        return `${scaleLogProbability(pHat(p, useCalibration))} ${varName}`;
       })
       .join(" + ");
     subjectTo.push(`${logTerms} >= ${scaleLogProbability(qMin)}`);
@@ -128,11 +125,7 @@ export async function solveMilp(input: SolverInput): Promise<{
     const terms = pairs
       .filter((x) => x.nodeId === node.nodeId)
       .map(({ p, varName }) => {
-        const pHat =
-          p.calibration.nObservations > 0
-            ? pSuccessMean(p.calibration)
-            : p.claimedSuccessProb;
-        return `${scaleLogProbability(pHat)} ${varName}`;
+        return `${scaleLogProbability(pHat(p, useCalibration))} ${varName}`;
       })
       .join(" + ");
     subjectTo.push(`${terms} >= ${scaleLogProbability(q)}`);
@@ -162,7 +155,7 @@ End
       assignments.push({
         nodeId,
         providerId: p.id,
-        score: scoreProviderForNode(graph, nodeId, p),
+        score: scoreProviderForNode(graph, nodeId, p, useCalibration),
       });
     }
   }
@@ -185,6 +178,7 @@ function buildLpRelaxation(
   graph: TaskGraph,
   providers: SolverProvider[],
   budgetMicro: bigint,
+  useCalibration = true,
 ): string {
   const pairs: {
     nodeId: string;
@@ -205,7 +199,7 @@ function buildLpRelaxation(
   }
 
   const objectiveTerms = pairs.map(({ nodeId, p, varName }) => {
-    const score = scoreProviderForNode(graph, nodeId, p);
+    const score = scoreProviderForNode(graph, nodeId, p, useCalibration);
     return `${Math.round(score * 1000)} ${varName}`;
   });
 
@@ -223,7 +217,7 @@ function buildLpRelaxation(
     .map(({ nodeId, p, varName }) => {
       const node = graph.nodes.find((n) => n.nodeId === nodeId)!;
       const micro =
-        providerCostMicro(p) +
+        providerCostMicro(p, useCalibration) +
         providerBondMicro(p, node.task.bondRatio ?? 0.1, node.task.valueUsdc);
       return `${micro} ${varName}`;
     })
@@ -254,8 +248,9 @@ export async function computeShadowPrices(
   graph: TaskGraph,
   providers: SolverProvider[],
   budgetMicro: bigint,
+  useCalibration = true,
 ): Promise<{ budgetDual: number }> {
-  const lp = buildLpRelaxation(graph, providers, budgetMicro);
+  const lp = buildLpRelaxation(graph, providers, budgetMicro, useCalibration);
   const highs = await loadHighs();
   const sol = highs.solve(lp, { time_limit: 5 });
   const budgetRow = sol.Rows?.find((r) => r.Name === "budget");
@@ -265,7 +260,7 @@ export async function computeShadowPrices(
     const eps = 100_000n;
     const baseObj = await lpObjective(lp);
     const bumpedObj = await lpObjective(
-      buildLpRelaxation(graph, providers, budgetMicro + eps),
+      buildLpRelaxation(graph, providers, budgetMicro + eps, useCalibration),
     );
     if (Number.isFinite(baseObj) && Number.isFinite(bumpedObj)) {
       budgetDual = (bumpedObj - baseObj) / Number(eps);

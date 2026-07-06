@@ -286,4 +286,4 @@ export function underFundedSnapshot(providers: SolverProvider[]) {
   });
 }
 
-export { DEMO_SEED };
+export { DEMO_SEED, makeProvider, makeUncalibratedProvider, makeNode, makeGraph };

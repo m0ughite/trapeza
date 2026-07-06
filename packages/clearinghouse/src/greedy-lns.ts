@@ -6,8 +6,12 @@ import {
 } from "./score.js";
 import { ClearingError, type SolverInput, type SolverResult } from "./types.js";
 
-function assertGlobalQuality(input: SolverInput, assignments: import("./types.js").NodeAssignment[]): void {
-  if (!meetsGlobalQuality(input, assignments)) {
+function assertGlobalQuality(
+  input: SolverInput,
+  assignments: import("./types.js").NodeAssignment[],
+  useCalibration: boolean,
+): void {
+  if (!meetsGlobalQuality(input, assignments, useCalibration)) {
     throw new ClearingError(
       `assignment violates global quality floor ${input.graph.globalQualityFloor}`,
       "INFEASIBLE",
@@ -16,9 +20,10 @@ function assertGlobalQuality(input: SolverInput, assignments: import("./types.js
 }
 
 export function solveGreedyLns(input: SolverInput): SolverResult {
+  const useCalibration = input.useCalibration ?? true;
   const seed = input.seed ?? 42;
-  const assignments = lnsImprove(input, seed);
-  assertGlobalQuality(input, assignments);
+  const assignments = lnsImprove(input, seed, 30, useCalibration);
+  assertGlobalQuality(input, assignments, useCalibration);
   return {
     assignments,
     objectiveValue: objectiveFromAssignments(input, assignments),
@@ -27,8 +32,9 @@ export function solveGreedyLns(input: SolverInput): SolverResult {
 }
 
 export function solveGreedyOnly(input: SolverInput): SolverResult {
-  const assignments = greedyAssign(input);
-  assertGlobalQuality(input, assignments);
+  const useCalibration = input.useCalibration ?? true;
+  const assignments = greedyAssign(input, useCalibration);
+  assertGlobalQuality(input, assignments, useCalibration);
   return {
     assignments,
     objectiveValue: objectiveFromAssignments(input, assignments),

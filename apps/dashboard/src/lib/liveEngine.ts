@@ -69,7 +69,7 @@ function topoOrder(graph: GraphView): string[] {
 
 function pHatOf(p: ProviderView, mode: "on" | "off"): number {
   if (mode === "off") return p.claimedSuccessProb;
-  return p.nObservations > 0 ? p.calibratedSuccessProb : p.claimedSuccessProb;
+  return p.calibratedSuccessProb;
 }
 
 function costOf(p: ProviderView, mode: "on" | "off"): number {

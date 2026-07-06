@@ -28,7 +28,7 @@ const benchProviders = [
   makeSolverProvider("mid-bn", { capability: "cap.hard", priceUsdc: "0.50", claimedSuccessProb: 0.9 }),
   makeSolverProvider("premium-bn", { capability: "cap.hard", priceUsdc: "0.80", claimedSuccessProb: 0.95 }),
 ];
-const benchInput = { graph: benchGraph, providers: benchProviders, riskAversion: 1, seed: 42 };
+const benchInput = { graph: benchGraph, providers: benchProviders, riskAversion: 1, seed: 42, useCalibration: false };
 
 // Ample-budget graph where BOTH solvers succeed (for the >= comparison).
 const ampleGraph = makeGraph(

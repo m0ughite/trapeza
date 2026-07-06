@@ -35,6 +35,12 @@ export interface SolverInput {
   providers: SolverProvider[];
   riskAversion: number;
   seed?: number;
+  /**
+   * When true (default), p_success comes from the calibration ledger's posterior
+   * mean — claim-free at cold-start (Beta(1,1) = 0.5). When false, trusts the
+   * provider's self-reported claim (the lemons-collapse demo path).
+   */
+  useCalibration?: boolean;
 }
 
 export class ClearingError extends Error {

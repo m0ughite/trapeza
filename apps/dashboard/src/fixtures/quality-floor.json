@@ -1,0 +1,410 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "quality-floor",
+    "label": "Quality floor binds",
+    "description": "A global quality floor excludes low-calibrated providers even when they are cheap.",
+    "narrative": "The requester sets a minimum success probability. Providers below the floor are ineligible — the clearing must hire adequate quality even at higher cost.",
+    "generatedAt": "2026-07-06T21:19:46.151Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-quality-floor",
+    "globalBudgetUsdc": "2.50",
+    "globalDeadlineMs": 30000,
+    "globalQualityFloor": 0.75,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "extract",
+        "capability": "cap.2",
+        "valueUsdc": "1.00",
+        "budgetUsdc": "1.20",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "verify",
+        "capability": "cap.1",
+        "valueUsdc": "1.50",
+        "budgetUsdc": "1.50",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "extract",
+        "to": "verify"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "high-quality",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.45",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.8,
+      "claimedLatencyMs": 120,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.44,
+      "latencyMeanMs": 134.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "high-verify",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.55",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.75,
+      "claimedLatencyMs": 150,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.54,
+      "latencyMeanMs": 164.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.198445,
+    "makespanMs": 300,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "extract",
+        "taskId": "task-extract",
+        "providerId": "high-quality",
+        "score": 0.4313777165137321
+      },
+      {
+        "nodeId": "verify",
+        "taskId": "task-verify",
+        "providerId": "high-verify",
+        "score": 0.767066574770598
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "extract",
+        "startMs": 0,
+        "durationMs": 135,
+        "endMs": 135
+      },
+      {
+        "nodeId": "verify",
+        "startMs": 135,
+        "durationMs": 165,
+        "endMs": 300
+      }
+    ],
+    "settlementPricesUsdc": {
+      "extract": "0.450000",
+      "verify": "0.550000"
+    },
+    "totalClearedUsdc": "1.000000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:high-quality": "0.000000",
+      "capacity:high-verify": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.198445,
+      "allocations": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "high-quality",
+          "score": 0.4313777165137321
+        },
+        {
+          "nodeId": "verify",
+          "taskId": "task-verify",
+          "providerId": "high-verify",
+          "score": 0.767066574770598
+        }
+      ],
+      "realizedEndToEndSuccess": 0.8264462809917354,
+      "claimedEndToEndSuccess": 0.6000000000000001,
+      "expectedSpendUsdc": "0.980000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 0,
+      "allocations": [],
+      "realizedEndToEndSuccess": 0,
+      "claimedEndToEndSuccess": 0,
+      "expectedSpendUsdc": "0.000000"
+    },
+    "divergentNodes": [],
+    "successLift": 0.8264462809917354
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.19844429128433,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "high-quality",
+          "score": 0.4313777165137321
+        },
+        {
+          "nodeId": "verify",
+          "taskId": "task-verify",
+          "providerId": "high-verify",
+          "score": 0.767066574770598
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.198445,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "high-quality",
+          "score": 0.4313777165137321
+        },
+        {
+          "nodeId": "verify",
+          "taskId": "task-verify",
+          "providerId": "high-verify",
+          "score": 0.767066574770598
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.1984) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.1984) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 30000,
+    "failureProbability": 0.18000000000000005,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.8396800000000001
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.930000 errors=3",
+      "errors": [
+        "overdraw at extract: fee 440000 > requester 50000",
+        "overdraw at verify: fee 540000 > requester -390000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 2,
+    "totalClearedUsdc": "1.000000",
+    "resultPerUsdc": 2.5,
+    "makespanMs": 300,
+    "paymentChainDepth": 2,
+    "graphDensity": 0.5,
+    "providerCount": 2
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 2 nodes, 1 edges",
+      "data": {
+        "graphId": "demo-quality-floor",
+        "nodeCount": 2,
+        "edgeCount": 1
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "extract",
+      "level": "info",
+      "message": "extract: assigned high-quality (score 0.4314)",
+      "data": {
+        "providerId": "high-quality",
+        "score": 0.4313777165137321
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "verify",
+      "level": "info",
+      "message": "verify: assigned high-verify (score 0.7671)",
+      "data": {
+        "providerId": "high-verify",
+        "score": 0.767066574770598
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 300ms",
+      "data": {
+        "makespanMs": 300,
+        "schedule": [
+          {
+            "nodeId": "extract",
+            "startMs": 0,
+            "endMs": 135
+          },
+          {
+            "nodeId": "verify",
+            "startMs": 135,
+            "endMs": 300
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 300ms ≤ 30000ms"
+    },
+    {
+      "seq": 6,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 7,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (4 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:high-quality": "0.000000",
+          "capacity:high-verify": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 1.000000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "extract": "0.450000",
+          "verify": "0.550000"
+        },
+        "totalClearedUsdc": "1.000000"
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.19844429128433,
+        "optimalObj": 1.198445
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "score-candidates",
+      "nodeId": "extract",
+      "level": "info",
+      "message": "extract: 1 candidates — top high-quality (score 0.4314)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "high-quality",
+            "score": 0.4313777165137321,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.45"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 0 divergent nodes, success lift 0.826",
+      "data": {
+        "divergentNodes": [],
+        "successLift": 0.8264462809917354
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "score-candidates",
+      "nodeId": "verify",
+      "level": "info",
+      "message": "verify: 1 candidates — top high-verify (score 0.7671)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "high-verify",
+            "score": 0.767066574770598,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.55"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.180",
+      "data": {
+        "failureProbability": 0.18000000000000005,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.8396800000000001,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 30000
+      }
+    }
+  ]
+}

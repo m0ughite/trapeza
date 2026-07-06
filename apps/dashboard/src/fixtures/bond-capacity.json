@@ -1,0 +1,435 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "bond-capacity",
+    "label": "Bond capacity (tier-1)",
+    "description": "Provider bond capacity binds — only one heavy node can lock the limited bond.",
+    "narrative": "Bond capacity is a hard constraint in CP-SAT. When a provider cannot post enough bond for all assigned nodes, the solver must re-route.",
+    "generatedAt": "2026-07-06T21:19:46.546Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-bond-capacity",
+    "globalBudgetUsdc": "4.00",
+    "globalDeadlineMs": 60000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "heavyA",
+        "capability": "cap.3",
+        "valueUsdc": "2.00",
+        "budgetUsdc": "2.00",
+        "bondRatio": 0.5,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "heavyB",
+        "capability": "cap.3",
+        "valueUsdc": "2.00",
+        "budgetUsdc": "2.00",
+        "bondRatio": 0.5,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "heavyA",
+        "to": "heavyB"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "bond-limited",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.25",
+      "bondOfferedUsdc": "0.50",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 180,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 194.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "workhorse-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.25",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 180,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 194.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 2.783671,
+    "makespanMs": 390,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "heavyA",
+        "taskId": "task-heavyA",
+        "providerId": "workhorse-3",
+        "score": 1.3833125158295818
+      },
+      {
+        "nodeId": "heavyB",
+        "taskId": "task-heavyB",
+        "providerId": "bond-limited",
+        "score": 1.4003579703750362
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "heavyA",
+        "startMs": 0,
+        "durationMs": 195,
+        "endMs": 195
+      },
+      {
+        "nodeId": "heavyB",
+        "startMs": 195,
+        "durationMs": 195,
+        "endMs": 390
+      }
+    ],
+    "settlementPricesUsdc": {
+      "heavyA": "0.250000",
+      "heavyB": "0.250000"
+    },
+    "totalClearedUsdc": "0.500000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:bond-limited": "0.034091",
+      "capacity:workhorse-3": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 2.783671,
+      "allocations": [
+        {
+          "nodeId": "heavyA",
+          "taskId": "task-heavyA",
+          "providerId": "workhorse-3",
+          "score": 1.3833125158295818
+        },
+        {
+          "nodeId": "heavyB",
+          "taskId": "task-heavyB",
+          "providerId": "bond-limited",
+          "score": 1.4003579703750362
+        }
+      ],
+      "realizedEndToEndSuccess": 0.7458677685950413,
+      "claimedEndToEndSuccess": 0.4624000000000001,
+      "expectedSpendUsdc": "0.480000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.94,
+      "allocations": [
+        {
+          "nodeId": "heavyA",
+          "taskId": "task-heavyA",
+          "providerId": "workhorse-3",
+          "score": 0.9500000000000002
+        },
+        {
+          "nodeId": "heavyB",
+          "taskId": "task-heavyB",
+          "providerId": "bond-limited",
+          "score": 0.9900000000000001
+        }
+      ],
+      "realizedEndToEndSuccess": 0.7458677685950413,
+      "claimedEndToEndSuccess": 0.4624000000000001,
+      "expectedSpendUsdc": "0.480000"
+    },
+    "divergentNodes": [],
+    "successLift": 0
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 2.8007159407500724,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "heavyA",
+          "taskId": "task-heavyA",
+          "providerId": "bond-limited",
+          "score": 1.4003579703750362
+        },
+        {
+          "nodeId": "heavyB",
+          "taskId": "task-heavyB",
+          "providerId": "bond-limited",
+          "score": 1.4003579703750362
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 2.783671,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "heavyA",
+          "taskId": "task-heavyA",
+          "providerId": "workhorse-3",
+          "score": 1.3833125158295818
+        },
+        {
+          "nodeId": "heavyB",
+          "taskId": "task-heavyB",
+          "providerId": "bond-limited",
+          "score": 1.4003579703750362
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 2.8007) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 2.7837) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 60000,
+    "failureProbability": 0.22199999999999998,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.3945600000000001
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.430000 errors=3",
+      "errors": [
+        "overdraw at heavyA: fee 240000 > requester 50000",
+        "overdraw at heavyB: fee 240000 > requester -190000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 2,
+    "totalClearedUsdc": "0.500000",
+    "resultPerUsdc": 8,
+    "makespanMs": 390,
+    "paymentChainDepth": 2,
+    "graphDensity": 0.5,
+    "providerCount": 2
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 2 nodes, 1 edges",
+      "data": {
+        "graphId": "demo-bond-capacity",
+        "nodeCount": 2,
+        "edgeCount": 1
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "heavyA",
+      "level": "info",
+      "message": "heavyA: assigned workhorse-3 (score 1.3833)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 1.3833125158295818
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "heavyB",
+      "level": "info",
+      "message": "heavyB: assigned bond-limited (score 1.4004)",
+      "data": {
+        "providerId": "bond-limited",
+        "score": 1.4003579703750362
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 390ms",
+      "data": {
+        "makespanMs": 390,
+        "schedule": [
+          {
+            "nodeId": "heavyA",
+            "startMs": 0,
+            "endMs": 195
+          },
+          {
+            "nodeId": "heavyB",
+            "startMs": 195,
+            "endMs": 390
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 390ms ≤ 60000ms"
+    },
+    {
+      "seq": 6,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 7,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (4 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:bond-limited": "0.034091",
+          "capacity:workhorse-3": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 0.500000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "heavyA": "0.250000",
+          "heavyB": "0.250000"
+        },
+        "totalClearedUsdc": "0.500000"
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 2.8007159407500724,
+        "optimalObj": 2.783671
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "score-candidates",
+      "nodeId": "heavyA",
+      "level": "info",
+      "message": "heavyA: 2 candidates — top bond-limited (score 1.4004)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "bond-limited",
+            "score": 1.4003579703750362,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "workhorse-3",
+            "score": 1.3833125158295818,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 0 divergent nodes, success lift 0.000",
+      "data": {
+        "divergentNodes": [],
+        "successLift": 0
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "score-candidates",
+      "nodeId": "heavyB",
+      "level": "info",
+      "message": "heavyB: 2 candidates — top bond-limited (score 1.4004)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "bond-limited",
+            "score": 1.4003579703750362,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          },
+          {
+            "providerId": "workhorse-3",
+            "score": 1.3833125158295818,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.25"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.222",
+      "data": {
+        "failureProbability": 0.22199999999999998,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.3945600000000001,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 60000
+      }
+    }
+  ]
+}

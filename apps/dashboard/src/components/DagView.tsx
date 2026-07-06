@@ -53,8 +53,12 @@ function layout(graph: GraphView) {
   };
 }
 
-export function DagView(props: { graph: GraphView; allocations: AllocationView[] }) {
-  const { graph, allocations } = props;
+export function DagView(props: {
+  graph: GraphView;
+  allocations: AllocationView[];
+  activeNodeId?: string;
+}) {
+  const { graph, allocations, activeNodeId } = props;
   const { pos, width, height } = useMemo(() => layout(graph), [graph]);
   const chosen = useMemo(
     () => new Map(allocations.map((a) => [a.nodeId, a.providerId])),
@@ -90,7 +94,12 @@ export function DagView(props: { graph: GraphView; allocations: AllocationView[]
         {graph.nodes.map((n) => {
           const p = pos.get(n.nodeId)!;
           const prov = chosen.get(n.nodeId);
-          const cls = ["dag-node", prov ? "chosen" : "", n.bottleneck ? "bottleneck" : ""]
+          const cls = [
+            "dag-node",
+            prov ? "chosen" : "",
+            n.bottleneck ? "bottleneck" : "",
+            activeNodeId === n.nodeId ? "active" : "",
+          ]
             .filter(Boolean)
             .join(" ");
           return (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RUNS, RECEIPTS } from "./fixtures";
+import { MANIFEST, RUNS, RECEIPTS } from "./fixtures";
 import type { DemoRun } from "./types/contract";
 import { Badge, Collapsible, Panel, SectionHeader, Stat, Tooltip } from "./components/ui";
 import { DagView } from "./components/DagView";
@@ -10,17 +10,21 @@ import { TwinRiskPanel } from "./components/TwinRiskPanel";
 import { OnchainPanel } from "./components/OnchainPanel";
 import { TractionStrip } from "./components/TractionStrip";
 import { LiveRunPanel } from "./components/LiveRunPanel";
+import { RunTracePanel } from "./components/RunTracePanel";
+import { ScenarioExplorer } from "./components/ScenarioExplorer";
 import { ms, num, pctSmall, plain, usd } from "./services/format";
 
 const SECTIONS = [
+  { id: "explorer", label: "Scenarios", num: "00" },
   { id: "overview", label: "Overview", num: "01" },
   { id: "clearing", label: "Clearing", num: "02" },
-  { id: "bakeoff", label: "Clearing vs. Greedy", num: "03" },
-  { id: "calibration", label: "Calibration Ledger", num: "04" },
-  { id: "shadow", label: "Bottlenecks", num: "05" },
-  { id: "twin", label: "Risk Preflight", num: "06" },
-  { id: "onchain", label: "Settlement", num: "07" },
-  { id: "live", label: "Run Your Own", num: "08" },
+  { id: "trace", label: "Run trace", num: "03" },
+  { id: "bakeoff", label: "Clearing vs. Greedy", num: "04" },
+  { id: "calibration", label: "Calibration Ledger", num: "05" },
+  { id: "shadow", label: "Bottlenecks", num: "06" },
+  { id: "twin", label: "Risk Preflight", num: "07" },
+  { id: "onchain", label: "Settlement", num: "08" },
+  { id: "live", label: "Run Your Own", num: "09" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -253,8 +257,7 @@ function Overview(props: {
           <div>
             <div className="eyebrow">Pick a scenario</div>
             <p className="why">
-              Three bundled workflows, each replaying a real solver run. Switching here drives every
-              section below.
+              Bundled workflows replay real solver runs. Switching here drives every section below.
             </p>
           </div>
         </div>
@@ -273,9 +276,26 @@ function Overview(props: {
   );
 }
 
-function ClearingSection(props: { run: DemoRun }) {
-  const { run } = props;
+function ClearingSection(props: { run: DemoRun; activeNodeId?: string }) {
+  const { run, activeNodeId } = props;
   const c = run.clearing;
+
+  if (run.status === "rejected") {
+    return (
+      <Panel
+        title="Clearing rejected"
+        headline
+        right={<Badge tone="red">{run.error?.code ?? "rejected"}</Badge>}
+        sub={plain(run.meta.narrative)}
+      >
+        <div className="callout warn">
+          <strong>Preflight blocked this run.</strong> {run.error?.message}
+        </div>
+        <DagView graph={run.graph} allocations={[]} activeNodeId={activeNodeId} />
+      </Panel>
+    );
+  }
+
   return (
     <Panel
       title="The cleared workflow"
@@ -300,7 +320,7 @@ function ClearingSection(props: { run: DemoRun }) {
         <Stat k="makespan" v={ms(c.makespanMs)} small />
         <Stat k="steps" v={run.graph.nodes.length} small />
       </div>
-      <DagView graph={run.graph} allocations={c.allocations} />
+      <DagView graph={run.graph} allocations={c.allocations} activeNodeId={activeNodeId} />
       <div className="dag-legend">
         <span><i className="chip chosen" /> chosen provider</span>
         <span><i className="chip bottleneck" /> bottleneck step</span>
@@ -354,6 +374,7 @@ export function App() {
   const [activeId, setActiveId] = useState(RUNS[0]!.meta.runId);
   const run = useMemo(() => RUNS.find((r) => r.meta.runId === activeId)!, [activeId]);
   const [active, go] = useScrollSpy();
+  const [traceNodeId, setTraceNodeId] = useState<string | undefined>();
 
   return (
     <div className="shell">
@@ -361,6 +382,10 @@ export function App() {
       <div className="main">
         <Topbar runs={RUNS} activeId={activeId} onPick={setActiveId} />
         <main className="content">
+          <section id="explorer" className="section">
+            <ScenarioExplorer manifest={MANIFEST} activeId={activeId} onPick={setActiveId} />
+          </section>
+
           <section id="overview" className="section">
             <Overview runs={RUNS} run={run} onPick={setActiveId} onGo={go} />
           </section>
@@ -371,7 +396,16 @@ export function App() {
               title="See the whole workflow cleared at once"
               why="A per-task router decides each step in isolation; the clearinghouse solves the graph together, so it can trade off cheap steps to afford the one that matters."
             />
-            <ClearingSection run={run} />
+            <ClearingSection run={run} activeNodeId={traceNodeId} />
+          </section>
+
+          <section id="trace" className="section">
+            <SectionHeader
+              eyebrow="Run trace"
+              title="Watch the clearing think, step by step"
+              why="Each phase — validate, score, assign, schedule, preflight, settle — is logged from the real engine path."
+            />
+            <RunTracePanel trace={run.trace} onActiveNode={setTraceNodeId} />
           </section>
 
           <section id="bakeoff" className="section">

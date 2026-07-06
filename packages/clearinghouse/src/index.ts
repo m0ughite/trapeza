@@ -23,7 +23,8 @@ export type {
 } from "./types.js";
 
 export { computeSchedule } from "./schedule.js";
-export { greedyAssign, lnsImprove, meetsGlobalQuality } from "./score.js";
+export { createTraceCollector, type TraceStep, type TraceSink, type TracePhase } from "./trace.js";
+export { greedyAssign, lnsImprove, meetsGlobalQuality, pHat, scoreProviderForNode } from "./score.js";
 export { betaSample, gammaSample } from "./twin/montecarlo.js";
 export {
   solveCpSat,

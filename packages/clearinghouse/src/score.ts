@@ -12,15 +12,37 @@ import {
 import { topologicalSort } from "./dag.js";
 import { ClearingError, type NodeAssignment, type SolverInput, type SolverProvider } from "./types.js";
 
-export function providerCostUsdc(p: SolverProvider): number {
+/**
+ * Success probability used for scoring and quality constraints.
+ * ON (useCalibration=true): posterior mean, claim-free at cold-start (0.5).
+ * OFF: provider self-report.
+ */
+export function pHat(p: SolverProvider, useCalibration = true): number {
+  if (!useCalibration) return clamp01(p.claimedSuccessProb);
+  return pSuccessMean(p.calibration);
+}
+
+function clamp01(x: number): number {
+  if (!Number.isFinite(x)) return 0;
+  return Math.min(1, Math.max(0, x));
+}
+
+export function providerCostUsdc(
+  p: SolverProvider,
+  useCalibration = true,
+): number {
+  if (!useCalibration) return Number(p.priceUsdc);
   const est = calibratedEstimate(p.calibration);
   return p.calibration.nObservations > 0
     ? est.costMeanUsdc
     : Number(p.priceUsdc);
 }
 
-export function providerCostMicro(p: SolverProvider): bigint {
-  return parseUsdcToMicro(String(providerCostUsdc(p)));
+export function providerCostMicro(
+  p: SolverProvider,
+  useCalibration = true,
+): bigint {
+  return parseUsdcToMicro(String(providerCostUsdc(p, useCalibration)));
 }
 
 export function providerBondMicro(
@@ -38,28 +60,29 @@ export function scoreProviderForNode(
   graph: TaskGraph,
   nodeId: string,
   provider: SolverProvider,
+  useCalibration = true,
 ): number {
   const node = graph.nodes.find((n) => n.nodeId === nodeId)!;
   const spec = node.task;
   const est = calibratedEstimate(provider.calibration);
-  const pSuccess =
-    provider.calibration.nObservations > 0
-      ? est.pSuccess
-      : provider.claimedSuccessProb;
+  const pSuccess = pHat(provider, useCalibration);
   const value = taskValueUsdc(spec);
-  const price = providerCostUsdc(provider);
+  const price = providerCostUsdc(provider, useCalibration);
   const risk = computeRiskPremium({
     spec,
     value,
     pSuccess,
-    pStdDev: est.pSuccessStdDev,
+    pStdDev: useCalibration ? est.pSuccessStdDev : 0,
     bondOffered: Number(provider.bondOfferedUsdc),
     config: { ...DEFAULT_CONFIG, riskAversion: graph.riskAversion ?? 1 },
   });
   return pSuccess * value - price - risk;
 }
 
-export function greedyAssign(input: SolverInput): NodeAssignment[] {
+export function greedyAssign(
+  input: SolverInput,
+  useCalibration = input.useCalibration ?? true,
+): NodeAssignment[] {
   const { graph, providers } = input;
   const order = topologicalSort(graph);
   let budgetLeft = parseUsdcToMicro(graph.globalBudgetUsdc);
@@ -72,7 +95,7 @@ export function greedyAssign(input: SolverInput): NodeAssignment[] {
     let best: { p: SolverProvider; score: number } | null = null;
 
     for (const p of candidates) {
-      const cost = providerCostMicro(p);
+      const cost = providerCostMicro(p, useCalibration);
       const bond = providerBondMicro(
         p,
         node.task.bondRatio ?? 0.1,
@@ -81,13 +104,9 @@ export function greedyAssign(input: SolverInput): NodeAssignment[] {
       if (cost + bond > budgetLeft) continue;
 
       const qFloor = node.task.qualityFloor ?? 0;
-      const pHat =
-        p.calibration.nObservations > 0
-          ? pSuccessMean(p.calibration)
-          : p.claimedSuccessProb;
-      if (pHat < qFloor) continue;
+      if (pHat(p, useCalibration) < qFloor) continue;
 
-      const score = scoreProviderForNode(graph, nodeId, p);
+      const score = scoreProviderForNode(graph, nodeId, p, useCalibration);
       if (!best || score > best.score) best = { p, score };
     }
 
@@ -98,7 +117,7 @@ export function greedyAssign(input: SolverInput): NodeAssignment[] {
       );
     }
 
-    const cost = providerCostMicro(best.p);
+    const cost = providerCostMicro(best.p, useCalibration);
     const bond = providerBondMicro(
       best.p,
       node.task.bondRatio ?? 0.1,
@@ -127,18 +146,18 @@ export function objectiveFromAssignments(
  * additive objective and are blind to this multiplicative constraint, so it is
  * checked explicitly on the final assignment; CP-SAT enforces it in the model.
  */
-export function meetsGlobalQuality(input: SolverInput, assignments: NodeAssignment[]): boolean {
+export function meetsGlobalQuality(
+  input: SolverInput,
+  assignments: NodeAssignment[],
+  useCalibration = input.useCalibration ?? true,
+): boolean {
   const qMin = input.graph.globalQualityFloor ?? 0;
   if (qMin <= 0) return true;
   const byId = new Map(input.providers.map((p) => [p.id, p]));
   let logSum = 0;
   for (const a of assignments) {
     const p = byId.get(a.providerId)!;
-    const pHat =
-      p.calibration.nObservations > 0
-        ? pSuccessMean(p.calibration)
-        : p.claimedSuccessProb;
-    logSum += Math.log(Math.max(pHat, 1e-12));
+    logSum += Math.log(Math.max(pHat(p, useCalibration), 1e-12));
   }
   return logSum >= Math.log(qMin);
 }
@@ -148,8 +167,9 @@ export function lnsImprove(
   input: SolverInput,
   seed = 42,
   iterations = 30,
+  useCalibration = input.useCalibration ?? true,
 ): NodeAssignment[] {
-  let best = greedyAssign(input);
+  let best = greedyAssign(input, useCalibration);
   let bestObj = objectiveFromAssignments(input, best);
   const rng = mulberry32(seed);
 
@@ -169,7 +189,7 @@ export function lnsImprove(
         const node = input.graph.nodes.find((n) => n.nodeId === a.nodeId)!;
         const p = input.providers.find((x) => x.id === a.providerId)!;
         budgetLeft -=
-          providerCostMicro(p) +
+          providerCostMicro(p, useCalibration) +
           providerBondMicro(
             p,
             node.task.bondRatio ?? 0.1,
@@ -187,7 +207,7 @@ export function lnsImprove(
         for (const p of input.providers.filter((x) =>
           x.capabilities.includes(cap),
         )) {
-          const cost = providerCostMicro(p);
+          const cost = providerCostMicro(p, useCalibration);
           const bond = providerBondMicro(
             p,
             node.task.bondRatio ?? 0.1,
@@ -198,17 +218,18 @@ export function lnsImprove(
           // original repair dropped it, so LNS could re-introduce a
           // below-floor provider that greedy had excluded.
           const qFloor = node.task.qualityFloor ?? 0;
-          const pHat =
-            p.calibration.nObservations > 0
-              ? pSuccessMean(p.calibration)
-              : p.claimedSuccessProb;
-          if (pHat < qFloor) continue;
-          const score = scoreProviderForNode(input.graph, nodeId, p);
+          if (pHat(p, useCalibration) < qFloor) continue;
+          const score = scoreProviderForNode(
+            input.graph,
+            nodeId,
+            p,
+            useCalibration,
+          );
           if (!pick || score > pick.score) pick = { p, score };
         }
         if (!pick) continue;
 
-        const cost = providerCostMicro(pick.p);
+        const cost = providerCostMicro(pick.p, useCalibration);
         const bond = providerBondMicro(
           pick.p,
           node.task.bondRatio ?? 0.1,

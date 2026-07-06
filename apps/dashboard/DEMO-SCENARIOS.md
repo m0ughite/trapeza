@@ -11,10 +11,11 @@ fixtures (`src/fixtures/*.json`), so they are stable and reproducible offline.
 npm run dev --workspace @trapeza/dashboard   # http://127.0.0.1:5173
 ```
 
-The left sidebar is the map: **Overview → Clearing → Solver bake-off →
-Calibration ledger → Bottleneck prices → Risk preflight → On-chain settlement →
-Run your own.** The top-bar **Scenario** dropdown switches the workflow driving
-every section. Nothing requires a backend, a wallet, or network access.
+The left sidebar is the map: **Scenarios (explorer) → Overview → Clearing → Run trace →
+Solver bake-off → Calibration ledger → Bottleneck prices → Risk preflight →
+On-chain settlement → Run your own.** The **Scenario Explorer** at the top (or the
+top-bar dropdown) switches the workflow driving every section. Nothing requires a
+backend, a wallet, or network access.
 
 The one-line pitch to open with:
 
@@ -201,11 +202,65 @@ reward: no fabricated `/tx/` links, every artifact labeled for what it is.*
 
 ---
 
+## Scenario Explorer (start here for new viewers)
+
+**The story.** Eleven bundled workflows, each tagged by what they exercise
+(`calibration`, `budget`, `scheduling`, `preflight`, `degrade`, etc.). Pick a
+card to drive every section below.
+
+**Clicks.**
+
+1. Sidebar → **Scenarios** (first item).
+2. Filter by tag chip (e.g. `calibration`, `preflight`).
+3. Click a card — e.g. **Preflight rejected** shows `status=rejected`.
+
+**What the viewer should see.**
+
+- Each card shows **what it proves**, tags, node/provider counts, and a headline.
+- Failure stories (`preflight-underfunded`, `solver-degrade`) are explorable too.
+
+---
+
+## Run trace (step-by-step clearing log)
+
+**The story.** Every fixture includes a `trace` array: ordered steps from the
+real engine (`validate-dag` → `assign` → `schedule` → `preflight` → `settlement`)
+plus driver enrichment (`score-candidates`, `bake-off`, `calibration`, `twin`).
+
+**Clicks.**
+
+1. Pick any scenario.
+2. Sidebar → **Run trace**.
+3. Use **play / prev / next** — the highlighted node in **Clearing** follows the
+   current step.
+
+**CLI.** `npm run demo:emit -- --trace` prints the same log to stdout.
+
+---
+
+## Additional scenarios (4–11)
+
+| Scenario | Tags | Proves |
+| --- | --- | --- |
+| **Cold-start calibration** | calibration, cold-start | ON is claim-free at n=0; OFF buys braggarts |
+| **Quality floor** | quality-floor | Global quality floor enforced on the plan |
+| **Scale stress (14-node)** | scheduling, budget | Clears a larger DAG within budget/deadline |
+| **Deadline tight** | scheduling, risk | Makespan pressed to global deadline |
+| **Preflight under-funded** | preflight | `PREFLIGHT_FAILED` — partial trace, no settlement |
+| **Solver degrade** | degrade | CP-SAT down → greedy+LNS with `status=degraded` |
+| **Concurrency (tier-1)** | scheduling | Provider concurrency cap serializes parallel nodes |
+| **Bond capacity (tier-1)** | budget, risk | Per-provider bond capacity binds |
+
+Regenerate fixtures: `npm run demo:emit`. Filter: `npm run demo:emit -- --tag calibration`.
+
+---
+
 ## Reset / smoke checklist
 
-- Refresh the page → defaults to the **Invoice** scenario, **Overview** section.
+- Refresh the page → defaults to the **Invoice** scenario, **Scenarios** section.
 - Each sidebar item scrolls to and highlights its section (scroll-spy).
-- Switching the **Scenario** dropdown updates every section's numbers.
+- Switching scenario (explorer card or dropdown) updates every section's numbers.
+- **Run trace** play/step highlights the active node in the DAG.
 - The **Calibration OFF/ON** toggle flips the allocation and the success stats.
 - **Run clearing** returns a result (server or browser) and never errors.
 - Every on-chain link that opens is a real `0x…64-hex` hash; UUIDs never link.

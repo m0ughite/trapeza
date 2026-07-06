@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.0.0",
-  "status": "cleared",
+  "status": "degraded",
   "meta": {
-    "runId": "invoice-workflow",
-    "label": "Invoice workflow (6-node DAG)",
-    "description": "A six-node extraction → reconcile → fact-check → format pipeline where braggart providers claim 97–99% but realize ~15%.",
-    "narrative": "The clearinghouse ingests the whole workflow and prices every provider from its realized-outcome ledger, not its bid. Calibration ON routes to the workhorses; the same market with calibration OFF buys the braggarts and the workflow collapses.",
-    "generatedAt": "2026-07-06T21:19:45.965Z",
+    "runId": "solver-degrade",
+    "label": "Solver degrade (CP-SAT → greedy)",
+    "description": "CP-SAT service unreachable — clearing degrades gracefully to greedy+LNS.",
+    "narrative": "When the Python Tier-1 solver is down, the clearinghouse falls back to the in-process TS Tier-2 engine. The run completes with degraded=true.",
+    "generatedAt": "2026-07-06T21:19:46.447Z",
     "seed": 42,
-    "solverServiceUp": true,
-    "headlineSolver": "cp_sat"
+    "solverServiceUp": false,
+    "headlineSolver": "greedy_lns"
   },
   "graph": {
     "id": "demo-workflow",
@@ -207,10 +207,10 @@
     }
   ],
   "clearing": {
-    "solver": "cp_sat",
-    "degraded": false,
-    "objectiveValue": 1.235934,
-    "makespanMs": 120000,
+    "solver": "greedy_lns",
+    "degraded": true,
+    "objectiveValue": 1.235934067263005,
+    "makespanMs": 555,
     "preflightPassed": true,
     "allocations": [
       {
@@ -224,12 +224,6 @@
         "taskId": "task-n2",
         "providerId": "workhorse-2",
         "score": 0.1863107757167116
-      },
-      {
-        "nodeId": "n3",
-        "taskId": "task-n3",
-        "providerId": "workhorse-3",
-        "score": 0.16582812895739543
       },
       {
         "nodeId": "n4",
@@ -246,6 +240,12 @@
       {
         "nodeId": "n6",
         "taskId": "task-n6",
+        "providerId": "workhorse-3",
+        "score": 0.16582812895739543
+      },
+      {
+        "nodeId": "n3",
+        "taskId": "task-n3",
         "providerId": "workhorse-3",
         "score": 0.16582812895739543
       }
@@ -283,36 +283,29 @@
       },
       {
         "nodeId": "n6",
-        "startMs": 119805,
+        "startMs": 360,
         "durationMs": 195,
-        "endMs": 120000
+        "endMs": 555
       }
     ],
     "settlementPricesUsdc": {
       "n1": "0.150000",
       "n2": "0.200000",
-      "n3": "0.250000",
       "n4": "0.150000",
       "n5": "0.200000",
-      "n6": "0.250000"
+      "n6": "0.250000",
+      "n3": "0.250000"
     },
     "totalClearedUsdc": "1.200000",
     "shadowPricesUsdc": {
-      "budget": "0.000000",
-      "deadline": "0.000000",
-      "capacity:workhorse-1": "0.000000",
-      "capacity:braggart-1": "0.000000",
-      "capacity:workhorse-2": "0.000000",
-      "capacity:braggart-2": "0.000000",
-      "capacity:workhorse-3": "0.000000",
-      "capacity:braggart-3": "0.000000"
+      "budget": "0"
     }
   },
   "calibration": {
     "on": {
       "mode": "on",
-      "solver": "cp_sat",
-      "objectiveValue": 1.235934,
+      "solver": "greedy_lns",
+      "objectiveValue": 1.235934067263005,
       "allocations": [
         {
           "nodeId": "n1",
@@ -325,12 +318,6 @@
           "taskId": "task-n2",
           "providerId": "workhorse-2",
           "score": 0.1863107757167116
-        },
-        {
-          "nodeId": "n3",
-          "taskId": "task-n3",
-          "providerId": "workhorse-3",
-          "score": 0.16582812895739543
         },
         {
           "nodeId": "n4",
@@ -349,6 +336,12 @@
           "taskId": "task-n6",
           "providerId": "workhorse-3",
           "score": 0.16582812895739543
+        },
+        {
+          "nodeId": "n3",
+          "taskId": "task-n3",
+          "providerId": "workhorse-3",
+          "score": 0.16582812895739543
         }
       ],
       "realizedEndToEndSuccess": 0.37241171063260037,
@@ -357,7 +350,7 @@
     },
     "off": {
       "mode": "off",
-      "solver": "cp_sat",
+      "solver": "greedy_lns",
       "objectiveValue": 0.825,
       "allocations": [
         {
@@ -459,10 +452,10 @@
       ]
     },
     "optimal": {
-      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
-      "kind": "cp_sat",
+      "solverLabel": "HiGHS MILP graph clearing (TS stand-in)",
+      "kind": "highs_milp",
       "status": "cleared",
-      "objectiveValue": 1.235934,
+      "objectiveValue": 1.2359340672630048,
       "errorCode": null,
       "errorMessage": null,
       "assignments": [
@@ -504,16 +497,16 @@
         }
       ]
     },
-    "winner": "cp_sat",
+    "winner": "highs_milp",
     "narrative": "Greedy optimizes each node in isolation (objective 1.2359) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.2359) solves those constraints jointly and returns the feasible allocation the market actually settles."
   },
   "twin": {
     "engine": "python",
     "iterations": 500,
-    "deadlineMs": 620,
+    "deadlineMs": 120000,
     "failureProbability": 0.604,
     "budgetOverrunProbability": 0,
-    "deadlineBreachProbability": 0.004,
+    "deadlineBreachProbability": 0,
     "expectedNetCostUsdc": 0.8050200000000002
   },
   "preflight": {
@@ -524,10 +517,10 @@
       "errors": [
         "overdraw at n1: fee 140000 > requester 50000",
         "overdraw at n2: fee 190000 > requester -90000",
-        "overdraw at n3: fee 240000 > requester -280000",
-        "overdraw at n4: fee 140000 > requester -520000",
-        "overdraw at n5: fee 190000 > requester -660000",
-        "overdraw at n6: fee 240000 > requester -850000",
+        "overdraw at n4: fee 140000 > requester -280000",
+        "overdraw at n5: fee 190000 > requester -420000",
+        "overdraw at n6: fee 240000 > requester -610000",
+        "overdraw at n3: fee 240000 > requester -850000",
         "requester balance negative"
       ]
     }
@@ -536,7 +529,7 @@
     "nodesCleared": 6,
     "totalClearedUsdc": "1.200000",
     "resultPerUsdc": 2.5,
-    "makespanMs": 120000,
+    "makespanMs": 555,
     "paymentChainDepth": 3,
     "graphDensity": 0.8333333333333334,
     "providerCount": 6
@@ -556,6 +549,12 @@
     {
       "seq": 2,
       "phase": "assign",
+      "level": "warn",
+      "message": "CP-SAT unavailable — degrading to greedy+LNS (fetch failed)"
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
       "nodeId": "n1",
       "level": "info",
       "message": "n1: assigned workhorse-1 (score 0.2658)",
@@ -565,7 +564,7 @@
       }
     },
     {
-      "seq": 3,
+      "seq": 4,
       "phase": "assign",
       "nodeId": "n2",
       "level": "info",
@@ -573,17 +572,6 @@
       "data": {
         "providerId": "workhorse-2",
         "score": 0.1863107757167116
-      }
-    },
-    {
-      "seq": 4,
-      "phase": "assign",
-      "nodeId": "n3",
-      "level": "info",
-      "message": "n3: assigned workhorse-3 (score 0.1658)",
-      "data": {
-        "providerId": "workhorse-3",
-        "score": 0.16582812895739543
       }
     },
     {
@@ -621,11 +609,22 @@
     },
     {
       "seq": 8,
+      "phase": "assign",
+      "nodeId": "n3",
+      "level": "info",
+      "message": "n3: assigned workhorse-3 (score 0.1658)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.16582812895739543
+      }
+    },
+    {
+      "seq": 9,
       "phase": "schedule",
       "level": "info",
-      "message": "Schedule computed: makespan 120000ms",
+      "message": "Schedule computed: makespan 555ms",
       "data": {
-        "makespanMs": 120000,
+        "makespanMs": 555,
         "schedule": [
           {
             "nodeId": "n1",
@@ -654,44 +653,37 @@
           },
           {
             "nodeId": "n6",
-            "startMs": 119805,
-            "endMs": 120000
+            "startMs": 360,
+            "endMs": 555
           }
         ]
       }
     },
     {
-      "seq": 9,
+      "seq": 10,
       "phase": "deadline-check",
       "level": "info",
-      "message": "Deadline ok: makespan 120000ms ≤ 120000ms"
+      "message": "Deadline ok: makespan 555ms ≤ 120000ms"
     },
     {
-      "seq": 10,
+      "seq": 11,
       "phase": "preflight",
       "level": "info",
       "message": "Preflight passed — requester funded and bonds sufficient"
     },
     {
-      "seq": 11,
+      "seq": 12,
       "phase": "shadow-prices",
       "level": "info",
-      "message": "Shadow prices computed (8 constraints)",
+      "message": "Shadow prices computed (1 constraints)",
       "data": {
         "shadowPricesUsdc": {
-          "budget": "0.000000",
-          "deadline": "0.000000",
-          "capacity:workhorse-1": "0.000000",
-          "capacity:braggart-1": "0.000000",
-          "capacity:workhorse-2": "0.000000",
-          "capacity:braggart-2": "0.000000",
-          "capacity:workhorse-3": "0.000000",
-          "capacity:braggart-3": "0.000000"
+          "budget": "0"
         }
       }
     },
     {
-      "seq": 12,
+      "seq": 13,
       "phase": "settlement",
       "level": "info",
       "message": "Settlement prices computed: 1.200000 total cleared",
@@ -699,27 +691,27 @@
         "settlementPricesUsdc": {
           "n1": "0.150000",
           "n2": "0.200000",
-          "n3": "0.250000",
           "n4": "0.150000",
           "n5": "0.200000",
-          "n6": "0.250000"
+          "n6": "0.250000",
+          "n3": "0.250000"
         },
         "totalClearedUsdc": "1.200000"
       }
     },
     {
-      "seq": 13,
+      "seq": 14,
       "phase": "bake-off",
       "level": "info",
-      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "message": "Bake-off: winner=highs_milp, greedy=cleared, optimal=cleared",
       "data": {
-        "winner": "cp_sat",
+        "winner": "highs_milp",
         "greedyObj": 1.235934067263005,
-        "optimalObj": 1.235934
+        "optimalObj": 1.2359340672630048
       }
     },
     {
-      "seq": 14,
+      "seq": 15,
       "phase": "score-candidates",
       "nodeId": "n1",
       "level": "info",
@@ -742,7 +734,7 @@
       }
     },
     {
-      "seq": 15,
+      "seq": 16,
       "phase": "calibration",
       "level": "info",
       "message": "Calibration contrast: 6 divergent nodes, success lift 0.372",
@@ -759,7 +751,7 @@
       }
     },
     {
-      "seq": 16,
+      "seq": 17,
       "phase": "score-candidates",
       "nodeId": "n2",
       "level": "info",
@@ -782,7 +774,7 @@
       }
     },
     {
-      "seq": 17,
+      "seq": 18,
       "phase": "score-candidates",
       "nodeId": "n3",
       "level": "info",
@@ -805,23 +797,23 @@
       }
     },
     {
-      "seq": 18,
+      "seq": 19,
       "phase": "twin",
       "level": "info",
       "message": "Twin MC (python): failure p=0.604",
       "data": {
         "failureProbability": 0.604,
         "budgetOverrunProbability": 0,
-        "deadlineBreachProbability": 0.004,
+        "deadlineBreachProbability": 0,
         "expectedNetCostUsdc": 0.8050200000000002,
         "seed": 42,
         "iterations": 500,
         "engine": "python",
-        "deadlineMs": 620
+        "deadlineMs": 120000
       }
     },
     {
-      "seq": 19,
+      "seq": 20,
       "phase": "score-candidates",
       "nodeId": "n4",
       "level": "info",
@@ -844,7 +836,7 @@
       }
     },
     {
-      "seq": 20,
+      "seq": 21,
       "phase": "score-candidates",
       "nodeId": "n5",
       "level": "info",
@@ -867,7 +859,7 @@
       }
     },
     {
-      "seq": 21,
+      "seq": 22,
       "phase": "score-candidates",
       "nodeId": "n6",
       "level": "info",

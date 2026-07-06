@@ -1,11 +1,12 @@
 {
   "schemaVersion": "1.0.0",
+  "status": "cleared",
   "meta": {
     "runId": "budget-bottleneck",
     "label": "Budget bottleneck (greedy busts)",
     "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router.",
     "narrative": "Greedy spends in topological order, overpays on the easy logo step, and has nothing left for the bottleneck code node — it returns NO_PROVIDER. CP-SAT sees the whole graph and clears feasibly at a higher objective. The single-task bonded broker is this graph's one-node special case.",
-    "generatedAt": "2026-07-05T21:12:24.654Z",
+    "generatedAt": "2026-07-06T21:19:46.019Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"
@@ -120,7 +121,7 @@
   "clearing": {
     "solver": "cp_sat",
     "degraded": false,
-    "objectiveValue": 1.284909,
+    "objectiveValue": 1.5375,
     "makespanMs": 200,
     "preflightPassed": true,
     "allocations": [
@@ -128,13 +129,13 @@
         "nodeId": "logo",
         "taskId": "task-logo",
         "providerId": "cheap-logo",
-        "score": 0.5806624327025937
+        "score": 0.7250000000000001
       },
       {
         "nodeId": "code",
         "taskId": "task-code",
         "providerId": "mid-code",
-        "score": 0.7042468245269453
+        "score": 0.8125000000000001
       }
     ],
     "schedule": [
@@ -169,19 +170,19 @@
     "on": {
       "mode": "on",
       "solver": "cp_sat",
-      "objectiveValue": 1.284909,
+      "objectiveValue": 1.5375,
       "allocations": [
         {
           "nodeId": "logo",
           "taskId": "task-logo",
           "providerId": "cheap-logo",
-          "score": 0.5806624327025937
+          "score": 0.7250000000000001
         },
         {
           "nodeId": "code",
           "taskId": "task-code",
           "providerId": "mid-code",
-          "score": 0.7042468245269453
+          "score": 0.8125000000000001
         }
       ],
       "realizedEndToEndSuccess": 0.49500000000000005,
@@ -191,19 +192,19 @@
     "off": {
       "mode": "off",
       "solver": "cp_sat",
-      "objectiveValue": 1.284909,
+      "objectiveValue": 1.5375,
       "allocations": [
         {
           "nodeId": "logo",
           "taskId": "task-logo",
           "providerId": "cheap-logo",
-          "score": 0.5806624327025937
+          "score": 0.7250000000000001
         },
         {
           "nodeId": "code",
           "taskId": "task-code",
           "providerId": "mid-code",
-          "score": 0.7042468245269453
+          "score": 0.8125000000000001
         }
       ],
       "realizedEndToEndSuccess": 0.49500000000000005,
@@ -227,7 +228,7 @@
       "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
       "kind": "cp_sat",
       "status": "cleared",
-      "objectiveValue": 1.284909,
+      "objectiveValue": 1.5375,
       "errorCode": null,
       "errorMessage": null,
       "assignments": [
@@ -235,13 +236,13 @@
           "nodeId": "logo",
           "taskId": "task-logo",
           "providerId": "cheap-logo",
-          "score": 0.5806624327025937
+          "score": 0.7250000000000001
         },
         {
           "nodeId": "code",
           "taskId": "task-code",
           "providerId": "mid-code",
-          "score": 0.7042468245269453
+          "score": 0.8125000000000001
         }
       ]
     },
@@ -277,5 +278,185 @@
     "paymentChainDepth": 2,
     "graphDensity": 0.5,
     "providerCount": 4
-  }
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 2 nodes, 1 edges",
+      "data": {
+        "graphId": "demo-budget-bottleneck",
+        "nodeCount": 2,
+        "edgeCount": 1
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "logo",
+      "level": "info",
+      "message": "logo: assigned cheap-logo (score 0.7250)",
+      "data": {
+        "providerId": "cheap-logo",
+        "score": 0.7250000000000001
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "code",
+      "level": "info",
+      "message": "code: assigned mid-code (score 0.8125)",
+      "data": {
+        "providerId": "mid-code",
+        "score": 0.8125000000000001
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 200ms",
+      "data": {
+        "makespanMs": 200,
+        "schedule": [
+          {
+            "nodeId": "logo",
+            "startMs": 0,
+            "endMs": 100
+          },
+          {
+            "nodeId": "code",
+            "startMs": 100,
+            "endMs": 200
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 200ms ≤ 120000ms"
+    },
+    {
+      "seq": 6,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 7,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (6 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "1.150000",
+          "deadline": "0.000000",
+          "capacity:premium-logo": "0.000000",
+          "capacity:cheap-logo": "0.000000",
+          "capacity:mid-code": "0.000000",
+          "capacity:premium-code": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 0.650000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "logo": "0.150000",
+          "code": "0.500000"
+        },
+        "totalClearedUsdc": "0.650000"
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=failed, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": null,
+        "optimalObj": 1.5375
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "score-candidates",
+      "nodeId": "logo",
+      "level": "info",
+      "message": "logo: 2 candidates — top premium-logo (score 1.3000)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "premium-logo",
+            "score": 1.3,
+            "pHat": 0.98,
+            "priceUsdc": "0.65"
+          },
+          {
+            "providerId": "cheap-logo",
+            "score": 0.7250000000000001,
+            "pHat": 0.55,
+            "priceUsdc": "0.15"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 0 divergent nodes, success lift 0.000",
+      "data": {
+        "divergentNodes": [],
+        "successLift": 0
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "score-candidates",
+      "nodeId": "code",
+      "level": "info",
+      "message": "code: 2 candidates — top mid-code (score 0.8125)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "mid-code",
+            "score": 0.8125000000000001,
+            "pHat": 0.9,
+            "priceUsdc": "0.50"
+          },
+          {
+            "providerId": "premium-code",
+            "score": 0.6062499999999997,
+            "pHat": 0.95,
+            "priceUsdc": "0.80"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.766",
+      "data": {
+        "failureProbability": 0.766,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.19019999999999998,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 120000
+      }
+    }
+  ]
 }

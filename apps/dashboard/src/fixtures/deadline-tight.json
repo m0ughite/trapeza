@@ -2,19 +2,19 @@
   "schemaVersion": "1.0.0",
   "status": "cleared",
   "meta": {
-    "runId": "research-pipeline",
-    "label": "Research pipeline (8-node, tight deadline)",
-    "description": "An eight-node research → extract×3 → reconcile → fact-check → format DAG under a tight deadline, stressing the schedule and the twin risk preflight.",
-    "narrative": "A denser workflow with a real critical path. Shadow prices reveal which constraint (budget vs deadline vs a scarce provider) is binding, and the State-Twins Monte Carlo scores failure / deadline-breach / budget-overrun risk on the cleared plan before a cent moves.",
-    "generatedAt": "2026-07-06T21:19:46.079Z",
+    "runId": "deadline-tight",
+    "label": "Deadline tight (8-node)",
+    "description": "Research pipeline with a very tight global deadline — makespan pressed to the limit.",
+    "narrative": "When the deadline is binding, the scheduler must fit the critical path. Shadow prices show deadline as the scarce resource.",
+    "generatedAt": "2026-07-06T21:19:46.299Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"
   },
   "graph": {
-    "id": "demo-research-pipeline",
+    "id": "demo-deadline-tight",
     "globalBudgetUsdc": "5.00",
-    "globalDeadlineMs": 3000,
+    "globalDeadlineMs": 1200,
     "globalQualityFloor": null,
     "riskAversion": 1,
     "nodes": [
@@ -248,7 +248,7 @@
     "solver": "cp_sat",
     "degraded": false,
     "objectiveValue": 2.814234,
-    "makespanMs": 3000,
+    "makespanMs": 1200,
     "preflightPassed": true,
     "allocations": [
       {
@@ -333,21 +333,21 @@
       },
       {
         "nodeId": "reconcile",
-        "startMs": 2525,
+        "startMs": 725,
         "durationMs": 195,
-        "endMs": 2720
+        "endMs": 920
       },
       {
         "nodeId": "factcheck",
-        "startMs": 2720,
+        "startMs": 920,
         "durationMs": 115,
-        "endMs": 2835
+        "endMs": 1035
       },
       {
         "nodeId": "format",
-        "startMs": 2835,
+        "startMs": 1035,
         "durationMs": 165,
-        "endMs": 3000
+        "endMs": 1200
       }
     ],
     "settlementPricesUsdc": {
@@ -623,10 +623,10 @@
   "twin": {
     "engine": "python",
     "iterations": 500,
-    "deadlineMs": 900,
+    "deadlineMs": 800,
     "failureProbability": 0.736,
     "budgetOverrunProbability": 0,
-    "deadlineBreachProbability": 0,
+    "deadlineBreachProbability": 0.34,
     "expectedNetCostUsdc": 0.9006399999999999
   },
   "preflight": {
@@ -651,7 +651,7 @@
     "nodesCleared": 8,
     "totalClearedUsdc": "1.600000",
     "resultPerUsdc": 3.4375000000000004,
-    "makespanMs": 3000,
+    "makespanMs": 1200,
     "paymentChainDepth": 5,
     "graphDensity": 1.25,
     "providerCount": 6
@@ -663,7 +663,7 @@
       "level": "info",
       "message": "DAG valid: 8 nodes, 10 edges",
       "data": {
-        "graphId": "demo-research-pipeline",
+        "graphId": "demo-deadline-tight",
         "nodeCount": 8,
         "edgeCount": 10
       }
@@ -760,9 +760,9 @@
       "seq": 10,
       "phase": "schedule",
       "level": "info",
-      "message": "Schedule computed: makespan 3000ms",
+      "message": "Schedule computed: makespan 1200ms",
       "data": {
-        "makespanMs": 3000,
+        "makespanMs": 1200,
         "schedule": [
           {
             "nodeId": "research",
@@ -791,18 +791,18 @@
           },
           {
             "nodeId": "reconcile",
-            "startMs": 2525,
-            "endMs": 2720
+            "startMs": 725,
+            "endMs": 920
           },
           {
             "nodeId": "factcheck",
-            "startMs": 2720,
-            "endMs": 2835
+            "startMs": 920,
+            "endMs": 1035
           },
           {
             "nodeId": "format",
-            "startMs": 2835,
-            "endMs": 3000
+            "startMs": 1035,
+            "endMs": 1200
           }
         ]
       }
@@ -811,7 +811,7 @@
       "seq": 11,
       "phase": "deadline-check",
       "level": "info",
-      "message": "Deadline ok: makespan 3000ms ≤ 3000ms"
+      "message": "Deadline ok: makespan 1200ms ≤ 1200ms"
     },
     {
       "seq": 12,
@@ -962,12 +962,12 @@
       "data": {
         "failureProbability": 0.736,
         "budgetOverrunProbability": 0,
-        "deadlineBreachProbability": 0,
+        "deadlineBreachProbability": 0.34,
         "expectedNetCostUsdc": 0.9006399999999999,
         "seed": 42,
         "iterations": 500,
         "engine": "python",
-        "deadlineMs": 900
+        "deadlineMs": 800
       }
     },
     {

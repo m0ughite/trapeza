@@ -1,0 +1,432 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "rejected",
+  "error": {
+    "code": "PREFLIGHT_FAILED",
+    "message": "preflight failed: overdraw at n1: fee 140000 > requester 50000; overdraw at n2: fee 190000 > requester -90000; overdraw at n3: fee 240000 > requester -280000; overdraw at n4: fee 140000 > requester -520000; overdraw at n5: fee 190000 > requester -660000; overdraw at n6: fee 240000 > requester -850000; requester balance negative"
+  },
+  "meta": {
+    "runId": "preflight-underfunded",
+    "label": "Preflight rejected (under-funded)",
+    "description": "Same workflow as invoice, but the requester balance is too low — clearing is rejected before settlement.",
+    "narrative": "Preflight is enforced, not advisory. An under-funded requester cannot draw down more than their balance — the clearing throws PREFLIGHT_FAILED.",
+    "generatedAt": "2026-07-06T21:19:46.311Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "greedy_lns"
+  },
+  "graph": {
+    "id": "demo-workflow",
+    "globalBudgetUsdc": "5.00",
+    "globalDeadlineMs": 120000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "n1",
+        "capability": "cap.1",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n2",
+        "capability": "cap.2",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n3",
+        "capability": "cap.3",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n4",
+        "capability": "cap.1",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n5",
+        "capability": "cap.2",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "n6",
+        "capability": "cap.3",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n4"
+      },
+      {
+        "from": "n2",
+        "to": "n4"
+      },
+      {
+        "from": "n3",
+        "to": "n5"
+      },
+      {
+        "from": "n4",
+        "to": "n6"
+      },
+      {
+        "from": "n5",
+        "to": "n6"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "workhorse-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.15",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.65,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.14,
+      "latencyMeanMs": 115,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-1",
+      "capabilities": [
+        "cap.1"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 50,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.29,
+      "latencyMeanMs": 75,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "workhorse-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 150,
+      "calibratedSuccessProb": 0.8181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 18,
+      "successBeta": 4,
+      "costMeanUsdc": 0.19,
+      "latencyMeanMs": 164.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-2",
+      "capabilities": [
+        "cap.2"
+      ],
+      "priceUsdc": "0.35",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 80,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.34,
+      "latencyMeanMs": 105,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "workhorse-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.25",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 180,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 194.99999999999997,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "braggart-3",
+      "capabilities": [
+        "cap.3"
+      ],
+      "priceUsdc": "0.40",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 60,
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.39,
+      "latencyMeanMs": 85,
+      "nObservations": 20,
+      "archetype": "braggart"
+    }
+  ],
+  "clearing": {
+    "solver": "greedy_lns",
+    "degraded": false,
+    "objectiveValue": 0,
+    "makespanMs": 0,
+    "preflightPassed": false,
+    "allocations": [],
+    "schedule": [],
+    "settlementPricesUsdc": {},
+    "totalClearedUsdc": "0.00",
+    "shadowPricesUsdc": {}
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "greedy_lns",
+      "objectiveValue": 0,
+      "allocations": [],
+      "realizedEndToEndSuccess": 0,
+      "claimedEndToEndSuccess": 0,
+      "expectedSpendUsdc": "0.00"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "greedy_lns",
+      "objectiveValue": 0,
+      "allocations": [],
+      "realizedEndToEndSuccess": 0,
+      "claimedEndToEndSuccess": 0,
+      "expectedSpendUsdc": "0.00"
+    },
+    "divergentNodes": [],
+    "successLift": 0
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "n/a",
+      "kind": "greedy_lns",
+      "status": "failed",
+      "objectiveValue": null,
+      "errorCode": "SKIPPED",
+      "errorMessage": "not computed",
+      "assignments": []
+    },
+    "optimal": {
+      "solverLabel": "n/a",
+      "kind": "greedy_lns",
+      "status": "failed",
+      "objectiveValue": null,
+      "errorCode": "SKIPPED",
+      "errorMessage": "not computed",
+      "assignments": []
+    },
+    "winner": "greedy_lns",
+    "narrative": "Clearing did not complete."
+  },
+  "twin": null,
+  "preflight": {
+    "fundedPassed": false,
+    "underFunded": {
+      "passed": false,
+      "summary": "preflight failed: overdraw at n1: fee 140000 > requester 50000; overdraw at n2: fee 190000 > requester -90000; overdraw at n3: fee 240000 > requester -280000; overdraw at n4: fee 140000 > requester -520000; overdraw at n5: fee 190000 > requester -660000; overdraw at n6: fee 240000 > requester -850000; requester balance negative",
+      "errors": [
+        "preflight failed: overdraw at n1: fee 140000 > requester 50000; overdraw at n2: fee 190000 > requester -90000; overdraw at n3: fee 240000 > requester -280000; overdraw at n4: fee 140000 > requester -520000; overdraw at n5: fee 190000 > requester -660000; overdraw at n6: fee 240000 > requester -850000; requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 0,
+    "totalClearedUsdc": "0.00",
+    "resultPerUsdc": 0,
+    "makespanMs": 0,
+    "paymentChainDepth": 3,
+    "graphDensity": 0.8333333333333334,
+    "providerCount": 6
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 6 nodes, 5 edges",
+      "data": {
+        "graphId": "demo-workflow",
+        "nodeCount": 6,
+        "edgeCount": 5
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "n1",
+      "level": "info",
+      "message": "n1: assigned workhorse-1 (score 0.2658)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.2658281289573954
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "n2",
+      "level": "info",
+      "message": "n2: assigned workhorse-2 (score 0.1863)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.1863107757167116
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "n3",
+      "level": "info",
+      "message": "n3: assigned workhorse-3 (score 0.1658)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.16582812895739543
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "n4",
+      "level": "info",
+      "message": "n4: assigned workhorse-1 (score 0.2658)",
+      "data": {
+        "providerId": "workhorse-1",
+        "score": 0.2658281289573954
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "n5",
+      "level": "info",
+      "message": "n5: assigned workhorse-2 (score 0.1863)",
+      "data": {
+        "providerId": "workhorse-2",
+        "score": 0.1863107757167116
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "assign",
+      "nodeId": "n6",
+      "level": "info",
+      "message": "n6: assigned workhorse-3 (score 0.1658)",
+      "data": {
+        "providerId": "workhorse-3",
+        "score": 0.16582812895739543
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 120000ms",
+      "data": {
+        "makespanMs": 120000,
+        "schedule": [
+          {
+            "nodeId": "n1",
+            "startMs": 0,
+            "endMs": 115
+          },
+          {
+            "nodeId": "n2",
+            "startMs": 0,
+            "endMs": 165
+          },
+          {
+            "nodeId": "n3",
+            "startMs": 0,
+            "endMs": 195
+          },
+          {
+            "nodeId": "n4",
+            "startMs": 165,
+            "endMs": 280
+          },
+          {
+            "nodeId": "n5",
+            "startMs": 195,
+            "endMs": 360
+          },
+          {
+            "nodeId": "n6",
+            "startMs": 119805,
+            "endMs": 120000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 120000ms ≤ 120000ms"
+    },
+    {
+      "seq": 10,
+      "phase": "preflight",
+      "level": "error",
+      "message": "Preflight failed: overdraw at n1: fee 140000 > requester 50000; overdraw at n2: fee 190000 > requester -90000; overdraw at n3: fee 240000 > requester -280000; overdraw at n4: fee 140000 > requester -520000; overdraw at n5: fee 190000 > requester -660000; overdraw at n6: fee 240000 > requester -850000; requester balance negative",
+      "data": {
+        "errors": [
+          "overdraw at n1: fee 140000 > requester 50000",
+          "overdraw at n2: fee 190000 > requester -90000",
+          "overdraw at n3: fee 240000 > requester -280000",
+          "overdraw at n4: fee 140000 > requester -520000",
+          "overdraw at n5: fee 190000 > requester -660000",
+          "overdraw at n6: fee 240000 > requester -850000",
+          "requester balance negative"
+        ]
+      }
+    }
+  ]
+}
