@@ -274,6 +274,118 @@ and DRY (see `contract/README.md`).
 
 ---
 
+## Phase D (Demo dashboard) — engine→JSON driver, on-chain wiring, Vite dashboard (Jul 5)
+
+Built the judge-facing product surface on `feature/demo-dashboard` per
+[FINAL-PHASE-PLAN.md](FINAL-PHASE-PLAN.md). The engine is untouched except two thin, additive seams
+(a JSON emitter and a pluggable settlement path); everything green. **Not committed — left for review.**
+
+**1. Engine → JSON driver + fixtures.** `demo/emit-run.ts` (+ `demo/scenarios.ts`) runs the REAL
+engine (`submitGraph` / `solveCpSat` / `solveGreedyLns` / Monte-Carlo) over three scenarios and emits
+one versioned `demo-run.json` each into `apps/dashboard/src/fixtures/`. The contract is defined ONCE in
+`apps/dashboard/src/types/contract.ts` and imported by both the Node driver and the browser. Captured
+per run: DAG, providers (claimed vs calibrated p̂ + archetype), headline clearing (allocation, schedule,
+settlement prices, shadow prices, meta), **calibration ON-vs-OFF** contrast, **CP-SAT-vs-greedy bake-off**,
+**twin Monte-Carlo**, preflight guard, traction metrics. Real numbers (service UP, CP-SAT Tier-1):
+- `invoice-workflow` — obj 1.2359; calibration OFF picks all 6 braggarts → realized end-to-end **0.003%**,
+  ON picks all workhorses → **37.2%** (lift 0.372); all 6 nodes re-route.
+- `budget-bottleneck` — CP-SAT clears obj **1.2849** where greedy returns `NO_PROVIDER`; budget shadow
+  dual 1.15 (binding); twin failure 76.6%.
+- `research-pipeline` — 8-node, obj 2.8142; calibration lift 0.249.
+
+**2. On-chain wiring (timeboxed → cut-line taken).** Added a PLUGGABLE settlement seam
+(`demo/onchain.ts`: `NanoSettlementProvider` + `GatewayX402SettlementProvider` driving the proven
+buyer→x402/Gateway path) and a driver (`demo/emit-onchain.ts`) that settles one real testnet nanopayment
+per cleared node and writes `onchain-receipts.json`. The live attempt **overran the timebox and hung on
+the Circle facilitator**, so per the plan's cut-line #5 the receipts fall back to the already-PROVEN P0''
+spikes (Agent ID 842573; register/reputation tx; Gateway deposit `0xb64a…`; settlement UUID
+`05f9f115…`), clearly labeled. Honesty rule enforced end-to-end: Gateway settlement UUIDs carry a
+"UUID · not a tx" badge and are never `/tx/`-linked; only real 0x+64hex hashes link to arcscan. The
+interface is ready to point at a live agentcash.dev provider (`LIVE=1` + funded `BUYER`/`SELLER` env).
+
+**3. Dashboard (`apps/dashboard/`, Vite + React + TS).** Self-contained, Vercel-ready SPA. Historical
+runs replay the bundled fixtures fully static (zero backend). "Run your own" executes the portable
+Tier-2 greedy engine (`src/lib/liveEngine.ts`) via a rate-limited Vercel serverless function
+(`api/run.ts`, no on-chain action) and **degrades gracefully to the identical in-browser engine** when
+no backend is reachable (verified: preview run showed "ran in-browser", cleared obj 1.1819, realized
+37.2% vs claimed 9.57%). Views: clearing DAG + allocation, bake-off, calibration ON/OFF (interactive
+toggle), shadow prices, twin Monte-Carlo, on-chain panel, traction strip. Clean dark design system,
+responsive, no chart deps (hand-rolled SVG). `vercel.json` + `apps/dashboard/README.md` included; no
+secrets in the client bundle.
+
+**Verification (real):** `npm run typecheck` → exit 0 · `npm test` → **57 passed (15 files)** ·
+`npm run build --workspace @trapeza/dashboard` (`tsc && vite build`) → success (193 KB JS / 58.7 KB gzip)
+· dashboard rendered + interacted in-browser (screenshots). Cut-line taken: live on-chain per-node
+settlement (fell back to proven spike receipts, labeled).
+
+---
+
+## Phase D2 (Dashboard product overhaul) — IA, visual system, jargon strip (Jul 6)
+
+Redesigned `apps/dashboard/` from an "internal simulation console" (every panel
+stacked vertically, heavy academic voice) into a product-grade web app for the
+demo, **without touching the engine, fixtures, or JSON contract**. Presentation +
+information-architecture + UX only. **Not committed — left for review.**
+
+**1. Navigation / IA.** Added a persistent **left sidebar** (Overview, Clearing,
+Solver bake-off, Calibration ledger, Bottleneck prices, Risk preflight, On-chain
+settlement, Run your own) with scroll-spy (IntersectionObserver) that highlights
+the active section; clicking scrolls to it. Added a sticky **top bar** with the
+product name, a one-line value prop, and the scenario selector. Responsive down
+to a laptop/tablet (sidebar collapses to a horizontal nav < 900px).
+
+**2. Jargon strip (UI only, data preserved).** Removed academic name-drops from
+the primary interface — "MarketBench", "CASTER", "AEX", "State-Twins" (as a paper
+cite), "LP duals", "Beta-Binomial", "CP-SAT/Tier-1/Tier-2", "RFB-3" — and replaced
+them with plain product language ("Calibration ledger — scored on what they
+delivered", "Constraint prices — value of one more dollar", "Risk preflight —
+dry-run before you pay", "batch ID · not a transaction"). Fixture-authored prose
+(`meta.narrative`, `bakeOff.narrative`, `meta.description`) is **sanitized at
+display time** by a new `plain()` helper (`services/format.ts`) — the JSON is
+untouched. Solver labels are humanized from `kind` (`greedy_lns` → "Greedy
+per-task router", `cp_sat` → "Whole-graph clearing"). The full technical
+vocabulary + paper mapping now lives in `apps/dashboard/README.md` ("Concepts —
+plain language ↔ the technical detail").
+
+**3. Product-grade UX.** New hero/overview (crisp value prop + headline stats +
+4 differentiator cards + scenario picker), consistent `SectionHeader` (eyebrow /
+title / one-sentence "why this matters"), refined dark design system (single mint
+accent, restrained palette, generous spacing, tabular numerals, focus-visible
+rings, DAG legend). One focused, well-framed card per section instead of a wall
+of panels.
+
+**4. Progressive disclosure.** New `Tooltip` ("?" hover/focus/tap) and
+`Collapsible` ("How this works", collapsed by default) primitives. Deep
+explanations (Bayesian scoring, CP-SAT, shadow-price duals, the Monte-Carlo
+preflight, the honesty rule) are behind these, so the default view stays
+skimmable.
+
+**5. Functionality preserved.** Scenario switching (invoice / budget-bottleneck /
+research-pipeline), Calibration ON/OFF toggle, "Run your own" live Tier-2 path
+(verified in-browser fallback: cleared, plan score 1.1819, real 37.2% vs claimed
+9.57%), on-chain panel with honest UUID-vs-tx-hash labeling and real arcscan links
+only for real hashes, Vercel-readiness (no client secrets) — all intact. Added
+empty/cold-start states (cold-start calibration note; "nothing binds" for
+non-binding shadow prices; "no feasible plan" live-run state).
+
+**Deliverable 2 — scenario demo doc.** Authored `apps/dashboard/DEMO-SCENARIOS.md`:
+narrative walkthroughs for all three bundled scenarios (story, exact clicks, what
+to see, the point it proves), tied to the differentiator each demonstrates —
+budget-bottleneck (graph clearing beats greedy: no-feasible-plan vs 1.2849),
+invoice (calibration moat: 37.2% ON vs 0.003% OFF), research (scales: 8 steps,
++24.9% lift) — plus "run your own" and on-chain honest-labels walkthroughs and a
+smoke checklist.
+
+**Verification (real):** `npm test` → **57 passed (15 files)** · `npm run
+typecheck` → exit 0 · `tsc --noEmit` (dashboard) → exit 0 · `npm run build
+--workspace @trapeza/dashboard` (`tsc && vite build`) → success (208 KB JS /
+62.9 KB gzip; 16 KB CSS / 3.98 KB gzip) · rendered + interacted in-browser at
+127.0.0.1:5173 (overview, clearing DAG, bake-off, calibration ON/OFF, on-chain,
+risk preflight, live run — screenshots captured). No engine/fixture/contract
+changes.
+
+---
+
 ## Open items / remaining work
 
 Status note (Jun 26): wallets are funded and BOTH P0 on-chain spikes pass — `adapter-arc` identity/reputation calls and `adapter-gateway` deposit + x402 verify/settle are proven live. Remaining adapter work is the escrow/oracle surface and end-to-end wiring.

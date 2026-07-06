@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "runId": "budget-bottleneck",
+    "label": "Budget bottleneck (greedy busts)",
+    "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router.",
+    "narrative": "Greedy spends in topological order, overpays on the easy logo step, and has nothing left for the bottleneck code node — it returns NO_PROVIDER. CP-SAT sees the whole graph and clears feasibly at a higher objective. The single-task bonded broker is this graph's one-node special case.",
+    "generatedAt": "2026-07-05T21:12:24.654Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "demo-budget-bottleneck",
+    "globalBudgetUsdc": "1.00",
+    "globalDeadlineMs": 120000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "logo",
+        "capability": "cap.logo",
+        "valueUsdc": "2.00",
+        "budgetUsdc": "2.00",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "code",
+        "capability": "cap.code",
+        "valueUsdc": "1.50",
+        "budgetUsdc": "1.50",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "logo",
+        "to": "code"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "premium-logo",
+      "capabilities": [
+        "cap.logo"
+      ],
+      "priceUsdc": "0.65",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "cheap-logo",
+      "capabilities": [
+        "cap.logo"
+      ],
+      "priceUsdc": "0.15",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.55,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "mid-code",
+      "capabilities": [
+        "cap.code"
+      ],
+      "priceUsdc": "0.50",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.9,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "premium-code",
+      "capabilities": [
+        "cap.code"
+      ],
+      "priceUsdc": "0.80",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.95,
+      "claimedLatencyMs": 100,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.284909,
+    "makespanMs": 200,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "logo",
+        "taskId": "task-logo",
+        "providerId": "cheap-logo",
+        "score": 0.5806624327025937
+      },
+      {
+        "nodeId": "code",
+        "taskId": "task-code",
+        "providerId": "mid-code",
+        "score": 0.7042468245269453
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "logo",
+        "startMs": 0,
+        "durationMs": 100,
+        "endMs": 100
+      },
+      {
+        "nodeId": "code",
+        "startMs": 100,
+        "durationMs": 100,
+        "endMs": 200
+      }
+    ],
+    "settlementPricesUsdc": {
+      "logo": "0.150000",
+      "code": "0.500000"
+    },
+    "totalClearedUsdc": "0.650000",
+    "shadowPricesUsdc": {
+      "budget": "1.150000",
+      "deadline": "0.000000",
+      "capacity:premium-logo": "0.000000",
+      "capacity:cheap-logo": "0.000000",
+      "capacity:mid-code": "0.000000",
+      "capacity:premium-code": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.284909,
+      "allocations": [
+        {
+          "nodeId": "logo",
+          "taskId": "task-logo",
+          "providerId": "cheap-logo",
+          "score": 0.5806624327025937
+        },
+        {
+          "nodeId": "code",
+          "taskId": "task-code",
+          "providerId": "mid-code",
+          "score": 0.7042468245269453
+        }
+      ],
+      "realizedEndToEndSuccess": 0.49500000000000005,
+      "claimedEndToEndSuccess": 0.49500000000000005,
+      "expectedSpendUsdc": "0.650000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.284909,
+      "allocations": [
+        {
+          "nodeId": "logo",
+          "taskId": "task-logo",
+          "providerId": "cheap-logo",
+          "score": 0.5806624327025937
+        },
+        {
+          "nodeId": "code",
+          "taskId": "task-code",
+          "providerId": "mid-code",
+          "score": 0.7042468245269453
+        }
+      ],
+      "realizedEndToEndSuccess": 0.49500000000000005,
+      "claimedEndToEndSuccess": 0.49500000000000005,
+      "expectedSpendUsdc": "0.650000"
+    },
+    "divergentNodes": [],
+    "successLift": 0
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "failed",
+      "objectiveValue": null,
+      "errorCode": "NO_PROVIDER",
+      "errorMessage": "no feasible provider for code",
+      "assignments": []
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.284909,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "logo",
+          "taskId": "task-logo",
+          "providerId": "cheap-logo",
+          "score": 0.5806624327025937
+        },
+        {
+          "nodeId": "code",
+          "taskId": "task-code",
+          "providerId": "mid-code",
+          "score": 0.7042468245269453
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy spends the shared budget in topological order, overpays on the easy node, and cannot afford the bottleneck (NO_PROVIDER). The graph-aware clearing sees the whole DAG and buys cheap-but-adequate on the easy nodes to reserve budget for the bottleneck — so it clears where greedy busts. The single-task bonded broker is this graph's one-node special case."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 120000,
+    "failureProbability": 0.766,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.19019999999999998
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.600000 errors=3",
+      "errors": [
+        "overdraw at logo: fee 150000 > requester 50000",
+        "overdraw at code: fee 500000 > requester -100000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 2,
+    "totalClearedUsdc": "0.650000",
+    "resultPerUsdc": 5.384615384615384,
+    "makespanMs": 200,
+    "paymentChainDepth": 2,
+    "graphDensity": 0.5,
+    "providerCount": 4
+  }
+}

@@ -16,6 +16,8 @@
     "test": "vitest run",
     "typecheck": "tsc -b packages/core packages/oracle packages/clearinghouse packages/adapter-arc packages/adapter-gateway",
     "demo": "tsx --tsconfig demo/tsconfig.json demo/run-clearing.ts",
+    "demo:emit": "tsx --tsconfig demo/tsconfig.json demo/emit-run.ts",
+    "demo:onchain": "tsx --tsconfig demo/tsconfig.json demo/emit-onchain.ts",
     "solver:install": "python3.12 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt",
     "solver": "cd solver && .venv/bin/python -m uvicorn trapeza_solver.app:app --host 127.0.0.1 --port 8000",
     "solver:test": "cd solver && .venv/bin/python -m pytest -q",

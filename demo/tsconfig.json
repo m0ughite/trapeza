@@ -7,7 +7,9 @@
     "paths": {
       "@trapeza/core": ["packages/core/src/index.ts"],
       "@trapeza/oracle": ["packages/oracle/src/index.ts"],
-      "@trapeza/clearinghouse": ["packages/clearinghouse/src/index.ts"]
+      "@trapeza/clearinghouse": ["packages/clearinghouse/src/index.ts"],
+      "@trapeza/adapter-gateway": ["packages/adapter-gateway/src/index.ts"],
+      "@trapeza/adapter-arc": ["packages/adapter-arc/src/index.ts"]
     }
   },
   "include": ["./**/*.ts"]
