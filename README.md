@@ -41,7 +41,7 @@ demo/                                        deterministic, chain-free engine wa
 apps/dashboard/     @trapeza/dashboard       Vite + React SPA visualizing clearings + receipts.
 ```
 
-The **module boundary is the point**: `@trapeza/core` is chain-agnostic; every Circle/Arc-specific call lives in an adapter. Full design detail lives in `[docs/PROJECT-DIAGRAMS.md](docs/PROJECT-DIAGRAMS.md)` and the canonical `[docs/SOURCE-OF-TRUTH.md](docs/SOURCE-OF-TRUTH.md)`.
+The **module boundary is a hard rule**: `@trapeza/core` is chain-agnostic; every Circle/Arc-specific call lives in an adapter. Full design detail lives in `[docs/PROJECT-DIAGRAMS.md](docs/PROJECT-DIAGRAMS.md)` and the canonical `[docs/SOURCE-OF-TRUTH.md](docs/SOURCE-OF-TRUTH.md)`.
 
 ## Quickstart
 
@@ -62,7 +62,7 @@ npm run dev   --workspace @trapeza/dashboard    # http://localhost:5173
 npm run build --workspace @trapeza/dashboard    # tsc + vite build → dist/
 ```
 
-`npm run demo` prints a narrated console walkthrough of a clearing; `npm run demo:onchain` regenerates the on-chain receipts (uses the proven fallback unless funded testnet wallets are supplied). On-chain spikes and wallet/funding setup are documented in `[docs/SETUP.md](docs/SETUP.md)`.
+`npm run demo` prints a narrated console walkthrough of a clearing; `npm run demo:onchain` regenerates the on-chain receipts (uses the proven fallback unless funded testnet wallets are supplied). The on-chain path and wallet/funding setup are documented in `[docs/SETUP.md](docs/SETUP.md)`.
 
 ## Demo scenarios
 
@@ -76,13 +76,13 @@ Three deterministic, real-engine scenarios ship as bundled dashboard fixtures:
 
 Settlement targets **Circle's Arc testnet** (`eip155:5042002`) using USDC via **x402 / Circle Gateway** nanopayments and **ERC-8004** identity/reputation. Trapeza applies a strict honesty rule to on-chain artifacts:
 
-- **Real EVM transactions** (`0x`+64-hex) are the only things linked to [arcscan](https://testnet.arcscan.app). Proven prior-spike receipts include:
+- **Real EVM transactions** (`0x`+64-hex) are the only things linked to [arcscan](https://testnet.arcscan.app). Proven prior on-chain receipts include:
   - ERC-8004 identity register — `[0x3cc07a93…489e1735](https://testnet.arcscan.app/tx/0x3cc07a9310283fddc7c6c1de1aede992985fe7e89ea0de32b1cbbb40489e1735)`
   - ERC-8004 reputation feedback — `[0x7b0d7d3a…86f7f982](https://testnet.arcscan.app/tx/0x7b0d7d3a2d8574483b10ecfd5c4072274eb0ce697811ace8c5b2f16186f7f982)`
   - Circle Gateway deposit (real on-chain tx into the unified balance) — `[0xb64a686a…d4fff6e0](https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0)`
 - **A Circle Gateway settlement id is a batch UUID, NOT an EVM transaction.** It is never rendered as a `/tx/` link. (The batch settles on-chain when it flushes.)
 
-Both on-chain spikes — one x402/Gateway USDC nanopayment and one ERC-8004 identity registration — are written, run against the live testnet, and gated by a `[BLOCKED]` preflight so a hash only ever appears if a transaction actually settled. They never fabricate a tx hash. See `[docs/SETUP.md](docs/SETUP.md)`.
+Both on-chain integrations — one x402/Gateway USDC nanopayment and one ERC-8004 identity registration — are written, run against the live testnet, and gated by a `[BLOCKED]` preflight so a hash only ever appears if a transaction actually settled. They never fabricate a tx hash. See `[docs/SETUP.md](docs/SETUP.md)`.
 
 ## Tech stack
 
@@ -94,14 +94,17 @@ Both on-chain spikes — one x402/Gateway USDC nanopayment and one ERC-8004 iden
 
 ## Hackathon alignment
 
-Built for the **Lepton Agents Hackathon (Canteen × Circle)**. Trapeza sits at the overlap of the request-for-builds: autonomous paying agents, agents selling services, and agent-to-agent networks — with the **clearinghouse as the load-bearing piece** and real Circle/Arc USDC settlement as the rail.
+Built for the **Lepton Agents Hackathon (Canteen × Circle)**. Trapeza targets the overlap of **RFB 01 — Autonomous Paying Agents**, **RFB 02 — Selling Agent Services via Nanopayments**, and **RFB 03 — Agent-to-Agent Nanopayment Networks**, with **RFB 03 as the core**. Real Circle/Arc USDC settlement is the rail.
 
 ## Roadmap / coming next
 
 - Realistic, use-case scenarios beyond the three seed graphs.
 - A generic **bring-your-own-workflow** builder: submit any DAG, not just the bundled fixtures.
 - **Per-node on-chain settlement** — wire cleared allocations to live per-hop ERC-8183 escrow release / x402 payment (the chain-layer adapter plan is staged).
-- **Vercel deploy** of the dashboard + a recorded demo video.
+- **Constrained natural-language → workflow generation** — describe a task in plain language; a guardrailed, schema-validated planner emits the task DAG.
+- An **MCP server** so any agent can hire the clearinghouse in one call.
+- **Live provider integrations** (e.g. agentcash.dev) to route real paid demand.
+- **Quality-adjusted unified clearing price (UCP)** per capability class.
 
 ## License
 
