@@ -68,7 +68,7 @@ npm run build --workspace @trapeza/dashboard    # tsc + vite build → dist/
 
 Three deterministic, real-engine scenarios ship as bundled dashboard fixtures:
 
-- **Invoice workflow (6-node DAG)** — extract → reconcile → fact-check → format, where braggart providers claim 97–99% but realize ~15%. Shows the calibration moat (ON vs OFF).
+- **Invoice workflow (6-node DAG)** — extract → reconcile → fact-check → format, where braggart providers claim 97–99% but realize ~15%. Shows the calibration mode (ON vs OFF).
 - **Budget bottleneck (greedy busts)** — a two-node logo → code graph under a tight $1.00 budget: naive per-task greedy busts the budget; the CP-SAT clearing finds the feasible joint plan.
 - **Research pipeline (8-node, tight deadline)** — research → extract×3 → reconcile → fact-check → format under a tight deadline, stressing the schedule and the Monte-Carlo risk preflight.
 
