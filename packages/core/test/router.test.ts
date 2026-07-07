@@ -74,9 +74,9 @@ describe("EV router", () => {
   });
 
   it("value-tiered mechanism shell selects by value / latency", () => {
-    const cheap = makeTask({ budgetUsdc: "0.005" });
-    const mid = makeTask({ budgetUsdc: "1.00" });
-    const urgent = makeTask({ budgetUsdc: "1.00", deadlineMs: 100 });
+    const cheap = makeTask({ valueUsdc: "0.005", budgetUsdc: "0.01" });
+    const mid = makeTask({ valueUsdc: "1.00", budgetUsdc: "1.00" });
+    const urgent = makeTask({ valueUsdc: "1.00", budgetUsdc: "1.00", deadlineMs: 100 });
 
     expect(selectMechanism(cheap, 3, DEFAULT_CONFIG)).toBe("posted");
     expect(selectMechanism(mid, 3, DEFAULT_CONFIG)).toBe("second_price");

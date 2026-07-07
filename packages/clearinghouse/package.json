@@ -1,0 +1,25 @@
+{
+  "name": "@trapeza/clearinghouse",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Graph MILP solver, greedy/LNS, DAG scheduler, and settlement twin for Trapeza.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@trapeza/core": "*",
+    "ajv": "^8.17.1",
+    "highs": "^1.12.0",
+    "seedrandom": "^3.0.5"
+  }
+}

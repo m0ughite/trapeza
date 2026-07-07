@@ -1,0 +1,8 @@
+{
+  "failureProbability": 0.24,
+  "budgetOverrunProbability": 0.0,
+  "deadlineBreachProbability": 0.0,
+  "expectedNetCostUsdc": 0.27,
+  "seed": 42,
+  "iterations": 500
+}

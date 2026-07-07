@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "runs": [
+    {
+      "runId": "invoice-workflow",
+      "label": "Invoice workflow (6-node DAG)",
+      "description": "A six-node extraction → reconcile → fact-check → format pipeline where braggart providers claim 97–99% but realize ~15%."
+    },
+    {
+      "runId": "budget-bottleneck",
+      "label": "Budget bottleneck (greedy busts)",
+      "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router."
+    },
+    {
+      "runId": "research-pipeline",
+      "label": "Research pipeline (8-node, tight deadline)",
+      "description": "An eight-node research → extract×3 → reconcile → fact-check → format DAG under a tight deadline, stressing the schedule and the twin risk preflight."
+    }
+  ]
+}

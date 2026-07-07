@@ -105,7 +105,7 @@ self-managed path (one funded key). To use the Circle path later you'd add
 `CIRCLE_API_KEY` + `CIRCLE_ENTITY_SECRET` (from https://console.circle.com,
 with a registered Entity Secret) and call `createContractExecutionTransaction`
 instead — the calling convention is in
-`context/samples/context-arc/docs/docs.arc.network/arc/tutorials/register-your-first-ai-agent.md`.
+`context-for-agent/docs/docs.arc.network/arc/tutorials/register-your-first-ai-agent.md`.
 
 ---
 

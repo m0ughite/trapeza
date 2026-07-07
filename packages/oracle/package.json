@@ -1,0 +1,24 @@
+{
+  "name": "@trapeza/oracle",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deterministic schema + ground-truth oracle for Trapeza slashing.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@trapeza/core": "*",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

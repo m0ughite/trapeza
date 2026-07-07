@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "generatedAt": "2026-07-05T22:19:40.637Z",
+    "network": "Arc Testnet",
+    "caip2": "eip155:5042002",
+    "explorer": "https://testnet.arcscan.app",
+    "runId": "invoice-workflow",
+    "honestyNote": "A Circle Gateway settlement id is a batch UUID, NOT an EVM tx hash — it is never rendered as a /tx/ link. Only real 0x+64hex hashes (the Gateway deposit and the ERC-8004 identity/reputation writes) are linked to arcscan.",
+    "mode": "fallback-proven"
+  },
+  "identity": {
+    "agentId": "842573",
+    "register": {
+      "kind": "evm-tx",
+      "value": "0x3cc07a9310283fddc7c6c1de1aede992985fe7e89ea0de32b1cbbb40489e1735",
+      "url": "https://testnet.arcscan.app/tx/0x3cc07a9310283fddc7c6c1de1aede992985fe7e89ea0de32b1cbbb40489e1735",
+      "linkable": true,
+      "label": "ERC-8004 identity register (OWNER)"
+    },
+    "reputation": {
+      "kind": "evm-tx",
+      "value": "0x7b0d7d3a2d8574483b10ecfd5c4072274eb0ce697811ace8c5b2f16186f7f982",
+      "url": "https://testnet.arcscan.app/tx/0x7b0d7d3a2d8574483b10ecfd5c4072274eb0ce697811ace8c5b2f16186f7f982",
+      "linkable": true,
+      "label": "ERC-8004 reputation feedback (VALIDATOR)"
+    }
+  },
+  "settlements": [
+    {
+      "nodeId": "n1",
+      "providerId": "workhorse-1",
+      "amountUsdc": "0.001",
+      "live": false,
+      "latencyMs": 437,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Gateway deposit (real on-chain tx into the unified balance)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "05f9f115-9837-4926-8f46-5009eb7660d7",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Proven prior spike (IMPLEMENTATION-LOG P0''): buyer Gateway available balance debited exactly 0.001 USDC. Shown as a labeled representative settlement; run `npm run demo:onchain` with funded BUYER/SELLER env to produce per-node live receipts."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "graphId": "example-2node",
+  "budgetUsdcMicro": "1000000",
+  "deadlineMs": 120000,
+  "globalQualityFloor": 0.4,
+  "riskAversion": 1.0,
+  "nodes": [
+    { "nodeId": "n1", "capability": "cap.a", "valueUsdcMicro": "2000000", "qualityFloor": null, "latencyCapMs": null },
+    { "nodeId": "n2", "capability": "cap.b", "valueUsdcMicro": "1500000", "qualityFloor": 0.5, "latencyCapMs": null }
+  ],
+  "edges": [{ "from": "n1", "to": "n2" }],
+  "providers": [
+    { "id": "p1", "concurrency": 1, "bondCapacityUsdcMicro": "10000000" },
+    { "id": "p2", "concurrency": 1, "bondCapacityUsdcMicro": "10000000" }
+  ],
+  "candidates": [
+    { "nodeId": "n1", "providerId": "p1", "score": 1.3, "costPlusBondUsdcMicro": "250000", "bondUsdcMicro": "100000", "pHat": 0.9, "latencyMs": 100 },
+    { "nodeId": "n2", "providerId": "p2", "score": 0.9, "costPlusBondUsdcMicro": "550000", "bondUsdcMicro": "75000", "pHat": 0.85, "latencyMs": 200 }
+  ],
+  "options": { "timeLimitMs": 5000, "seed": 42 }
+}

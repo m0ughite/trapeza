@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trapeza.dev/contract/solver-contract.schema.json",
+  "title": "Trapeza solver contract",
+  "description": "THE SINGLE SOURCE OF TRUTH for the TS<->Python solver boundary. Both the TypeScript clearinghouse client (AJV) and the Python FastAPI service (jsonschema + Pydantic) validate against THIS file. Do not hand-maintain a second copy. All money crosses the wire as integer micro-USDC strings (1e-6 USDC), never floats, to preserve nanopayment precision. Probabilities/scores/objective are floats.",
+  "$defs": {
+    "microUsdc": {
+      "type": "string",
+      "pattern": "^-?[0-9]+$",
+      "description": "Integer micro-USDC (1e-6 USDC) as a base-10 string."
+    },
+    "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" }
+      }
+    },
+    "SolveRequestNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "capability", "valueUsdcMicro"],
+      "properties": {
+        "nodeId": { "type": "string" },
+        "capability": { "type": "string" },
+        "valueUsdcMicro": { "$ref": "#/$defs/microUsdc" },
+        "qualityFloor": {
+          "anyOf": [{ "$ref": "#/$defs/probability" }, { "type": "null" }]
+        },
+        "latencyCapMs": {
+          "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+        }
+      }
+    },
+    "SolveRequestProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "concurrency", "bondCapacityUsdcMicro"],
+      "properties": {
+        "id": { "type": "string" },
+        "concurrency": { "type": "integer", "minimum": 1 },
+        "bondCapacityUsdcMicro": { "$ref": "#/$defs/microUsdc" }
+      }
+    },
+    "SolveRequestCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "One eligible (node, provider) pair, fully resolved by TS. `score` is computed ONCE in TS (scoreProviderForNode) so the objective is identical across CP-SAT and the TS Tier-2 bake-off; Python never re-derives the economic score.",
+      "required": [
+        "nodeId",
+        "providerId",
+        "score",
+        "costPlusBondUsdcMicro",
+        "bondUsdcMicro",
+        "pHat",
+        "latencyMs"
+      ],
+      "properties": {
+        "nodeId": { "type": "string" },
+        "providerId": { "type": "string" },
+        "score": { "type": "number" },
+        "costPlusBondUsdcMicro": { "$ref": "#/$defs/microUsdc" },
+        "bondUsdcMicro": { "$ref": "#/$defs/microUsdc" },
+        "pHat": { "$ref": "#/$defs/probability" },
+        "latencyMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "SolveRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graphId",
+        "budgetUsdcMicro",
+        "deadlineMs",
+        "riskAversion",
+        "nodes",
+        "edges",
+        "providers",
+        "candidates"
+      ],
+      "properties": {
+        "graphId": { "type": "string" },
+        "budgetUsdcMicro": { "$ref": "#/$defs/microUsdc" },
+        "deadlineMs": { "type": "integer", "minimum": 0 },
+        "globalQualityFloor": {
+          "anyOf": [{ "$ref": "#/$defs/probability" }, { "type": "null" }]
+        },
+        "riskAversion": { "type": "number", "minimum": 0 },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SolveRequestNode" }
+        },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+        "providers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SolveRequestProvider" }
+        },
+        "candidates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SolveRequestCandidate" }
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "timeLimitMs": { "type": "integer", "minimum": 1 },
+            "seed": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "SolveResponseAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "providerId", "score"],
+      "properties": {
+        "nodeId": { "type": "string" },
+        "providerId": { "type": "string" },
+        "score": { "type": "number" }
+      }
+    },
+    "SolveResponseScheduleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "startMs", "durationMs", "endMs"],
+      "properties": {
+        "nodeId": { "type": "string" },
+        "startMs": { "type": "integer", "minimum": 0 },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "endMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "SolveResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "objectiveValue",
+        "assignments",
+        "schedule",
+        "shadowPrices",
+        "makespanMs",
+        "solver"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["optimal", "feasible", "infeasible"] },
+        "objectiveValue": { "type": "number" },
+        "assignments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SolveResponseAssignment" }
+        },
+        "schedule": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SolveResponseScheduleEntry" }
+        },
+        "shadowPrices": {
+          "type": "object",
+          "description": "LP-dual clearing prices, keyed by constraint: 'budget', 'deadline', and 'capacity:<providerId>'. Values are decimal USDC strings (display only).",
+          "additionalProperties": { "type": "string" }
+        },
+        "makespanMs": { "type": "integer", "minimum": 0 },
+        "solver": { "type": "string", "const": "cp_sat" }
+      }
+    },
+    "SimulateRequestProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "successAlpha",
+        "successBeta",
+        "costMean",
+        "costVar",
+        "latencyMean",
+        "latencyVar",
+        "nObservations",
+        "priceUsdc"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "successAlpha": { "type": "number", "exclusiveMinimum": 0 },
+        "successBeta": { "type": "number", "exclusiveMinimum": 0 },
+        "costMean": { "type": "number" },
+        "costVar": { "type": "number", "minimum": 0 },
+        "latencyMean": { "type": "number" },
+        "latencyVar": { "type": "number", "minimum": 0 },
+        "nObservations": { "type": "integer", "minimum": 0 },
+        "priceUsdc": { "type": "number", "minimum": 0 }
+      }
+    },
+    "SimulateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "State-Twins Monte Carlo robustness scoring over the Beta posteriors of the cleared assignment. Compute-heavy => Python (Amendment 1/3). Gated behind a feature flag on the TS side.",
+      "required": [
+        "graphId",
+        "deadlineMs",
+        "budgetUsdcMicro",
+        "nodes",
+        "edges",
+        "assignments",
+        "providers",
+        "iterations",
+        "seed"
+      ],
+      "properties": {
+        "graphId": { "type": "string" },
+        "deadlineMs": { "type": "integer", "minimum": 0 },
+        "budgetUsdcMicro": { "$ref": "#/$defs/microUsdc" },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["nodeId"],
+            "properties": { "nodeId": { "type": "string" } }
+          }
+        },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["nodeId", "providerId"],
+            "properties": {
+              "nodeId": { "type": "string" },
+              "providerId": { "type": "string" }
+            }
+          }
+        },
+        "providers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SimulateRequestProvider" }
+        },
+        "iterations": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer" }
+      }
+    },
+    "SimulateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failureProbability",
+        "budgetOverrunProbability",
+        "deadlineBreachProbability",
+        "expectedNetCostUsdc",
+        "seed",
+        "iterations"
+      ],
+      "properties": {
+        "failureProbability": { "$ref": "#/$defs/probability" },
+        "budgetOverrunProbability": { "$ref": "#/$defs/probability" },
+        "deadlineBreachProbability": { "$ref": "#/$defs/probability" },
+        "expectedNetCostUsdc": { "type": "number" },
+        "seed": { "type": "integer" },
+        "iterations": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

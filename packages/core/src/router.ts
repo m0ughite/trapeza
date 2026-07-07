@@ -64,7 +64,7 @@ export function scoreCandidate(
   useCalibration: boolean,
   config: TrapezaConfig,
 ): ScoredCandidate {
-  const value = toNum(spec.budgetUsdc);
+  const value = taskValueUsdc(spec);
   const price = toNum(candidate.quote.priceUsdc);
   const bondOffered = toNum(candidate.quote.bondOfferedUsdc);
 
@@ -153,7 +153,7 @@ export function selectMechanism(
   nCandidates: number,
   config: TrapezaConfig,
 ): MechanismId {
-  const value = toNum(spec.budgetUsdc);
+  const value = taskValueUsdc(spec);
   if (spec.deadlineMs > 0 && spec.deadlineMs <= config.dutchDeadlineMs) {
     return "dutch";
   }
@@ -203,6 +203,12 @@ export function route(
 
 /** Re-export for convenience so the pipeline can compute std dev if needed. */
 export { pSuccessStdDev };
+
+/** Marginal task value (v_n); falls back to budget for legacy callers. */
+export function taskValueUsdc(spec: TaskSpec): number {
+  const v = spec.valueUsdc ?? spec.budgetUsdc;
+  return toNum(v);
+}
 
 function toNum(s: string): number {
   const n = Number(s);

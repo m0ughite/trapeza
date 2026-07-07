@@ -12,8 +12,8 @@ Targets the overlap of **RFB-1 (autonomous paying agents)**, **RFB-2 (selling ag
 **RFB-3 (agent-to-agent networks)**, with the broker as the load-bearing piece.
 
 Grounded against the local cache: spec at `context/hackathon/lepton-hackathon-spec.md`, papers under
-`context/papers/`, reference repos under `context/samples/context-arc/samples/` (esp. `arc-nanopayments`,
-`arc-escrow`), Circle/Arc docs/skills under `context/samples/context-arc/docs/`.
+`context/papers/`, reference repos under `context-for-agent/samples/` (esp. `arc-nanopayments`,
+`arc-escrow`), Circle/Arc docs/skills under `context-for-agent/docs/`.
 
 ---
 
@@ -352,9 +352,9 @@ self-reports diverge from full-info allocation. *Our core justification + the ca
 - **CASTER** (`context/papers/caster.md`): dual-signal cost-aware router; −72% cost at equal success. *EV router.*
 - **State Twins** (`context/papers/state-twins.md`): off-chain fork-and-evaluate, sub-second. *Stretch
 `simulate()` before settle.*
-- **Reference repos** (`context/samples/context-arc/samples/`): `arc-nanopayments` (x402 + Gateway + Next.js
+- **Reference repos** (`context-for-agent/samples/`): `arc-nanopayments` (x402 + Gateway + Next.js
 dashboard — copy `lib/x402.ts`, `agent.mts`), `arc-escrow` (`RefundProtocol.sol` + AI work validation).
-- **Docs/skills** (`context/samples/context-arc/docs/`): `circlefin-skills/use-gateway.md`,
+- **Docs/skills** (`context-for-agent/docs/`): `circlefin-skills/use-gateway.md`,
 `docs.arc.network/arc/tutorials/register-your-first-ai-agent.md` (ERC-8004 addresses + ABI),
 `developers.circle.com/ai/mcp.md`, `developers.circle.com/contracts/`*.
 - **Hackathon** (`context/hackathon/lepton-hackathon-spec.md`): $50k, Jun 15–29, async judging, weights
