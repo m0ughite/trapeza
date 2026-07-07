@@ -8,7 +8,7 @@
 > per-task pairwise broker. API surface, data models, module boundary.
 > - **[DESIGN-CLEARINGHOUSE.md](DESIGN-CLEARINGHOUSE.md)** — the graph-level clearinghouse layer that sits on
 > the same primitive (DAG intake, constrained solve, batch settlement).
-> - **[IMPLEMENTATION-LOG.md](IMPLEMENTATION-LOG.md)** — chronological build record and current status.
+> - **IMPLEMENTATION-LOG.md** — chronological build record and current status (kept in the development branch).
 >
 > **Supersedes (deltas this doc locks in over the companions):**
 >
@@ -382,7 +382,7 @@ twin), not the DeFi code, and build a minimal escrow-shaped twin.
 
 ## 8. Build status & sprint plan to Jul 6
 
-### 8.1 Where we are (from [IMPLEMENTATION-LOG.md](IMPLEMENTATION-LOG.md))
+### 8.1 Where we are (from the implementation log)
 
 - **Done:** research/context cache; both design docs; `**@trapeza/core` fully implemented and tested against
 mocks — 13/13 vitest green** (pipeline, Beta-Binomial calibration ledger, EV router with the CALIBRATION ON/OFF
@@ -502,7 +502,7 @@ path), State Twins (2605.11522, off-chain fork-and-evaluate).
   - Market clearing: ISO-NE pricing; Kahn–Cramton (uniform vs pay-as-bid); NYISO/Tierney; CoW Protocol docs
   (solvers, auctions, fair combinatorial auction); Cycles whitepaper + MTCS (arXiv 2507.22309). §4, §9.
 - **Companion docs:** [DESIGN.md](DESIGN.md), [DESIGN-CLEARINGHOUSE.md](DESIGN-CLEARINGHOUSE.md),
-[IMPLEMENTATION-LOG.md](IMPLEMENTATION-LOG.md), [SETUP.md](SETUP.md).
+[SETUP.md](SETUP.md).
 - **Hackathon:** `context/hackathon/lepton-hackathon-spec.md` ($50k; **deadline Jul 6**; async judging;  
 30 agentic / 30 traction / 20 Circle / 20 innovation).
 
