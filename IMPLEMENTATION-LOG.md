@@ -386,6 +386,36 @@ changes.
 
 ---
 
+## Jul 7 — public submission prep (release/v1-public → main)
+
+Prepared the repo for a clean, public hackathon submission without touching any
+other branch (`feature/scenarios`, `feature/deterministic-part`, `app-layer`,
+`main` all preserved unchanged).
+
+- **Preservation (this branch):** committed the two working-tree planning docs
+  that were untracked — `PLAN-TANGIBLE-DEMO.md` and
+  `arctask_arc_integration_a764ed42-plan.md` — so no groundwork is lost. This
+  branch remains the process-doc keeper (full history retained).
+- **Release branch `release/v1-public`** (cut from this branch): moved the
+  substantive design/spec docs into `docs/` (`SOURCE-OF-TRUTH`, `ALGORITHMIC-SPEC`,
+  `ENGINE-GUIDE`, `PROJECT-DIAGRAMS`, `SETUP`, plus `DESIGN` and
+  `DESIGN-CLEARINGHOUSE` as substantive design lineage); removed internal process
+  scratch from the tree (`OLD-PLAN`, `FINAL-PHASE-PLAN`, `CONSOLIDATION-PLAN`,
+  `ACTIVITY-LOG`, `IMPLEMENTATION-LOG`, `DESIGN-DRAFT-1`, the two plan docs) —
+  all still preserved here. Rewrote the root `README.md` as the judge-facing
+  front door.
+- **Security:** confirmed no secrets published — only `.env.example` is tracked;
+  `secrets/wallets.json`, `.env`, and private keys are gitignored and untracked;
+  `context/samples/` (heavy third-party clones) is gitignored; tracked `context/`
+  is ~51 KB of markdown reference notes only.
+- **Gates (real, on the release tree):** `npm run typecheck` exit 0 · `npm test`
+  → 57 passed (15 files) · `npm run build --workspace @trapeza/dashboard` → built.
+- Commits authored by m0ughite with the Cursor co-author trailer stripped via
+  `git commit-tree` plumbing. PR `release/v1-public` → `main` (squash-merge
+  recommended). Did not change repo visibility or merge.
+
+---
+
 ## Open items / remaining work
 
 Status note (Jun 26): wallets are funded and BOTH P0 on-chain spikes pass — `adapter-arc` identity/reputation calls and `adapter-gateway` deposit + x402 verify/settle are proven live. Remaining adapter work is the escrow/oracle surface and end-to-end wiring.
