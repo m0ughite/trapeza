@@ -41,12 +41,18 @@ describe("shadow prices (LP duals)", () => {
       }),
     ];
 
-    const tight = await solveMilp({ graph, providers, riskAversion: 1 });
+    const tight = await solveMilp({
+      graph,
+      providers,
+      riskAversion: 1,
+      useCalibration: false,
+    });
     const looseGraph = { ...graph, globalBudgetUsdc: "0.55" };
     const loose = await solveMilp({
       graph: looseGraph,
       providers,
       riskAversion: 1,
+      useCalibration: false,
     });
     expect(loose.objectiveValue).toBeGreaterThan(tight.objectiveValue);
 
@@ -54,6 +60,7 @@ describe("shadow prices (LP duals)", () => {
       graph,
       providers,
       parseUsdcToMicro("0.49"),
+      false,
     );
     expect(sp.budgetDual).toBeGreaterThan(0);
   });
