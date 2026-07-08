@@ -1,0 +1,142 @@
+[
+  {
+    "agentId": "1",
+    "wallet": "0x2222222222222222222222222222222222222201",
+    "capabilities": [
+      "arctask.general.v1"
+    ],
+    "claimedSuccessProb": 0.65,
+    "calibratedSuccessProb": 0.8636363636363636,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "workhorse",
+    "active": true,
+    "linkedProviderId": "workhorse-1"
+  },
+  {
+    "agentId": "2",
+    "wallet": "0x2222222222222222222222222222222222222202",
+    "capabilities": [
+      "arctask.general.v1"
+    ],
+    "claimedSuccessProb": 0.98,
+    "calibratedSuccessProb": 0.18181818181818182,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "braggart",
+    "active": true,
+    "linkedProviderId": "braggart-1"
+  },
+  {
+    "agentId": "3",
+    "wallet": "0x2222222222222222222222222222222222222203",
+    "capabilities": [
+      "code.fix.v1"
+    ],
+    "claimedSuccessProb": 0.7,
+    "calibratedSuccessProb": 0.8181818181818182,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "workhorse",
+    "active": true,
+    "linkedProviderId": "workhorse-2"
+  },
+  {
+    "agentId": "4",
+    "wallet": "0x2222222222222222222222222222222222222204",
+    "capabilities": [
+      "code.fix.v1"
+    ],
+    "claimedSuccessProb": 0.97,
+    "calibratedSuccessProb": 0.22727272727272727,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "braggart",
+    "active": true,
+    "linkedProviderId": "braggart-2"
+  },
+  {
+    "agentId": "5",
+    "wallet": "0x2222222222222222222222222222222222222205",
+    "capabilities": [
+      "extract.invoice.v1"
+    ],
+    "claimedSuccessProb": 0.68,
+    "calibratedSuccessProb": 0.8636363636363636,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "workhorse",
+    "active": true,
+    "linkedProviderId": "workhorse-3"
+  },
+  {
+    "agentId": "6",
+    "wallet": "0x2222222222222222222222222222222222222206",
+    "capabilities": [
+      "extract.invoice.v1"
+    ],
+    "claimedSuccessProb": 0.99,
+    "calibratedSuccessProb": 0.13636363636363635,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "braggart",
+    "active": true,
+    "linkedProviderId": "braggart-3"
+  },
+  {
+    "agentId": "7",
+    "wallet": "0x2222222222222222222222222222222222222207",
+    "capabilities": [
+      "arctask.general.v1"
+    ],
+    "claimedSuccessProb": 0.98,
+    "calibratedSuccessProb": 0.8636363636363636,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "neutral",
+    "active": true,
+    "linkedProviderId": "premium-logo"
+  },
+  {
+    "agentId": "8",
+    "wallet": "0x2222222222222222222222222222222222222208",
+    "capabilities": [
+      "arctask.general.v1"
+    ],
+    "claimedSuccessProb": 0.55,
+    "calibratedSuccessProb": 0.8181818181818182,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "workhorse",
+    "active": true,
+    "linkedProviderId": "cheap-logo"
+  },
+  {
+    "agentId": "9",
+    "wallet": "0x2222222222222222222222222222222222222209",
+    "capabilities": [
+      "code.fix.v1"
+    ],
+    "claimedSuccessProb": 0.9,
+    "calibratedSuccessProb": 0.7727272727272727,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "neutral",
+    "active": true,
+    "linkedProviderId": "mid-code"
+  },
+  {
+    "agentId": "10",
+    "wallet": "0x222222222222222222222222222222222222220a",
+    "capabilities": [
+      "code.fix.v1"
+    ],
+    "claimedSuccessProb": 0.95,
+    "calibratedSuccessProb": 0.9090909090909091,
+    "nObservations": 20,
+    "bondUsdc": "0",
+    "archetype": "neutral",
+    "active": true,
+    "linkedProviderId": "premium-code"
+  }
+]

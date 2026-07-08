@@ -22,6 +22,8 @@ env-gated flag; it is off by default.
 
 For a presenter/tester script, see [`DEMO-SCENARIOS.md`](./DEMO-SCENARIOS.md).
 
+For a non-technical click-by-click product tour, see [`PRODUCT-TOUR.md`](./PRODUCT-TOUR.md).
+
 ## Concepts — plain language ↔ the technical detail
 
 The UI speaks plain product language on purpose. The academic/technical
@@ -70,9 +72,28 @@ Then run the dashboard:
 
 ```bash
 npm run dev   --workspace @trapeza/dashboard    # http://localhost:5173
+npm run dev:full --workspace @trapeza/dashboard  # Vite + /api/* (ArcTask live DAG)
 npm run build --workspace @trapeza/dashboard    # tsc + vite build → dist/
 npm run preview --workspace @trapeza/dashboard  # serve the production build
 ```
+
+### ArcTask live runs (dashboard)
+
+The **Agents** section includes a readiness panel and a **simulated / live** run mode on the workflow builder.
+
+| Command | Use when |
+| --- | --- |
+| `npm run dev` | Local Vite + `/api/*` dev routes (ArcTask status + DAG runner). Loads repo-root `.env`. |
+| `npm run dev:full` | Alternative: Vercel dev (same routes, useful if debugging serverless behavior) |
+
+**Server env** (copy [`.env.arctask-live.example`](../../.env.arctask-live.example) to repo-root `.env` — never `VITE_*`):
+
+- `TRAPEZA_LIVE_ONCHAIN=1`
+- `ARCTASK_SIMULATED=false`
+- `BUYER_PRIVATE_KEY`, `VALIDATOR_PRIVATE_KEY`
+- `ARCTASK_REGISTRY_ADDRESS`, `ARCTASK_ESCROW_ADDRESS`, `ARCTASK_API_BASE`
+
+**Groq / LLM** stays in the ArcTask fork `.env.local` (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`). Start ArcTask API + `npm run agent:worker:live` before a live DAG run. See [`docs/ARCTASK-DAG-RUNNER.md`](../../docs/ARCTASK-DAG-RUNNER.md).
 
 ## Deploy to Vercel
 
@@ -108,6 +129,9 @@ fixtures and public arcscan links.
 ```
 apps/dashboard/
   api/run.ts                 # Vercel serverless live-run (TS Tier-2, rate-limited)
+  api/run-arctask-dag.ts     # ArcTask DAG runner (simulated or live)
+  api/arctask-status.ts      # ArcTask readiness probe (GET)
+  api/lib/arctaskLive.ts     # Shared env + probe helpers
   src/
     types/contract.ts        # THE data contract (shared with demo/emit-*.ts)
     fixtures/                 # bundled DemoRun + OnchainReceipts JSON

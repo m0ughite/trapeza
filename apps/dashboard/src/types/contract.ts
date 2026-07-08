@@ -116,6 +116,24 @@ export interface ProviderView {
   archetype: "workhorse" | "braggart" | "neutral";
 }
 
+/** ArcTask registry agent — bundled snapshot for the Agents panel. */
+export interface AgentView {
+  /** ArcTask registry id (stringified bigint). */
+  agentId: string;
+  wallet: string;
+  capabilities: string[];
+  /** Self-reported (bid) success probability — a prior. */
+  claimedSuccessProb: number;
+  /** Bayesian posterior mean of realized success. */
+  calibratedSuccessProb: number;
+  nObservations: number;
+  bondUsdc: string;
+  archetype: "workhorse" | "braggart" | "neutral";
+  active: boolean;
+  /** Demo provider id this agent mirrors (interactive settle mapping). */
+  linkedProviderId: string;
+}
+
 export interface AllocationView {
   nodeId: string;
   taskId: string;
@@ -280,12 +298,14 @@ export interface FixtureManifest {
  * repo's honesty rule.
  */
 export interface OnchainRef {
-  kind: "evm-tx" | "gateway-settlement-id" | "address";
+  kind: "evm-tx" | "gateway-settlement-id" | "address" | "simulated-tx";
   value: string;
   /** arcscan URL when linkable (evm-tx / address); null for UUIDs. */
   url: string | null;
   linkable: boolean;
   label: string;
+  /** True for simulated-tx refs — never linkable as arcscan /tx/. */
+  simulated?: boolean;
 }
 
 export interface SettlementReceipt {
@@ -327,4 +347,24 @@ export interface OnchainReceipts {
   };
   identity: IdentityReceipt | null;
   settlements: SettlementReceipt[];
+}
+
+/** ArcTask escrow lifecycle receipts (simulated by default). */
+export interface ArcTaskReceipts {
+  schemaVersion: typeof ONCHAIN_RECEIPTS_SCHEMA_VERSION;
+  meta: {
+    generatedAt: string;
+    network: string;
+    mode: "simulated" | "live";
+    runId: string;
+    honestyNote: string;
+  };
+  jobId: string;
+  agent: { agentId: string; wallet: string };
+  reward: { amountUsdc: string; usdcMode: "native" | "erc20" };
+  lifecycle: Array<{
+    status: "Funded" | "Submitted" | "Accepted" | "Rejected" | "Refunded";
+    ref: OnchainRef | null;
+    at: string;
+  }>;
 }

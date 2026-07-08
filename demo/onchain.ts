@@ -17,6 +17,7 @@ import {
   startX402Seller,
   type X402Seller,
 } from "@trapeza/adapter-gateway";
+import { ArcTaskSettlementProvider, type ArcTaskClient } from "@trapeza/adapter-arc";
 
 export interface SettleNodeRequest {
   nodeId: string;
@@ -120,5 +121,74 @@ export class GatewayX402SettlementProvider implements NanoSettlementProvider {
 
   async close(): Promise<void> {
     await this.seller?.close();
+  }
+}
+
+// ── ArcTask escrow (evaluator accept/reject) ─────────────────────────────────
+
+export interface ArcTaskEscrowNanoConfig {
+  evaluatorPrivateKey: `0x${string}`;
+  /** Map cleared graph nodeId → ArcTask taskId (e.g. arctask:job:42). */
+  taskIdForNode: (nodeId: string) => string;
+  rpcUrl?: string;
+  simulated?: boolean;
+  /** Outcome when settleNode is called without an explicit oracle verdict. */
+  defaultPassed?: boolean;
+  /** Share simulated/live client with the harness loop. */
+  arctaskClient?: ArcTaskClient;
+}
+
+/**
+ * NanoSettlementProvider backed by ArcTaskEscrow evaluator accept/reject.
+ * Bridges cleared graph nodes to on-chain job settlement (Stage F).
+ */
+export class ArcTaskEscrowNanoSettlementProvider implements NanoSettlementProvider {
+  readonly name = "arctask-escrow";
+  depositTxHash: string | null = null;
+
+  private settler: ArcTaskSettlementProvider | null = null;
+
+  constructor(private readonly cfg: ArcTaskEscrowNanoConfig) {}
+
+  async init(): Promise<void> {
+    this.settler = new ArcTaskSettlementProvider({
+      evaluatorPrivateKey: this.cfg.evaluatorPrivateKey,
+      rpcUrl: this.cfg.rpcUrl,
+      simulated: this.cfg.simulated,
+      arctaskClient: this.cfg.arctaskClient,
+    });
+  }
+
+  async settleNode(req: SettleNodeRequest): Promise<SettleNodeResult> {
+    if (!this.settler) throw new Error("ArcTask escrow provider not initialized");
+    const taskId = this.cfg.taskIdForNode(req.nodeId);
+    const start = Date.now();
+    const result = await this.settler.settleJob({
+      taskId,
+      outcome: {
+        taskId,
+        providerId: req.providerId,
+        passed: this.cfg.defaultPassed ?? true,
+        score: 100,
+        evidenceURI: `arctask://settle/${req.nodeId}`,
+        realizedCostUsdc: req.price,
+        realizedLatencyMs: 0,
+      },
+    });
+    return {
+      nodeId: req.nodeId,
+      providerId: req.providerId,
+      amountUsdc: req.price,
+      payer: "",
+      seller: req.providerId,
+      gatewaySettlementId: null,
+      settlementTxHash: result.txHash,
+      latencyMs: Date.now() - start,
+      live: true,
+    };
+  }
+
+  async close(): Promise<void> {
+    this.settler = null;
   }
 }

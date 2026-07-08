@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
 import type { DemoRun } from "../types/contract";
 import { runClearing, type LiveRunResponse } from "../services/liveClient";
+import { settleViaArcTask, type ArcTaskSettleResponse } from "../services/arctaskClient";
+import { AGENTS } from "../fixtures";
 import { Badge, Collapsible, Panel, Stat } from "./ui";
 import { DagView } from "./DagView";
+import { ArcTaskSettlementPanel } from "./ArcTaskSettlementPanel";
 import { pctSmall, usd } from "../services/format";
 
 export function LiveRunPanel(props: { runs: DemoRun[] }) {
@@ -16,6 +19,8 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const [calibration, setCalibration] = useState<"on" | "off">("on");
   const [running, setRunning] = useState(false);
   const [resp, setResp] = useState<LiveRunResponse | null>(null);
+  const [settling, setSettling] = useState(false);
+  const [settleResp, setSettleResp] = useState<ArcTaskSettleResponse | null>(null);
 
   function onBase(id: string) {
     setBaseId(id);
@@ -23,6 +28,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
     setBudget(Number(r.graph.globalBudgetUsdc));
     setRisk(r.graph.riskAversion);
     setResp(null);
+    setSettleResp(null);
   }
 
   async function run() {
@@ -36,6 +42,24 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       setResp(out);
     } finally {
       setRunning(false);
+    }
+  }
+
+  async function settle() {
+    if (!resp?.result?.ok) return;
+    setSettling(true);
+    try {
+      const out = await settleViaArcTask({
+        allocations: resp.result.allocations.map((a) => ({
+          nodeId: a.nodeId,
+          providerId: a.providerId,
+        })),
+        agents: AGENTS,
+        runId: baseId,
+      });
+      setSettleResp(out);
+    } finally {
+      setSettling(false);
     }
   }
 
@@ -124,6 +148,20 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
                   score: a.score,
                 }))}
               />
+              <div style={{ marginTop: 14 }}>
+                <button className="btn ghost" onClick={settle} disabled={settling}>
+                  {settling ? <span className="spinner" /> : "Settle via ArcTask (simulated) ▸"}
+                </button>
+              </div>
+              {settleResp ? (
+                <div style={{ marginTop: 16 }}>
+                  <ArcTaskSettlementPanel
+                    receipts={settleResp.receipts}
+                    live
+                    source={settleResp.source}
+                  />
+                </div>
+              ) : null}
             </>
           ) : (
             <div className="callout warn">{r.reason}</div>

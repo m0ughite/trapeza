@@ -2,7 +2,7 @@
  * Bundled fixtures — emitted offline by `demo/emit-run.ts`.
  */
 
-import type { DemoRun, FixtureManifest, OnchainReceipts } from "../types/contract";
+import type { DemoRun, FixtureManifest, OnchainReceipts, AgentView, ArcTaskReceipts } from "../types/contract";
 import invoiceWorkflow from "./invoice-workflow.json";
 import budgetBottleneck from "./budget-bottleneck.json";
 import researchPipeline from "./research-pipeline.json";
@@ -16,6 +16,8 @@ import concurrency from "./concurrency.json";
 import bondCapacity from "./bond-capacity.json";
 import manifest from "./manifest.json";
 import onchainReceipts from "./onchain-receipts.json";
+import arctaskAgents from "./arctask-agents.json";
+import arctaskReceipts from "./arctask-receipts.json";
 
 export const RUNS: DemoRun[] = [
   invoiceWorkflow,
@@ -34,6 +36,10 @@ export const RUNS: DemoRun[] = [
 export const MANIFEST: FixtureManifest = manifest as unknown as FixtureManifest;
 
 export const RECEIPTS: OnchainReceipts = onchainReceipts as unknown as OnchainReceipts;
+
+export const AGENTS: AgentView[] = arctaskAgents as unknown as AgentView[];
+
+export const ARCTASK_RECEIPTS: ArcTaskReceipts = arctaskReceipts as unknown as ArcTaskReceipts;
 
 export function runById(id: string): DemoRun | undefined {
   return RUNS.find((r) => r.meta.runId === id);

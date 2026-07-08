@@ -7,8 +7,8 @@
  * P0 scope:
  *   - `mintIdentity` / `registerIdentity` — IMPLEMENTED (proven by the spike).
  *   - `giveFeedback`                       — IMPLEMENTED (needs a validator key).
- *   - `openEscrow` / `resolveEscrow`       — NOT IMPLEMENTED (RefundProtocol.sol
- *     fork + deploy is P3 per DESIGN.md §6). Throws so the seam is explicit.
+ *   - `openEscrow` / `resolveEscrow`       — use `ArcTaskChainAdapter` for ArcTask
+ *     marketplace escrow; this class keeps canonical ERC-8004 identity/reputation.
  */
 
 import {
@@ -185,14 +185,14 @@ export class ArcChainAdapter implements ChainAdapter {
 
   async openEscrow(): Promise<string> {
     throw new Error(
-      "openEscrow not implemented in P0 — bonded escrow forks " +
-        "arc-escrow/RefundProtocol.sol and deploys in P3 (DESIGN.md §6).",
+      "openEscrow: use ArcTaskChainAdapter for ArcTask marketplace escrow " +
+        "(packages/adapter-arc/src/arctask-chain.ts).",
     );
   }
 
   async resolveEscrow(): Promise<string> {
     throw new Error(
-      "resolveEscrow not implemented in P0 — see openEscrow (P3).",
+      "resolveEscrow: use ArcTaskChainAdapter for ArcTask marketplace escrow.",
     );
   }
 }

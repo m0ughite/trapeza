@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "generatedAt": "2026-01-15T12:00:00.000Z",
+    "network": "arc-testnet (simulated)",
+    "mode": "simulated",
+    "runId": "fixture-escrow",
+    "honestyNote": "Simulated ArcTask escrow receipts. IDs are labeled simulated and are not arcscan transaction links."
+  },
+  "jobId": "1",
+  "agent": {
+    "agentId": "1",
+    "wallet": "0x2222222222222222222222222222222222222201"
+  },
+  "reward": {
+    "amountUsdc": "0.15",
+    "usdcMode": "native"
+  },
+  "lifecycle": [
+    {
+      "status": "Funded",
+      "ref": {
+        "kind": "simulated-tx",
+        "value": "0xjob00000000000000000000000000000000000000000000000000000001",
+        "url": null,
+        "linkable": false,
+        "label": "fund escrow",
+        "simulated": true
+      },
+      "at": "2026-01-15T12:00:00.000Z"
+    },
+    {
+      "status": "Submitted",
+      "ref": {
+        "kind": "simulated-tx",
+        "value": "0xsub00000000000000000000000000000000000000000000000000000001",
+        "url": null,
+        "linkable": false,
+        "label": "submit deliverable",
+        "simulated": true
+      },
+      "at": "2026-01-15T12:00:00.000Z"
+    },
+    {
+      "status": "Accepted",
+      "ref": {
+        "kind": "simulated-tx",
+        "value": "0xacc00000000000000000000000000000000000000000000000000000001",
+        "url": null,
+        "linkable": false,
+        "label": "accept work",
+        "simulated": true
+      },
+      "at": "2026-01-15T12:00:00.000Z"
+    }
+  ]
+}

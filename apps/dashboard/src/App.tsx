@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MANIFEST, RUNS, RECEIPTS } from "./fixtures";
+import { MANIFEST, RUNS, RECEIPTS, AGENTS, ARCTASK_RECEIPTS } from "./fixtures";
 import type { DemoRun } from "./types/contract";
 import { Badge, Collapsible, Panel, SectionHeader, Stat, Tooltip } from "./components/ui";
 import { DagView } from "./components/DagView";
@@ -12,19 +12,24 @@ import { TractionStrip } from "./components/TractionStrip";
 import { LiveRunPanel } from "./components/LiveRunPanel";
 import { RunTracePanel } from "./components/RunTracePanel";
 import { ScenarioExplorer } from "./components/ScenarioExplorer";
+import { AgentsPanel } from "./components/AgentsPanel";
+import { AgentWorkflowPanel } from "./components/AgentWorkflowPanel";
+import { ArcTaskStatusPanel } from "./components/ArcTaskStatusPanel";
+import { ArcTaskSettlementPanel } from "./components/ArcTaskSettlementPanel";
 import { ms, num, pctSmall, plain, usd } from "./services/format";
 
 const SECTIONS = [
   { id: "explorer", label: "Scenarios", num: "00" },
-  { id: "overview", label: "Overview", num: "01" },
-  { id: "clearing", label: "Clearing", num: "02" },
-  { id: "trace", label: "Run trace", num: "03" },
-  { id: "bakeoff", label: "Clearing vs. Greedy", num: "04" },
-  { id: "calibration", label: "Calibration Ledger", num: "05" },
-  { id: "shadow", label: "Bottlenecks", num: "06" },
-  { id: "twin", label: "Risk Preflight", num: "07" },
-  { id: "onchain", label: "Settlement", num: "08" },
-  { id: "live", label: "Run Your Own", num: "09" },
+  { id: "agents", label: "Agents", num: "01" },
+  { id: "overview", label: "Overview", num: "02" },
+  { id: "clearing", label: "Clearing", num: "03" },
+  { id: "trace", label: "Run trace", num: "04" },
+  { id: "bakeoff", label: "Clearing vs. Greedy", num: "05" },
+  { id: "calibration", label: "Calibration Ledger", num: "06" },
+  { id: "shadow", label: "Bottlenecks", num: "07" },
+  { id: "twin", label: "Risk Preflight", num: "08" },
+  { id: "onchain", label: "Settlement", num: "09" },
+  { id: "live", label: "Run Your Own", num: "10" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -386,6 +391,21 @@ export function App() {
             <ScenarioExplorer manifest={MANIFEST} activeId={activeId} onPick={setActiveId} />
           </section>
 
+          <section id="agents" className="section">
+            <SectionHeader
+              eyebrow="Agents"
+              title="Browse the ArcTask agent registry"
+              why="Each agent advertises capabilities and a success rate; Trapeza scores them on what they have actually delivered."
+            />
+            <AgentsPanel agents={AGENTS} />
+            <div style={{ marginTop: 16 }}>
+              <ArcTaskStatusPanel />
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <AgentWorkflowPanel agents={AGENTS} />
+            </div>
+          </section>
+
           <section id="overview" className="section">
             <Overview runs={RUNS} run={run} onPick={setActiveId} onGo={go} />
           </section>
@@ -451,6 +471,9 @@ export function App() {
               why="Cleared steps settle in USDC. Real transaction hashes link to the explorer; batch IDs are never dressed up as transactions."
             />
             <OnchainPanel receipts={RECEIPTS} />
+            <div style={{ marginTop: 16 }}>
+              <ArcTaskSettlementPanel receipts={ARCTASK_RECEIPTS} />
+            </div>
           </section>
 
           <section id="live" className="section">

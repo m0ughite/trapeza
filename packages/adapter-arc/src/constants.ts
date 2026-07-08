@@ -11,6 +11,9 @@
  */
 
 import { defineChain } from "viem";
+import { loadEnv } from "./env.js";
+
+loadEnv();
 
 /** CAIP-2 network id used by the x402/Gateway batching SDK. */
 export const ARC_TESTNET_CAIP2 = "eip155:5042002" as const;
@@ -54,3 +57,55 @@ export const arcTestnet = defineChain({
 /** Default ERC-8004 metadata URI from the Arc quickstart (skip IPFS upload). */
 export const DEFAULT_METADATA_URI =
   "ipfs://bafkreibdi6623n3xpf7ymk62ckb4bo75o3qemwkpfvp5i25j66itxvsoei";
+
+// ── ArcTask marketplace (fork / live deployment) ────────────────────────────
+
+/** ArcTask live testnet deployment (native-USDC escrow). */
+export const ARCTASK_LIVE_REGISTRY =
+  "0x4ab5791a689b15126fcc7a549f8e4c7e16c5e0b8" as const;
+export const ARCTASK_LIVE_ESCROW =
+  "0x58ca473df727301bce771d6087f883364c83a3b6" as const;
+
+/** Override with env after fork redeploy. Defaults to live addresses. */
+export const ARCTASK_REGISTRY_ADDRESS = (process.env.ARCTASK_REGISTRY_ADDRESS ??
+  ARCTASK_LIVE_REGISTRY) as `0x${string}`;
+export const ARCTASK_ESCROW_ADDRESS = (process.env.ARCTASK_ESCROW_ADDRESS ??
+  ARCTASK_LIVE_ESCROW) as `0x${string}`;
+
+/**
+ * USDC rail for ArcTask escrow integration.
+ * - `erc20` (default): forked ArcTaskEscrowErc20 + Trapeza Gateway/x402 alignment.
+ * - `native`: live ArcTask deployment (`msg.value`).
+ */
+export type ArcTaskUsdcMode = "native" | "erc20";
+
+/** Read env at call time (dashboard dev may load .env after module import). */
+export function readArctaskRegistryAddress(): `0x${string}` {
+  return (process.env.ARCTASK_REGISTRY_ADDRESS ?? ARCTASK_LIVE_REGISTRY) as `0x${string}`;
+}
+
+export function readArctaskEscrowAddress(): `0x${string}` {
+  return (process.env.ARCTASK_ESCROW_ADDRESS ?? ARCTASK_LIVE_ESCROW) as `0x${string}`;
+}
+
+export function readArctaskApiBase(): string {
+  return process.env.ARCTASK_API_BASE ?? "https://arctask.xyz";
+}
+
+export function readArctaskUsdcMode(): ArcTaskUsdcMode {
+  return process.env.ARCTASK_USDC_MODE === "native" ? "native" : "erc20";
+}
+
+export function readArctaskSimulated(): boolean {
+  return process.env.ARCTASK_SIMULATED === "true";
+}
+
+export const ARCTASK_USDC_MODE: ArcTaskUsdcMode =
+  process.env.ARCTASK_USDC_MODE === "native" ? "native" : "erc20";
+
+/** ArcTask Next.js app base for REST fallback (`/api/network/jobs`). */
+export const ARCTASK_API_BASE =
+  process.env.ARCTASK_API_BASE ?? "https://arctask.xyz";
+
+/** Simulated harness — no live chain calls when true. */
+export const ARCTASK_SIMULATED = process.env.ARCTASK_SIMULATED === "true";
