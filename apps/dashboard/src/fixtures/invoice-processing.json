@@ -1,0 +1,975 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "invoice-processing",
+    "label": "Invoice processing",
+    "description": "Parse an invoice, extract line-items and totals, reconcile them, validate against rules, and format the result — six steps that match the narrative exactly.",
+    "narrative": "Trapeza prices every provider from its realized-outcome ledger, not its sales pitch. A budget OCR vendor advertises 98% accuracy but has only ever delivered ~18%; with the ledger ON it never wins the work. Flip the ledger OFF and the same market buys that vendor across the pipeline — and end-to-end accuracy collapses.",
+    "generatedAt": "2026-07-09T02:13:39.570Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "invoice-processing",
+    "globalBudgetUsdc": "6.00",
+    "globalDeadlineMs": 60000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "parse",
+        "capability": "doc.parse",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "extract-line-items",
+        "capability": "data.extract",
+        "valueUsdc": "0.90",
+        "budgetUsdc": "1.20",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "extract-totals",
+        "capability": "data.extract",
+        "valueUsdc": "0.70",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "reconcile",
+        "capability": "data.reconcile",
+        "valueUsdc": "1.50",
+        "budgetUsdc": "1.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "validate",
+        "capability": "verify.rules",
+        "valueUsdc": "0.80",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "format",
+        "capability": "report.format",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "parse",
+        "to": "extract-line-items"
+      },
+      {
+        "from": "parse",
+        "to": "extract-totals"
+      },
+      {
+        "from": "extract-line-items",
+        "to": "reconcile"
+      },
+      {
+        "from": "extract-totals",
+        "to": "reconcile"
+      },
+      {
+        "from": "reconcile",
+        "to": "validate"
+      },
+      {
+        "from": "validate",
+        "to": "format"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "sonnet-parser",
+      "capabilities": [
+        "doc.parse"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.74,
+      "claimedLatencyMs": 900,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 900.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "budget-ocr",
+      "capabilities": [
+        "doc.parse"
+      ],
+      "priceUsdc": "0.26",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 350,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.26,
+      "latencyMeanMs": 380,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "sonnet-extractor",
+      "capabilities": [
+        "data.extract"
+      ],
+      "priceUsdc": "0.34",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.72,
+      "claimedLatencyMs": 1000,
+      "calibratedSuccessProb": 0.8181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 18,
+      "successBeta": 4,
+      "costMeanUsdc": 0.34,
+      "latencyMeanMs": 1000.0000000000002,
+      "nObservations": 20,
+      "archetype": "neutral"
+    },
+    {
+      "id": "flash-extractor",
+      "capabilities": [
+        "data.extract"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 480,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "ledger-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.55",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 1300,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.55,
+      "latencyMeanMs": 1299.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "quick-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.48",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.96,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.48,
+      "latencyMeanMs": 540.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "rules-validator",
+      "capabilities": [
+        "verify.rules"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.76,
+      "claimedLatencyMs": 700,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 710.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "skip-check",
+      "capabilities": [
+        "verify.rules"
+      ],
+      "priceUsdc": "0.26",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 180,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.26,
+      "latencyMeanMs": 209.99999999999997,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "report-formatter",
+      "capabilities": [
+        "report.format"
+      ],
+      "priceUsdc": "0.18",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.8,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.18,
+      "latencyMeanMs": 460,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "template-bot",
+      "capabilities": [
+        "report.format"
+      ],
+      "priceUsdc": "0.16",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.6,
+      "claimedLatencyMs": 380,
+      "calibratedSuccessProb": 0.7727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 17,
+      "successBeta": 5,
+      "costMeanUsdc": 0.16,
+      "latencyMeanMs": 390,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.944325,
+    "makespanMs": 60000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "parse",
+        "taskId": "task-parse",
+        "providerId": "sonnet-parser",
+        "score": 0.18699375474887453
+      },
+      {
+        "nodeId": "extract-line-items",
+        "taskId": "task-extract-line-items",
+        "providerId": "sonnet-extractor",
+        "score": 0.3373593962900809
+      },
+      {
+        "nodeId": "extract-totals",
+        "taskId": "task-extract-totals",
+        "providerId": "sonnet-extractor",
+        "score": 0.1868350860033962
+      },
+      {
+        "nodeId": "reconcile",
+        "taskId": "task-reconcile",
+        "providerId": "ledger-reconciler",
+        "score": 0.6674843868721861
+      },
+      {
+        "nodeId": "validate",
+        "taskId": "task-validate",
+        "providerId": "rules-validator",
+        "score": 0.39710217321098573
+      },
+      {
+        "nodeId": "format",
+        "taskId": "task-format",
+        "providerId": "report-formatter",
+        "score": 0.16855108660549287
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "parse",
+        "startMs": 0,
+        "durationMs": 900,
+        "endMs": 900
+      },
+      {
+        "nodeId": "extract-line-items",
+        "startMs": 900,
+        "durationMs": 1000,
+        "endMs": 1900
+      },
+      {
+        "nodeId": "extract-totals",
+        "startMs": 900,
+        "durationMs": 1000,
+        "endMs": 1900
+      },
+      {
+        "nodeId": "reconcile",
+        "startMs": 57530,
+        "durationMs": 1300,
+        "endMs": 58830
+      },
+      {
+        "nodeId": "validate",
+        "startMs": 58830,
+        "durationMs": 710,
+        "endMs": 59540
+      },
+      {
+        "nodeId": "format",
+        "startMs": 59540,
+        "durationMs": 460,
+        "endMs": 60000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "parse": "0.300000",
+      "extract-line-items": "0.340000",
+      "extract-totals": "0.340000",
+      "reconcile": "0.550000",
+      "validate": "0.300000",
+      "format": "0.180000"
+    },
+    "totalClearedUsdc": "2.010000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:sonnet-parser": "0.000000",
+      "capacity:budget-ocr": "0.000000",
+      "capacity:sonnet-extractor": "0.000000",
+      "capacity:flash-extractor": "0.000000",
+      "capacity:ledger-reconciler": "0.000000",
+      "capacity:quick-reconciler": "0.000000",
+      "capacity:rules-validator": "0.000000",
+      "capacity:skip-check": "0.000000",
+      "capacity:report-formatter": "0.000000",
+      "capacity:template-bot": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.944325,
+      "allocations": [
+        {
+          "nodeId": "parse",
+          "taskId": "task-parse",
+          "providerId": "sonnet-parser",
+          "score": 0.18699375474887453
+        },
+        {
+          "nodeId": "extract-line-items",
+          "taskId": "task-extract-line-items",
+          "providerId": "sonnet-extractor",
+          "score": 0.3373593962900809
+        },
+        {
+          "nodeId": "extract-totals",
+          "taskId": "task-extract-totals",
+          "providerId": "sonnet-extractor",
+          "score": 0.1868350860033962
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.6674843868721861
+        },
+        {
+          "nodeId": "validate",
+          "taskId": "task-validate",
+          "providerId": "rules-validator",
+          "score": 0.39710217321098573
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.16855108660549287
+        }
+      ],
+      "realizedEndToEndSuccess": 0.41264455471756273,
+      "claimedEndToEndSuccess": 0.16326696959999998,
+      "expectedSpendUsdc": "2.010000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 2.86,
+      "allocations": [
+        {
+          "nodeId": "parse",
+          "taskId": "task-parse",
+          "providerId": "budget-ocr",
+          "score": 0.32499999999999996
+        },
+        {
+          "nodeId": "extract-line-items",
+          "taskId": "task-extract-line-items",
+          "providerId": "flash-extractor",
+          "score": 0.5662499999999999
+        },
+        {
+          "nodeId": "extract-totals",
+          "taskId": "task-extract-totals",
+          "providerId": "flash-extractor",
+          "score": 0.3737499999999999
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "quick-reconciler",
+          "score": 0.945
+        },
+        {
+          "nodeId": "validate",
+          "taskId": "task-validate",
+          "providerId": "skip-check",
+          "score": 0.53
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.12000000000000008
+        }
+      ],
+      "realizedEndToEndSuccess": 0.00021167772377016648,
+      "claimedEndToEndSuccess": 0.7010773862399999,
+      "expectedSpendUsdc": "1.780000"
+    },
+    "divergentNodes": [
+      "parse",
+      "extract-line-items",
+      "extract-totals",
+      "reconcile",
+      "validate"
+    ],
+    "successLift": 0.41243287699379255
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.9443258837310164,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "parse",
+          "taskId": "task-parse",
+          "providerId": "sonnet-parser",
+          "score": 0.18699375474887453
+        },
+        {
+          "nodeId": "extract-line-items",
+          "taskId": "task-extract-line-items",
+          "providerId": "sonnet-extractor",
+          "score": 0.3373593962900809
+        },
+        {
+          "nodeId": "extract-totals",
+          "taskId": "task-extract-totals",
+          "providerId": "sonnet-extractor",
+          "score": 0.1868350860033962
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.6674843868721861
+        },
+        {
+          "nodeId": "validate",
+          "taskId": "task-validate",
+          "providerId": "rules-validator",
+          "score": 0.39710217321098573
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.16855108660549287
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.944325,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "parse",
+          "taskId": "task-parse",
+          "providerId": "sonnet-parser",
+          "score": 0.18699375474887453
+        },
+        {
+          "nodeId": "extract-line-items",
+          "taskId": "task-extract-line-items",
+          "providerId": "sonnet-extractor",
+          "score": 0.3373593962900809
+        },
+        {
+          "nodeId": "extract-totals",
+          "taskId": "task-extract-totals",
+          "providerId": "sonnet-extractor",
+          "score": 0.1868350860033962
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.6674843868721861
+        },
+        {
+          "nodeId": "validate",
+          "taskId": "task-validate",
+          "providerId": "rules-validator",
+          "score": 0.39710217321098573
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.16855108660549287
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.9443) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.9443) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 5000,
+    "failureProbability": 0.5680000000000001,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 1.2592600000000003
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-1.960000 errors=7",
+      "errors": [
+        "overdraw at parse: fee 300000 > requester 50000",
+        "overdraw at extract-line-items: fee 340000 > requester -250000",
+        "overdraw at extract-totals: fee 340000 > requester -590000",
+        "overdraw at reconcile: fee 550000 > requester -930000",
+        "overdraw at validate: fee 300000 > requester -1480000",
+        "overdraw at format: fee 180000 > requester -1780000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 6,
+    "totalClearedUsdc": "2.010000",
+    "resultPerUsdc": 2.437810945273632,
+    "makespanMs": 60000,
+    "paymentChainDepth": 5,
+    "graphDensity": 1,
+    "providerCount": 10
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 6 nodes, 6 edges",
+      "data": {
+        "graphId": "invoice-processing",
+        "nodeCount": 6,
+        "edgeCount": 6
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "parse",
+      "level": "info",
+      "message": "parse: assigned sonnet-parser (score 0.1870)",
+      "data": {
+        "providerId": "sonnet-parser",
+        "score": 0.18699375474887453
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "extract-line-items",
+      "level": "info",
+      "message": "extract-line-items: assigned sonnet-extractor (score 0.3374)",
+      "data": {
+        "providerId": "sonnet-extractor",
+        "score": 0.3373593962900809
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "extract-totals",
+      "level": "info",
+      "message": "extract-totals: assigned sonnet-extractor (score 0.1868)",
+      "data": {
+        "providerId": "sonnet-extractor",
+        "score": 0.1868350860033962
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: assigned ledger-reconciler (score 0.6675)",
+      "data": {
+        "providerId": "ledger-reconciler",
+        "score": 0.6674843868721861
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "validate",
+      "level": "info",
+      "message": "validate: assigned rules-validator (score 0.3971)",
+      "data": {
+        "providerId": "rules-validator",
+        "score": 0.39710217321098573
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "assign",
+      "nodeId": "format",
+      "level": "info",
+      "message": "format: assigned report-formatter (score 0.1686)",
+      "data": {
+        "providerId": "report-formatter",
+        "score": 0.16855108660549287
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 60000ms",
+      "data": {
+        "makespanMs": 60000,
+        "schedule": [
+          {
+            "nodeId": "parse",
+            "startMs": 0,
+            "endMs": 900
+          },
+          {
+            "nodeId": "extract-line-items",
+            "startMs": 900,
+            "endMs": 1900
+          },
+          {
+            "nodeId": "extract-totals",
+            "startMs": 900,
+            "endMs": 1900
+          },
+          {
+            "nodeId": "reconcile",
+            "startMs": 57530,
+            "endMs": 58830
+          },
+          {
+            "nodeId": "validate",
+            "startMs": 58830,
+            "endMs": 59540
+          },
+          {
+            "nodeId": "format",
+            "startMs": 59540,
+            "endMs": 60000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 60000ms ≤ 60000ms"
+    },
+    {
+      "seq": 10,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 11,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (12 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:sonnet-parser": "0.000000",
+          "capacity:budget-ocr": "0.000000",
+          "capacity:sonnet-extractor": "0.000000",
+          "capacity:flash-extractor": "0.000000",
+          "capacity:ledger-reconciler": "0.000000",
+          "capacity:quick-reconciler": "0.000000",
+          "capacity:rules-validator": "0.000000",
+          "capacity:skip-check": "0.000000",
+          "capacity:report-formatter": "0.000000",
+          "capacity:template-bot": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 2.010000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "parse": "0.300000",
+          "extract-line-items": "0.340000",
+          "extract-totals": "0.340000",
+          "reconcile": "0.550000",
+          "validate": "0.300000",
+          "format": "0.180000"
+        },
+        "totalClearedUsdc": "2.010000"
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.9443258837310164,
+        "optimalObj": 1.944325
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "score-candidates",
+      "nodeId": "parse",
+      "level": "info",
+      "message": "parse: 2 candidates — top sonnet-parser (score 0.1870)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-parser",
+            "score": 0.18699375474887453,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "budget-ocr",
+            "score": -0.2856997964126734,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.26"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 5 divergent nodes, success lift 0.412",
+      "data": {
+        "divergentNodes": [
+          "parse",
+          "extract-line-items",
+          "extract-totals",
+          "reconcile",
+          "validate"
+        ],
+        "successLift": 0.41243287699379255
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "score-candidates",
+      "nodeId": "extract-line-items",
+      "level": "info",
+      "message": "extract-line-items: 2 candidates — top sonnet-extractor (score 0.3374)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-extractor",
+            "score": 0.3373593962900809,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.34"
+          },
+          {
+            "providerId": "flash-extractor",
+            "score": -0.2889791718107616,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "score-candidates",
+      "nodeId": "extract-totals",
+      "level": "info",
+      "message": "extract-totals: 2 candidates — top sonnet-extractor (score 0.1868)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-extractor",
+            "score": 0.1868350860033962,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.34"
+          },
+          {
+            "providerId": "flash-extractor",
+            "score": -0.2914282447417035,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 18,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.568",
+      "data": {
+        "failureProbability": 0.5680000000000001,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 1.2592600000000003,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 5000
+      }
+    },
+    {
+      "seq": 19,
+      "phase": "score-candidates",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: 2 candidates — top ledger-reconciler (score 0.6675)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "ledger-reconciler",
+            "score": 0.6674843868721861,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.55"
+          },
+          {
+            "providerId": "quick-reconciler",
+            "score": -0.6261519767641774,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.48"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 20,
+      "phase": "score-candidates",
+      "nodeId": "validate",
+      "level": "info",
+      "message": "validate: 2 candidates — top rules-validator (score 0.3971)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "rules-validator",
+            "score": 0.39710217321098573,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "skip-check",
+            "score": -0.29426639521689785,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.26"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 21,
+      "phase": "score-candidates",
+      "nodeId": "format",
+      "level": "info",
+      "message": "format: 2 candidates — top report-formatter (score 0.1686)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "report-formatter",
+            "score": 0.16855108660549287,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.18"
+          },
+          {
+            "providerId": "template-bot",
+            "score": 0.11762541858915646,
+            "pHat": 0.7727272727272727,
+            "priceUsdc": "0.16"
+          }
+        ]
+      }
+    }
+  ]
+}

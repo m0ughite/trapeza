@@ -10,6 +10,7 @@ import { TwinRiskPanel } from "./components/TwinRiskPanel";
 import { OnchainPanel } from "./components/OnchainPanel";
 import { TractionStrip } from "./components/TractionStrip";
 import { LiveRunPanel } from "./components/LiveRunPanel";
+import { RunTracePanel } from "./components/RunTracePanel";
 import { ms, num, pctSmall, plain, usd } from "./services/format";
 
 const SECTIONS = [
@@ -253,7 +254,7 @@ function Overview(props: {
           <div>
             <div className="eyebrow">Pick a scenario</div>
             <p className="why">
-              Three bundled workflows, each replaying a real solver run. Switching here drives every
+              Six bundled workflows, each replaying a real solver run. Switching here drives every
               section below.
             </p>
           </div>
@@ -276,6 +277,7 @@ function Overview(props: {
 function ClearingSection(props: { run: DemoRun }) {
   const { run } = props;
   const c = run.clearing;
+  const [traceNode, setTraceNode] = useState<string | undefined>();
   return (
     <Panel
       title="The cleared workflow"
@@ -300,7 +302,10 @@ function ClearingSection(props: { run: DemoRun }) {
         <Stat k="makespan" v={ms(c.makespanMs)} small />
         <Stat k="steps" v={run.graph.nodes.length} small />
       </div>
-      <DagView graph={run.graph} allocations={c.allocations} />
+      <DagView graph={run.graph} allocations={c.allocations} activeNodeId={traceNode} />
+      <div style={{ marginTop: 16 }}>
+        <RunTracePanel trace={run.trace} onActiveNode={setTraceNode} />
+      </div>
       <div className="dag-legend">
         <span><i className="chip chosen" /> chosen provider</span>
         <span><i className="chip bottleneck" /> bottleneck step</span>

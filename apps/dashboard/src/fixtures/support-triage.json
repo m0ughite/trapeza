@@ -1,0 +1,909 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "support-triage",
+    "label": "Customer-support triage",
+    "description": "Classify an inbound ticket, then in parallel look up the knowledge base, gauge sentiment and check entitlement, draft a reply, and tone-check it — a fan-out/fan-in graph on a tight SLA.",
+    "narrative": "With a tight deadline and higher risk-aversion, the clearing avoids the fast auto-responder that fabricates answers and schedules the parallel checks so the reply is drafted only once its inputs are ready. Realized-outcome pricing keeps the reply step honest.",
+    "generatedAt": "2026-07-09T02:13:39.644Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "support-triage",
+    "globalBudgetUsdc": "6.00",
+    "globalDeadlineMs": 8000,
+    "globalQualityFloor": null,
+    "riskAversion": 2,
+    "nodes": [
+      {
+        "nodeId": "classify",
+        "capability": "ticket.classify",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "kb-lookup",
+        "capability": "kb.lookup",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "sentiment",
+        "capability": "sentiment.analyze",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.70",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "entitlement",
+        "capability": "entitlement.check",
+        "valueUsdc": "0.55",
+        "budgetUsdc": "0.85",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "draft",
+        "capability": "response.draft",
+        "valueUsdc": "1.20",
+        "budgetUsdc": "1.40",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "tone-check",
+        "capability": "verify.tone",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.70",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "classify",
+        "to": "kb-lookup"
+      },
+      {
+        "from": "classify",
+        "to": "sentiment"
+      },
+      {
+        "from": "classify",
+        "to": "entitlement"
+      },
+      {
+        "from": "kb-lookup",
+        "to": "draft"
+      },
+      {
+        "from": "sentiment",
+        "to": "draft"
+      },
+      {
+        "from": "entitlement",
+        "to": "draft"
+      },
+      {
+        "from": "draft",
+        "to": "tone-check"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "intent-router",
+      "capabilities": [
+        "ticket.classify"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.78,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.2,
+      "latencyMeanMs": 510,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "kb-retriever",
+      "capabilities": [
+        "kb.lookup"
+      ],
+      "priceUsdc": "0.24",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.74,
+      "claimedLatencyMs": 700,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 710.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "stale-kb",
+      "capabilities": [
+        "kb.lookup"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 350,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.2,
+      "latencyMeanMs": 380,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "mood-reader",
+      "capabilities": [
+        "sentiment.analyze"
+      ],
+      "priceUsdc": "0.16",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.8,
+      "claimedLatencyMs": 400,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.16,
+      "latencyMeanMs": 410,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "plan-checker",
+      "capabilities": [
+        "entitlement.check"
+      ],
+      "priceUsdc": "0.22",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.76,
+      "claimedLatencyMs": 600,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.22,
+      "latencyMeanMs": 610.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "reply-writer",
+      "capabilities": [
+        "response.draft"
+      ],
+      "priceUsdc": "0.50",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.72,
+      "claimedLatencyMs": 1200,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.5,
+      "latencyMeanMs": 1199.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "autoresponder",
+      "capabilities": [
+        "response.draft"
+      ],
+      "priceUsdc": "0.42",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.42,
+      "latencyMeanMs": 540.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "tone-guard",
+      "capabilities": [
+        "verify.tone"
+      ],
+      "priceUsdc": "0.22",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.79,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.22,
+      "latencyMeanMs": 460,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.412369,
+    "makespanMs": 8000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "classify",
+        "taskId": "task-classify",
+        "providerId": "intent-router",
+        "score": 0.21683226196827754
+      },
+      {
+        "nodeId": "kb-lookup",
+        "taskId": "task-kb-lookup",
+        "providerId": "kb-retriever",
+        "score": 0.21580569131593086
+      },
+      {
+        "nodeId": "sentiment",
+        "taskId": "task-sentiment",
+        "providerId": "mood-reader",
+        "score": 0.17346580957462204
+      },
+      {
+        "nodeId": "entitlement",
+        "taskId": "task-entitlement",
+        "providerId": "plan-checker",
+        "score": 0.1978218837062699
+      },
+      {
+        "nodeId": "draft",
+        "taskId": "task-draft",
+        "providerId": "reply-writer",
+        "score": 0.4116113826318617
+      },
+      {
+        "nodeId": "tone-check",
+        "taskId": "task-tone-check",
+        "providerId": "tone-guard",
+        "score": 0.19683226196827755
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "classify",
+        "startMs": 0,
+        "durationMs": 510,
+        "endMs": 510
+      },
+      {
+        "nodeId": "kb-lookup",
+        "startMs": 510,
+        "durationMs": 710,
+        "endMs": 1220
+      },
+      {
+        "nodeId": "sentiment",
+        "startMs": 710,
+        "durationMs": 410,
+        "endMs": 1120
+      },
+      {
+        "nodeId": "entitlement",
+        "startMs": 510,
+        "durationMs": 610,
+        "endMs": 1120
+      },
+      {
+        "nodeId": "draft",
+        "startMs": 6340,
+        "durationMs": 1200,
+        "endMs": 7540
+      },
+      {
+        "nodeId": "tone-check",
+        "startMs": 7540,
+        "durationMs": 460,
+        "endMs": 8000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "classify": "0.200000",
+      "kb-lookup": "0.240000",
+      "sentiment": "0.160000",
+      "entitlement": "0.220000",
+      "draft": "0.500000",
+      "tone-check": "0.220000"
+    },
+    "totalClearedUsdc": "1.540000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:intent-router": "0.000000",
+      "capacity:kb-retriever": "0.000000",
+      "capacity:stale-kb": "0.000000",
+      "capacity:mood-reader": "0.000000",
+      "capacity:plan-checker": "0.000000",
+      "capacity:reply-writer": "0.000000",
+      "capacity:autoresponder": "0.000000",
+      "capacity:tone-guard": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.412369,
+      "allocations": [
+        {
+          "nodeId": "classify",
+          "taskId": "task-classify",
+          "providerId": "intent-router",
+          "score": 0.21683226196827754
+        },
+        {
+          "nodeId": "kb-lookup",
+          "taskId": "task-kb-lookup",
+          "providerId": "kb-retriever",
+          "score": 0.21580569131593086
+        },
+        {
+          "nodeId": "sentiment",
+          "taskId": "task-sentiment",
+          "providerId": "mood-reader",
+          "score": 0.17346580957462204
+        },
+        {
+          "nodeId": "entitlement",
+          "taskId": "task-entitlement",
+          "providerId": "plan-checker",
+          "score": 0.1978218837062699
+        },
+        {
+          "nodeId": "draft",
+          "taskId": "task-draft",
+          "providerId": "reply-writer",
+          "score": 0.4116113826318617
+        },
+        {
+          "nodeId": "tone-check",
+          "taskId": "task-tone-check",
+          "providerId": "tone-guard",
+          "score": 0.19683226196827755
+        }
+      ],
+      "realizedEndToEndSuccess": 0.48396583577985736,
+      "claimedEndToEndSuccess": 0.19961330688000006,
+      "expectedSpendUsdc": "1.540000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.6265,
+      "allocations": [
+        {
+          "nodeId": "classify",
+          "taskId": "task-classify",
+          "providerId": "intent-router",
+          "score": 0.135
+        },
+        {
+          "nodeId": "kb-lookup",
+          "taskId": "task-kb-lookup",
+          "providerId": "stale-kb",
+          "score": 0.37299999999999994
+        },
+        {
+          "nodeId": "sentiment",
+          "taskId": "task-sentiment",
+          "providerId": "mood-reader",
+          "score": 0.12000000000000006
+        },
+        {
+          "nodeId": "entitlement",
+          "taskId": "task-entitlement",
+          "providerId": "plan-checker",
+          "score": 0.13200000000000003
+        },
+        {
+          "nodeId": "draft",
+          "taskId": "task-draft",
+          "providerId": "autoresponder",
+          "score": 0.744
+        },
+        {
+          "nodeId": "tone-check",
+          "taskId": "task-tone-check",
+          "providerId": "tone-guard",
+          "score": 0.12250000000000003
+        }
+      ],
+      "realizedEndToEndSuccess": 0.026812511677554423,
+      "claimedEndToEndSuccess": 0.35614190976000004,
+      "expectedSpendUsdc": "1.420000"
+    },
+    "divergentNodes": [
+      "kb-lookup",
+      "draft"
+    ],
+    "successLift": 0.4571533241023029
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.4123692911652397,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "classify",
+          "taskId": "task-classify",
+          "providerId": "intent-router",
+          "score": 0.21683226196827754
+        },
+        {
+          "nodeId": "kb-lookup",
+          "taskId": "task-kb-lookup",
+          "providerId": "kb-retriever",
+          "score": 0.21580569131593086
+        },
+        {
+          "nodeId": "sentiment",
+          "taskId": "task-sentiment",
+          "providerId": "mood-reader",
+          "score": 0.17346580957462204
+        },
+        {
+          "nodeId": "entitlement",
+          "taskId": "task-entitlement",
+          "providerId": "plan-checker",
+          "score": 0.1978218837062699
+        },
+        {
+          "nodeId": "draft",
+          "taskId": "task-draft",
+          "providerId": "reply-writer",
+          "score": 0.4116113826318617
+        },
+        {
+          "nodeId": "tone-check",
+          "taskId": "task-tone-check",
+          "providerId": "tone-guard",
+          "score": 0.19683226196827755
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.412369,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "classify",
+          "taskId": "task-classify",
+          "providerId": "intent-router",
+          "score": 0.21683226196827754
+        },
+        {
+          "nodeId": "kb-lookup",
+          "taskId": "task-kb-lookup",
+          "providerId": "kb-retriever",
+          "score": 0.21580569131593086
+        },
+        {
+          "nodeId": "sentiment",
+          "taskId": "task-sentiment",
+          "providerId": "mood-reader",
+          "score": 0.17346580957462204
+        },
+        {
+          "nodeId": "entitlement",
+          "taskId": "task-entitlement",
+          "providerId": "plan-checker",
+          "score": 0.1978218837062699
+        },
+        {
+          "nodeId": "draft",
+          "taskId": "task-draft",
+          "providerId": "reply-writer",
+          "score": 0.4116113826318617
+        },
+        {
+          "nodeId": "tone-check",
+          "taskId": "task-tone-check",
+          "providerId": "tone-guard",
+          "score": 0.19683226196827755
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.4124) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.4124) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 6500,
+    "failureProbability": 0.51,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 1.0702399999999999
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-1.490000 errors=7",
+      "errors": [
+        "overdraw at classify: fee 200000 > requester 50000",
+        "overdraw at kb-lookup: fee 240000 > requester -150000",
+        "overdraw at sentiment: fee 160000 > requester -390000",
+        "overdraw at entitlement: fee 220000 > requester -550000",
+        "overdraw at draft: fee 500000 > requester -770000",
+        "overdraw at tone-check: fee 220000 > requester -1270000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 6,
+    "totalClearedUsdc": "1.540000",
+    "resultPerUsdc": 2.435064935064935,
+    "makespanMs": 8000,
+    "paymentChainDepth": 4,
+    "graphDensity": 1.1666666666666667,
+    "providerCount": 8
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 6 nodes, 7 edges",
+      "data": {
+        "graphId": "support-triage",
+        "nodeCount": 6,
+        "edgeCount": 7
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "classify",
+      "level": "info",
+      "message": "classify: assigned intent-router (score 0.2168)",
+      "data": {
+        "providerId": "intent-router",
+        "score": 0.21683226196827754
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "kb-lookup",
+      "level": "info",
+      "message": "kb-lookup: assigned kb-retriever (score 0.2158)",
+      "data": {
+        "providerId": "kb-retriever",
+        "score": 0.21580569131593086
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "sentiment",
+      "level": "info",
+      "message": "sentiment: assigned mood-reader (score 0.1735)",
+      "data": {
+        "providerId": "mood-reader",
+        "score": 0.17346580957462204
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "entitlement",
+      "level": "info",
+      "message": "entitlement: assigned plan-checker (score 0.1978)",
+      "data": {
+        "providerId": "plan-checker",
+        "score": 0.1978218837062699
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "draft",
+      "level": "info",
+      "message": "draft: assigned reply-writer (score 0.4116)",
+      "data": {
+        "providerId": "reply-writer",
+        "score": 0.4116113826318617
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "assign",
+      "nodeId": "tone-check",
+      "level": "info",
+      "message": "tone-check: assigned tone-guard (score 0.1968)",
+      "data": {
+        "providerId": "tone-guard",
+        "score": 0.19683226196827755
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 8000ms",
+      "data": {
+        "makespanMs": 8000,
+        "schedule": [
+          {
+            "nodeId": "classify",
+            "startMs": 0,
+            "endMs": 510
+          },
+          {
+            "nodeId": "kb-lookup",
+            "startMs": 510,
+            "endMs": 1220
+          },
+          {
+            "nodeId": "sentiment",
+            "startMs": 710,
+            "endMs": 1120
+          },
+          {
+            "nodeId": "entitlement",
+            "startMs": 510,
+            "endMs": 1120
+          },
+          {
+            "nodeId": "draft",
+            "startMs": 6340,
+            "endMs": 7540
+          },
+          {
+            "nodeId": "tone-check",
+            "startMs": 7540,
+            "endMs": 8000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 8000ms ≤ 8000ms"
+    },
+    {
+      "seq": 10,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 11,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (10 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:intent-router": "0.000000",
+          "capacity:kb-retriever": "0.000000",
+          "capacity:stale-kb": "0.000000",
+          "capacity:mood-reader": "0.000000",
+          "capacity:plan-checker": "0.000000",
+          "capacity:reply-writer": "0.000000",
+          "capacity:autoresponder": "0.000000",
+          "capacity:tone-guard": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 1.540000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "classify": "0.200000",
+          "kb-lookup": "0.240000",
+          "sentiment": "0.160000",
+          "entitlement": "0.220000",
+          "draft": "0.500000",
+          "tone-check": "0.220000"
+        },
+        "totalClearedUsdc": "1.540000"
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.4123692911652397,
+        "optimalObj": 1.412369
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "score-candidates",
+      "nodeId": "classify",
+      "level": "info",
+      "message": "classify: 1 candidates — top intent-router (score 0.2168)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "intent-router",
+            "score": 0.21683226196827754,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.20"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 2 divergent nodes, success lift 0.457",
+      "data": {
+        "divergentNodes": [
+          "kb-lookup",
+          "draft"
+        ],
+        "successLift": 0.4571533241023029
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "score-candidates",
+      "nodeId": "kb-lookup",
+      "level": "info",
+      "message": "kb-lookup: 2 candidates — top kb-retriever (score 0.2158)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "kb-retriever",
+            "score": 0.21580569131593086,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.24"
+          },
+          {
+            "providerId": "stale-kb",
+            "score": -0.32166919877798517,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.20"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "score-candidates",
+      "nodeId": "sentiment",
+      "level": "info",
+      "message": "sentiment: 1 candidates — top mood-reader (score 0.1735)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "mood-reader",
+            "score": 0.17346580957462204,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.16"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 18,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.510",
+      "data": {
+        "failureProbability": 0.51,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 1.0702399999999999,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 6500
+      }
+    },
+    {
+      "seq": 19,
+      "phase": "score-candidates",
+      "nodeId": "entitlement",
+      "level": "info",
+      "message": "entitlement: 1 candidates — top plan-checker (score 0.1978)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "plan-checker",
+            "score": 0.1978218837062699,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.22"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 20,
+      "phase": "score-candidates",
+      "nodeId": "draft",
+      "level": "info",
+      "message": "draft: 2 candidates — top reply-writer (score 0.4116)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "reply-writer",
+            "score": 0.4116113826318617,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.50"
+          },
+          {
+            "providerId": "autoresponder",
+            "score": -0.7409810038325116,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.42"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 21,
+      "phase": "score-candidates",
+      "nodeId": "tone-check",
+      "level": "info",
+      "message": "tone-check: 1 candidates — top tone-guard (score 0.1968)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "tone-guard",
+            "score": 0.19683226196827755,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.22"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -6,15 +6,21 @@
  */
 
 import type { DemoRun, OnchainReceipts } from "../types/contract";
-import invoiceWorkflow from "./invoice-workflow.json";
-import budgetBottleneck from "./budget-bottleneck.json";
-import researchPipeline from "./research-pipeline.json";
+import invoiceProcessing from "./invoice-processing.json";
+import researchReport from "./research-report.json";
+import dataReconciliation from "./data-reconciliation.json";
+import supportTriage from "./support-triage.json";
+import codePrPipeline from "./code-pr-pipeline.json";
+import ragQa from "./rag-qa.json";
 import onchainReceipts from "./onchain-receipts.json";
 
 export const RUNS: DemoRun[] = [
-  invoiceWorkflow as unknown as DemoRun,
-  budgetBottleneck as unknown as DemoRun,
-  researchPipeline as unknown as DemoRun,
+  invoiceProcessing as unknown as DemoRun,
+  researchReport as unknown as DemoRun,
+  dataReconciliation as unknown as DemoRun,
+  supportTriage as unknown as DemoRun,
+  codePrPipeline as unknown as DemoRun,
+  ragQa as unknown as DemoRun,
 ];
 
 export const RECEIPTS: OnchainReceipts = onchainReceipts as unknown as OnchainReceipts;

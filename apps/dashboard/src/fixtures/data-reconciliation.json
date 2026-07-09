@@ -1,0 +1,462 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "data-reconciliation",
+    "label": "Data ETL & reconciliation",
+    "description": "Extract a batch of records then reconcile them against a source of truth, under a tight budget where the expensive step is the one that matters.",
+    "narrative": "The naive per-step router spends in order: it overpays on the easy extraction and has nothing left for the reconcile step — so it returns NO_PROVIDER. The whole-graph clearing sees the budget squeeze coming, buys cheap-but-adequate extraction, and reserves budget for the bottleneck. The single-task bonded broker is this graph's one-node special case.",
+    "generatedAt": "2026-07-09T02:13:39.623Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "data-reconciliation",
+    "globalBudgetUsdc": "1.00",
+    "globalDeadlineMs": 120000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "extract",
+        "capability": "data.extract",
+        "valueUsdc": "2.00",
+        "budgetUsdc": "2.00",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "reconcile",
+        "capability": "data.reconcile",
+        "valueUsdc": "1.50",
+        "budgetUsdc": "1.50",
+        "bondRatio": 0.05,
+        "qualityFloor": null,
+        "bottleneck": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "extract",
+        "to": "reconcile"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "premium-extractor",
+      "capabilities": [
+        "data.extract"
+      ],
+      "priceUsdc": "0.65",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 800,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "budget-extractor",
+      "capabilities": [
+        "data.extract"
+      ],
+      "priceUsdc": "0.15",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.55,
+      "claimedLatencyMs": 1200,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "ledger-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.50",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.9,
+      "claimedLatencyMs": 1500,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "premium-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.80",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.95,
+      "claimedLatencyMs": 1000,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.5375,
+    "makespanMs": 2700,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "extract",
+        "taskId": "task-extract",
+        "providerId": "budget-extractor",
+        "score": 0.7250000000000001
+      },
+      {
+        "nodeId": "reconcile",
+        "taskId": "task-reconcile",
+        "providerId": "ledger-reconciler",
+        "score": 0.8125000000000001
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "extract",
+        "startMs": 0,
+        "durationMs": 1200,
+        "endMs": 1200
+      },
+      {
+        "nodeId": "reconcile",
+        "startMs": 1200,
+        "durationMs": 1500,
+        "endMs": 2700
+      }
+    ],
+    "settlementPricesUsdc": {
+      "extract": "0.150000",
+      "reconcile": "0.500000"
+    },
+    "totalClearedUsdc": "0.650000",
+    "shadowPricesUsdc": {
+      "budget": "1.150000",
+      "deadline": "0.000000",
+      "capacity:premium-extractor": "0.000000",
+      "capacity:budget-extractor": "0.000000",
+      "capacity:ledger-reconciler": "0.000000",
+      "capacity:premium-reconciler": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.5375,
+      "allocations": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "budget-extractor",
+          "score": 0.7250000000000001
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.8125000000000001
+        }
+      ],
+      "realizedEndToEndSuccess": 0.49500000000000005,
+      "claimedEndToEndSuccess": 0.49500000000000005,
+      "expectedSpendUsdc": "0.650000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.5375,
+      "allocations": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "budget-extractor",
+          "score": 0.7250000000000001
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.8125000000000001
+        }
+      ],
+      "realizedEndToEndSuccess": 0.49500000000000005,
+      "claimedEndToEndSuccess": 0.49500000000000005,
+      "expectedSpendUsdc": "0.650000"
+    },
+    "divergentNodes": [],
+    "successLift": 0
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "failed",
+      "objectiveValue": null,
+      "errorCode": "NO_PROVIDER",
+      "errorMessage": "no feasible provider for reconcile",
+      "assignments": []
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.5375,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "extract",
+          "taskId": "task-extract",
+          "providerId": "budget-extractor",
+          "score": 0.7250000000000001
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.8125000000000001
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy spends the shared budget in topological order, overpays on the easy node, and cannot afford the bottleneck (NO_PROVIDER). The graph-aware clearing sees the whole DAG and buys cheap-but-adequate on the easy nodes to reserve budget for the bottleneck — so it clears where greedy busts. The single-task bonded broker is this graph's one-node special case."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 120000,
+    "failureProbability": 0.766,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.19019999999999998
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-0.600000 errors=3",
+      "errors": [
+        "overdraw at extract: fee 150000 > requester 50000",
+        "overdraw at reconcile: fee 500000 > requester -100000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 2,
+    "totalClearedUsdc": "0.650000",
+    "resultPerUsdc": 5.384615384615384,
+    "makespanMs": 2700,
+    "paymentChainDepth": 2,
+    "graphDensity": 0.5,
+    "providerCount": 4
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 2 nodes, 1 edges",
+      "data": {
+        "graphId": "data-reconciliation",
+        "nodeCount": 2,
+        "edgeCount": 1
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "extract",
+      "level": "info",
+      "message": "extract: assigned budget-extractor (score 0.7250)",
+      "data": {
+        "providerId": "budget-extractor",
+        "score": 0.7250000000000001
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: assigned ledger-reconciler (score 0.8125)",
+      "data": {
+        "providerId": "ledger-reconciler",
+        "score": 0.8125000000000001
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 2700ms",
+      "data": {
+        "makespanMs": 2700,
+        "schedule": [
+          {
+            "nodeId": "extract",
+            "startMs": 0,
+            "endMs": 1200
+          },
+          {
+            "nodeId": "reconcile",
+            "startMs": 1200,
+            "endMs": 2700
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 2700ms ≤ 120000ms"
+    },
+    {
+      "seq": 6,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 7,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (6 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "1.150000",
+          "deadline": "0.000000",
+          "capacity:premium-extractor": "0.000000",
+          "capacity:budget-extractor": "0.000000",
+          "capacity:ledger-reconciler": "0.000000",
+          "capacity:premium-reconciler": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 0.650000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "extract": "0.150000",
+          "reconcile": "0.500000"
+        },
+        "totalClearedUsdc": "0.650000"
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=failed, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": null,
+        "optimalObj": 1.5375
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "score-candidates",
+      "nodeId": "extract",
+      "level": "info",
+      "message": "extract: 2 candidates — top premium-extractor (score 1.3000)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "premium-extractor",
+            "score": 1.3,
+            "pHat": 0.98,
+            "priceUsdc": "0.65"
+          },
+          {
+            "providerId": "budget-extractor",
+            "score": 0.7250000000000001,
+            "pHat": 0.55,
+            "priceUsdc": "0.15"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 0 divergent nodes, success lift 0.000",
+      "data": {
+        "divergentNodes": [],
+        "successLift": 0
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "score-candidates",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: 2 candidates — top ledger-reconciler (score 0.8125)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "ledger-reconciler",
+            "score": 0.8125000000000001,
+            "pHat": 0.9,
+            "priceUsdc": "0.50"
+          },
+          {
+            "providerId": "premium-reconciler",
+            "score": 0.6062499999999997,
+            "pHat": 0.95,
+            "priceUsdc": "0.80"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.766",
+      "data": {
+        "failureProbability": 0.766,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.19019999999999998,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 120000
+      }
+    }
+  ]
+}

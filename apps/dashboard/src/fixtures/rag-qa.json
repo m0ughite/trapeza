@@ -1,0 +1,880 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "rag-qa",
+    "label": "RAG document Q&A",
+    "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps served by brand-new providers with no track record.",
+    "narrative": "At cold-start the ledger has zero data, so it refuses to trust self-reported success and prices everyone at a neutral 0.5 prior — the cheaper honest provider wins each step. Turn the ledger OFF and the market believes the confident newcomers' inflated claims. Same graph, two very different markets.",
+    "generatedAt": "2026-07-09T02:13:39.677Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "rag-qa",
+    "globalBudgetUsdc": "6.00",
+    "globalDeadlineMs": 60000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "chunk",
+        "capability": "doc.chunk",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "index",
+        "capability": "embed.index",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "retrieve",
+        "capability": "retrieve.topk",
+        "valueUsdc": "0.70",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "answer",
+        "capability": "answer.generate",
+        "valueUsdc": "1.30",
+        "budgetUsdc": "1.60",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "grounding-check",
+        "capability": "verify.grounding",
+        "valueUsdc": "0.90",
+        "budgetUsdc": "1.10",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "chunk",
+        "to": "index"
+      },
+      {
+        "from": "index",
+        "to": "retrieve"
+      },
+      {
+        "from": "retrieve",
+        "to": "answer"
+      },
+      {
+        "from": "answer",
+        "to": "grounding-check"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "splitter",
+      "capabilities": [
+        "doc.chunk"
+      ],
+      "priceUsdc": "0.16",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 400,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "megachunk",
+      "capabilities": [
+        "doc.chunk"
+      ],
+      "priceUsdc": "0.24",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 300,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "embed-small",
+      "capabilities": [
+        "embed.index"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 600,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "embed-xl",
+      "capabilities": [
+        "embed.index"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "bm25-retriever",
+      "capabilities": [
+        "retrieve.topk"
+      ],
+      "priceUsdc": "0.22",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.69,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "vector-retriever",
+      "capabilities": [
+        "retrieve.topk"
+      ],
+      "priceUsdc": "0.32",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 400,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "grounded-answerer",
+      "capabilities": [
+        "answer.generate"
+      ],
+      "priceUsdc": "0.55",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.66,
+      "claimedLatencyMs": 1400,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "confident-answerer",
+      "capabilities": [
+        "answer.generate"
+      ],
+      "priceUsdc": "0.70",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 900,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "citation-checker",
+      "capabilities": [
+        "verify.grounding"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.67,
+      "claimedLatencyMs": 700,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    },
+    {
+      "id": "vibe-checker",
+      "capabilities": [
+        "verify.grounding"
+      ],
+      "priceUsdc": "0.40",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 350,
+      "calibratedSuccessProb": 0.5,
+      "pSuccessStdDev": 0.28867513459481287,
+      "successAlpha": 1,
+      "successBeta": 1,
+      "costMeanUsdc": 0,
+      "latencyMeanMs": 0,
+      "nObservations": 0,
+      "archetype": "neutral"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": -0.218674,
+    "makespanMs": 60000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "chunk",
+        "taskId": "task-chunk",
+        "providerId": "splitter",
+        "score": -0.008584391824351612
+      },
+      {
+        "nodeId": "index",
+        "taskId": "task-index",
+        "providerId": "embed-small",
+        "score": -0.018301270189221952
+      },
+      {
+        "nodeId": "retrieve",
+        "taskId": "task-retrieve",
+        "providerId": "bm25-retriever",
+        "score": -0.008018148554092275
+      },
+      {
+        "nodeId": "answer",
+        "taskId": "task-answer",
+        "providerId": "grounded-answerer",
+        "score": -0.15631941874331423
+      },
+      {
+        "nodeId": "grounding-check",
+        "taskId": "task-grounding-check",
+        "providerId": "citation-checker",
+        "score": -0.027451905283832873
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "chunk",
+        "startMs": 0,
+        "durationMs": 400,
+        "endMs": 400
+      },
+      {
+        "nodeId": "index",
+        "startMs": 400,
+        "durationMs": 600,
+        "endMs": 1000
+      },
+      {
+        "nodeId": "retrieve",
+        "startMs": 57400,
+        "durationMs": 500,
+        "endMs": 57900
+      },
+      {
+        "nodeId": "answer",
+        "startMs": 57900,
+        "durationMs": 1400,
+        "endMs": 59300
+      },
+      {
+        "nodeId": "grounding-check",
+        "startMs": 59300,
+        "durationMs": 700,
+        "endMs": 60000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "chunk": "0.160000",
+      "index": "0.200000",
+      "retrieve": "0.220000",
+      "answer": "0.550000",
+      "grounding-check": "0.300000"
+    },
+    "totalClearedUsdc": "1.430000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:splitter": "0.000000",
+      "capacity:megachunk": "0.000000",
+      "capacity:embed-small": "0.000000",
+      "capacity:embed-xl": "0.000000",
+      "capacity:bm25-retriever": "0.000000",
+      "capacity:vector-retriever": "0.000000",
+      "capacity:grounded-answerer": "0.000000",
+      "capacity:confident-answerer": "0.000000",
+      "capacity:citation-checker": "0.000000",
+      "capacity:vibe-checker": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": -0.218674,
+      "allocations": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": -0.008584391824351612
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": -0.018301270189221952
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": -0.008018148554092275
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": -0.15631941874331423
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": -0.027451905283832873
+        }
+      ],
+      "realizedEndToEndSuccess": 0.145236168,
+      "claimedEndToEndSuccess": 0.145236168,
+      "expectedSpendUsdc": "1.430000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.95375,
+      "allocations": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "megachunk",
+          "score": 0.25375000000000003
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-xl",
+          "score": 0.285
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "vector-retriever",
+          "score": 0.3537499999999999
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "confident-answerer",
+          "score": 0.58375
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "vibe-checker",
+          "score": 0.4775
+        }
+      ],
+      "realizedEndToEndSuccess": 0.9130493987999999,
+      "claimedEndToEndSuccess": 0.9130493987999999,
+      "expectedSpendUsdc": "1.960000"
+    },
+    "divergentNodes": [
+      "chunk",
+      "index",
+      "retrieve",
+      "answer",
+      "grounding-check"
+    ],
+    "successLift": -0.7678132307999999
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": -0.21867513459481294,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": -0.008584391824351612
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": -0.018301270189221952
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": -0.008018148554092275
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": -0.15631941874331423
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": -0.027451905283832873
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": -0.218674,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": -0.008584391824351612
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": -0.018301270189221952
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": -0.008018148554092275
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": -0.15631941874331423
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": -0.027451905283832873
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective -0.2187) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective -0.2187) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 60000,
+    "failureProbability": 0.96,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.20442000000000002
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-1.380000 errors=6",
+      "errors": [
+        "overdraw at chunk: fee 160000 > requester 50000",
+        "overdraw at index: fee 200000 > requester -110000",
+        "overdraw at retrieve: fee 220000 > requester -310000",
+        "overdraw at answer: fee 550000 > requester -530000",
+        "overdraw at grounding-check: fee 300000 > requester -1080000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 5,
+    "totalClearedUsdc": "1.430000",
+    "resultPerUsdc": 2.7972027972027975,
+    "makespanMs": 60000,
+    "paymentChainDepth": 5,
+    "graphDensity": 0.8,
+    "providerCount": 10
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 5 nodes, 4 edges",
+      "data": {
+        "graphId": "rag-qa",
+        "nodeCount": 5,
+        "edgeCount": 4
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "chunk",
+      "level": "info",
+      "message": "chunk: assigned splitter (score -0.0086)",
+      "data": {
+        "providerId": "splitter",
+        "score": -0.008584391824351612
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "index",
+      "level": "info",
+      "message": "index: assigned embed-small (score -0.0183)",
+      "data": {
+        "providerId": "embed-small",
+        "score": -0.018301270189221952
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "retrieve",
+      "level": "info",
+      "message": "retrieve: assigned bm25-retriever (score -0.0080)",
+      "data": {
+        "providerId": "bm25-retriever",
+        "score": -0.008018148554092275
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "answer",
+      "level": "info",
+      "message": "answer: assigned grounded-answerer (score -0.1563)",
+      "data": {
+        "providerId": "grounded-answerer",
+        "score": -0.15631941874331423
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "grounding-check",
+      "level": "info",
+      "message": "grounding-check: assigned citation-checker (score -0.0275)",
+      "data": {
+        "providerId": "citation-checker",
+        "score": -0.027451905283832873
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 60000ms",
+      "data": {
+        "makespanMs": 60000,
+        "schedule": [
+          {
+            "nodeId": "chunk",
+            "startMs": 0,
+            "endMs": 400
+          },
+          {
+            "nodeId": "index",
+            "startMs": 400,
+            "endMs": 1000
+          },
+          {
+            "nodeId": "retrieve",
+            "startMs": 57400,
+            "endMs": 57900
+          },
+          {
+            "nodeId": "answer",
+            "startMs": 57900,
+            "endMs": 59300
+          },
+          {
+            "nodeId": "grounding-check",
+            "startMs": 59300,
+            "endMs": 60000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 60000ms ≤ 60000ms"
+    },
+    {
+      "seq": 9,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 10,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (12 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:splitter": "0.000000",
+          "capacity:megachunk": "0.000000",
+          "capacity:embed-small": "0.000000",
+          "capacity:embed-xl": "0.000000",
+          "capacity:bm25-retriever": "0.000000",
+          "capacity:vector-retriever": "0.000000",
+          "capacity:grounded-answerer": "0.000000",
+          "capacity:confident-answerer": "0.000000",
+          "capacity:citation-checker": "0.000000",
+          "capacity:vibe-checker": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 1.430000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "chunk": "0.160000",
+          "index": "0.200000",
+          "retrieve": "0.220000",
+          "answer": "0.550000",
+          "grounding-check": "0.300000"
+        },
+        "totalClearedUsdc": "1.430000"
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": -0.21867513459481294,
+        "optimalObj": -0.218674
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "score-candidates",
+      "nodeId": "chunk",
+      "level": "info",
+      "message": "chunk: 2 candidates — top splitter (score -0.0086)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "splitter",
+            "score": -0.008584391824351612,
+            "pHat": 0.5,
+            "priceUsdc": "0.16"
+          },
+          {
+            "providerId": "megachunk",
+            "score": -0.0885843918243516,
+            "pHat": 0.5,
+            "priceUsdc": "0.24"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 5 divergent nodes, success lift -0.768",
+      "data": {
+        "divergentNodes": [
+          "chunk",
+          "index",
+          "retrieve",
+          "answer",
+          "grounding-check"
+        ],
+        "successLift": -0.7678132307999999
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "score-candidates",
+      "nodeId": "index",
+      "level": "info",
+      "message": "index: 2 candidates — top embed-small (score -0.0183)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "embed-small",
+            "score": -0.018301270189221952,
+            "pHat": 0.5,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "embed-xl",
+            "score": -0.11830127018922193,
+            "pHat": 0.5,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "score-candidates",
+      "nodeId": "retrieve",
+      "level": "info",
+      "message": "retrieve: 2 candidates — top bm25-retriever (score -0.0080)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "bm25-retriever",
+            "score": -0.008018148554092275,
+            "pHat": 0.5,
+            "priceUsdc": "0.22"
+          },
+          {
+            "providerId": "vector-retriever",
+            "score": -0.10801814855409228,
+            "pHat": 0.5,
+            "priceUsdc": "0.32"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.960",
+      "data": {
+        "failureProbability": 0.96,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.20442000000000002,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 60000
+      }
+    },
+    {
+      "seq": 18,
+      "phase": "score-candidates",
+      "nodeId": "answer",
+      "level": "info",
+      "message": "answer: 2 candidates — top grounded-answerer (score -0.1563)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "grounded-answerer",
+            "score": -0.15631941874331423,
+            "pHat": 0.5,
+            "priceUsdc": "0.55"
+          },
+          {
+            "providerId": "confident-answerer",
+            "score": -0.30631941874331414,
+            "pHat": 0.5,
+            "priceUsdc": "0.70"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 19,
+      "phase": "score-candidates",
+      "nodeId": "grounding-check",
+      "level": "info",
+      "message": "grounding-check: 2 candidates — top citation-checker (score -0.0275)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "citation-checker",
+            "score": -0.027451905283832873,
+            "pHat": 0.5,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "vibe-checker",
+            "score": -0.1274519052838329,
+            "pHat": 0.5,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    }
+  ]
+}
