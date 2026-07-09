@@ -39,7 +39,7 @@ loadEnv();
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DIR = join(HERE, "..", "apps", "dashboard", "src", "fixtures");
-const RUN_ID = "invoice-workflow";
+const RUN_ID = "invoice-processing";
 
 // ── Already-proven on-chain artifacts (real, confirmed; P0''). ────────────────
 const PROVEN = {
@@ -111,11 +111,11 @@ function liveReceipt(r: SettleNodeResult, depositHash: string | null): Settlemen
 }
 
 function fallbackSettlements(allocations: Allocation[]): SettlementReceipt[] {
-  const first = allocations[0] ?? { nodeId: "n1", providerId: "workhorse-1" };
+  const rep = allocations[0] ?? { nodeId: "parse", providerId: "sonnet-parser" };
   return [
     {
-      nodeId: first.nodeId,
-      providerId: first.providerId,
+      nodeId: rep.nodeId,
+      providerId: rep.providerId,
       amountUsdc: "0.001",
       live: false,
       latencyMs: 437,
@@ -125,7 +125,7 @@ function fallbackSettlements(allocations: Allocation[]): SettlementReceipt[] {
       gatewaySettlementId: uuidRef(PROVEN.settlementUuid),
       settlementTx: null,
       note:
-        "Proven prior spike (IMPLEMENTATION-LOG P0''): buyer Gateway available balance debited exactly 0.001 USDC. Shown as a labeled representative settlement; run `npm run demo:onchain` with funded BUYER/SELLER env to produce per-node live receipts.",
+        "Proven prior spike (IMPLEMENTATION-LOG P0''): buyer Gateway available balance debited exactly 0.001 USDC. Shown as a labeled representative settlement for the cleared allocation; run `npm run demo:onchain` with funded BUYER/SELLER env to produce per-node live receipts.",
     },
   ];
 }
