@@ -1,56 +1,260 @@
 import { useMemo, useState } from "react";
-import type { DemoRun } from "../types/contract";
-import { runClearing, type LiveRunResponse } from "../services/liveClient";
-import { Badge, Collapsible, Panel, Stat } from "./ui";
+import {
+  canApplyDependencies,
+  normalizeRunPayload,
+  parseRunPayloadJson,
+  payloadFromDemo,
+  validateRunPayload,
+  type ValidationIssue,
+} from "../lib/liveRunContract";
+import type { DemoRun, GraphNodeView, LiveRunInput, ProviderView } from "../types/contract";
+import { runClearingInput, type LiveRunResponse } from "../services/liveClient";
+import { Badge, Collapsible, Panel, Stat, Tooltip } from "./ui";
 import { DagView } from "./DagView";
 import { pctSmall, usd } from "../services/format";
 
 export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const { runs } = props;
-  const [baseId, setBaseId] = useState(runs[0]!.meta.runId);
-  const base = useMemo(() => runs.find((r) => r.meta.runId === baseId)!, [runs, baseId]);
-  const baseBudget = Number(base.graph.globalBudgetUsdc);
-
-  const [budget, setBudget] = useState(baseBudget);
-  const [risk, setRisk] = useState(base.graph.riskAversion);
-  const [calibration, setCalibration] = useState<"on" | "off">("on");
+  const [mode, setMode] = useState<"builder" | "json">("builder");
+  const [templateId, setTemplateId] = useState(runs[0]!.meta.runId);
+  const [builderPayload, setBuilderPayload] = useState<LiveRunInput>(() => payloadFromDemo(runs[0]!));
+  const [jsonPayload, setJsonPayload] = useState(() => JSON.stringify(payloadFromDemo(runs[0]!), null, 2));
+  const [builderIssues, setBuilderIssues] = useState<ValidationIssue[]>([]);
+  const [jsonIssues, setJsonIssues] = useState<ValidationIssue[]>([]);
+  const [depError, setDepError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [resp, setResp] = useState<LiveRunResponse | null>(null);
+  const [lastRunPayload, setLastRunPayload] = useState<LiveRunInput | null>(null);
 
-  function onBase(id: string) {
-    setBaseId(id);
-    const r = runs.find((x) => x.meta.runId === id)!;
-    setBudget(Number(r.graph.globalBudgetUsdc));
-    setRisk(r.graph.riskAversion);
+  const providerCatalog = useMemo(() => buildProviderCatalog(runs), [runs]);
+  const capabilityCatalog = useMemo(() => {
+    const all = new Set<string>();
+    for (const p of providerCatalog) {
+      for (const cap of p.capabilities) all.add(cap);
+    }
+    return [...all].sort();
+  }, [providerCatalog]);
+  const template = useMemo(() => runs.find((r) => r.meta.runId === templateId)!, [runs, templateId]);
+  const currentPayload = mode === "builder" ? builderPayload : lastRunPayload ?? builderPayload;
+
+  function loadTemplate() {
+    const next = payloadFromDemo(template);
+    setBuilderPayload(next);
+    setJsonPayload(JSON.stringify(next, null, 2));
+    setBuilderIssues([]);
+    setJsonIssues([]);
+    setDepError(null);
     setResp(null);
   }
 
-  async function run() {
+  function startFromScratch() {
+    const next: LiveRunInput = {
+      graph: {
+        id: "custom-workflow",
+        globalBudgetUsdc: "1.00",
+        globalDeadlineMs: 600,
+        globalQualityFloor: null,
+        riskAversion: 1,
+        nodes: [],
+        edges: [],
+      },
+      providers: providerCatalog.slice(0, Math.min(4, providerCatalog.length)).map(cloneProvider),
+      run: {
+        budgetUsdc: "1.00",
+        deadlineMs: 600,
+        riskAversion: 1,
+        calibration: "on",
+      },
+    };
+    setBuilderPayload(next);
+    setJsonPayload(JSON.stringify(next, null, 2));
+    setBuilderIssues([]);
+    setJsonIssues([]);
+    setDepError(null);
+    setResp(null);
+  }
+
+  function patchRun(changes: Partial<LiveRunInput["run"]>) {
+    setBuilderPayload((prev) => ({ ...prev, run: { ...prev.run, ...changes } }));
+  }
+
+  function patchGraphMeta(changes: Partial<LiveRunInput["graph"]>) {
+    setBuilderPayload((prev) => ({ ...prev, graph: { ...prev.graph, ...changes } }));
+  }
+
+  function toggleProvider(provider: ProviderView) {
+    setBuilderPayload((prev) => {
+      const has = prev.providers.some((p) => p.id === provider.id);
+      const providers = has
+        ? prev.providers.filter((p) => p.id !== provider.id)
+        : [...prev.providers, cloneProvider(provider)];
+      return { ...prev, providers };
+    });
+  }
+
+  function patchProvider(
+    providerId: string,
+    field: "priceUsdc" | "bondOfferedUsdc" | "capabilities",
+    value: string,
+  ) {
+    setBuilderPayload((prev) => ({
+      ...prev,
+      providers: prev.providers.map((provider) => {
+        if (provider.id !== providerId) return provider;
+        if (field === "capabilities") {
+          return { ...provider, capabilities: splitCsv(value) };
+        }
+        return { ...provider, [field]: normalizeCurrencyInput(value) };
+      }),
+    }));
+  }
+
+  function patchNode(nodeId: string, patch: Partial<GraphNodeView>) {
+    setBuilderPayload((prev) => ({
+      ...prev,
+      graph: {
+        ...prev.graph,
+        nodes: prev.graph.nodes.map((node) => (node.nodeId === nodeId ? { ...node, ...patch } : node)),
+      },
+    }));
+  }
+
+  function renameNode(nodeId: string, nextId: string) {
+    const trimmed = nextId.trim();
+    if (!trimmed) return;
+    setBuilderPayload((prev) => ({
+      ...prev,
+      graph: {
+        ...prev.graph,
+        nodes: prev.graph.nodes.map((node) => (node.nodeId === nodeId ? { ...node, nodeId: trimmed } : node)),
+        edges: prev.graph.edges.map((edge) => ({
+          from: edge.from === nodeId ? trimmed : edge.from,
+          to: edge.to === nodeId ? trimmed : edge.to,
+        })),
+      },
+    }));
+  }
+
+  function setNodeDependencies(nodeId: string, raw: string) {
+    const deps = splitCsv(raw).filter((dep) => dep !== nodeId);
+    const nodeIds = builderPayload.graph.nodes.map((node) => node.nodeId);
+    const issues = canApplyDependencies(nodeIds, builderPayload.graph.edges, nodeId, deps);
+    if (issues.length > 0) {
+      setDepError(issues[0]!.message);
+      return;
+    }
+    setDepError(null);
+    setBuilderPayload((prev) => ({
+      ...prev,
+      graph: {
+        ...prev.graph,
+        edges: [
+          ...prev.graph.edges.filter((edge) => edge.to !== nodeId),
+          ...deps.map((dep) => ({ from: dep, to: nodeId })),
+        ],
+      },
+    }));
+  }
+
+  function addNode() {
+    const idx = builderPayload.graph.nodes.length + 1;
+    const nextId = `step-${idx}`;
+    const cap = capabilityCatalog[0] ?? "custom-capability";
+    setBuilderPayload((prev) => ({
+      ...prev,
+      graph: {
+        ...prev.graph,
+        nodes: [
+          ...prev.graph.nodes,
+          {
+            nodeId: nextId,
+            capability: cap,
+            valueUsdc: "0.25",
+            budgetUsdc: "0.25",
+            bondRatio: 0.5,
+            qualityFloor: null,
+            bottleneck: false,
+          },
+        ],
+      },
+    }));
+  }
+
+  function removeNode(nodeId: string) {
+    setBuilderPayload((prev) => ({
+      ...prev,
+      graph: {
+        ...prev.graph,
+        nodes: prev.graph.nodes.filter((node) => node.nodeId !== nodeId),
+        edges: prev.graph.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId),
+      },
+    }));
+  }
+
+  function syncJsonDraft() {
+    setJsonPayload(JSON.stringify(builderPayload, null, 2));
+  }
+
+  async function execute(payload: LiveRunInput) {
     setRunning(true);
     try {
-      const out = await runClearing(base.graph, base.providers, {
-        budgetUsdc: budget.toFixed(2),
-        riskAversion: risk,
-        calibration,
-      });
+      const out = await runClearingInput(payload);
       setResp(out);
+      setLastRunPayload(payload);
     } finally {
       setRunning(false);
     }
   }
 
+  async function runBuilder() {
+    const issues = validateRunPayload(builderPayload);
+    setBuilderIssues(issues);
+    if (issues.length > 0) return;
+    setJsonPayload(JSON.stringify(builderPayload, null, 2));
+    await execute(builderPayload);
+  }
+
+  async function runJson() {
+    const parsed = parseRunPayloadJson(jsonPayload);
+    setJsonIssues(parsed.issues);
+    if (!parsed.payload) return;
+    await execute(parsed.payload);
+  }
+
+  const draftIssues = mode === "builder" ? builderIssues : jsonIssues;
   const r = resp?.result;
+  const normalized = currentPayload ? normalizeRunPayload(currentPayload) : null;
+  const baseBudget = Number(builderPayload.graph.globalBudgetUsdc || "1");
 
   return (
     <Panel
       title="Configure and clear a workflow"
       right={<Badge tone="violet">interactive</Badge>}
-      sub="Set the budget and risk appetite, flip calibration on or off, and run a real clearing. It runs server-side if a backend is deployed, otherwise right here in your browser (clearly labeled). No money moves — the reference runs above hold the exact solver results and real receipts."
+      sub={(
+        <>
+          Build a workflow from provider/capability catalogs or paste a full JSON payload. Trapeza validates
+          the input contract before running the same live clearing path (serverless first, browser fallback).
+          No money moves.{" "}
+          <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">
+            Input contract
+          </a>
+          .
+        </>
+      )}
     >
+      <div className="toggle" style={{ marginBottom: 14 }}>
+        <button className={`toggle-btn${mode === "builder" ? " active" : ""}`} onClick={() => setMode("builder")}>
+          Builder
+        </button>
+        <button className={`toggle-btn${mode === "json" ? " active" : ""}`} onClick={() => setMode("json")}>
+          JSON paste
+        </button>
+      </div>
+
       <div className="controls">
         <div className="field">
-          <label>base workflow</label>
-          <select value={baseId} onChange={(e) => onBase(e.target.value)}>
+          <label>template</label>
+          <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
             {runs.map((rn) => (
               <option key={rn.meta.runId} value={rn.meta.runId}>
                 {rn.meta.label}
@@ -60,41 +264,265 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
         </div>
         <div className="field">
           <label>
-            global budget · {usd(budget, 2)}
+            global budget · {usd(builderPayload.run.budgetUsdc, 2)}
+            <Tooltip>Budget is the shared spend cap for the whole workflow.</Tooltip>
           </label>
           <input
             type="range"
             min={0.2}
-            max={(baseBudget * 2).toFixed(2)}
+            max={Math.max(0.5, baseBudget * 2).toFixed(2)}
             step={0.05}
-            value={budget}
-            onChange={(e) => setBudget(Number(e.target.value))}
+            value={Number(builderPayload.run.budgetUsdc)}
+            onChange={(e) => patchRun({ budgetUsdc: Number(e.target.value).toFixed(2) })}
           />
         </div>
         <div className="field">
-          <label>risk aversion · {risk.toFixed(1)}</label>
+          <label>deadline (ms)</label>
+          <input
+            type="text"
+            value={String(builderPayload.run.deadlineMs)}
+            onChange={(e) => patchRun({ deadlineMs: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div className="field">
+          <label>risk aversion · {builderPayload.run.riskAversion.toFixed(1)}</label>
           <input
             type="range"
             min={0}
             max={3}
             step={0.1}
-            value={risk}
-            onChange={(e) => setRisk(Number(e.target.value))}
+            value={builderPayload.run.riskAversion}
+            onChange={(e) => patchRun({ riskAversion: Number(e.target.value) })}
           />
         </div>
         <div className="field">
           <label>calibration</label>
-          <select value={calibration} onChange={(e) => setCalibration(e.target.value as "on" | "off")}>
+          <select
+            value={builderPayload.run.calibration}
+            onChange={(e) => patchRun({ calibration: e.target.value as "on" | "off" })}
+          >
             <option value="on">ON (realized outcomes)</option>
             <option value="off">OFF (trust bids)</option>
           </select>
         </div>
         <div className="field">
-          <label>&nbsp;</label>
-          <button className="btn" onClick={run} disabled={running}>
-            {running ? <span className="spinner" /> : "Run clearing ▸"}
+          <label>actions</label>
+          <button className="btn ghost" onClick={loadTemplate} disabled={running}>
+            Load template
           </button>
         </div>
+        <div className="field">
+          <label>&nbsp;</label>
+          <button className="btn ghost" onClick={startFromScratch} disabled={running}>
+            Start from scratch
+          </button>
+        </div>
+      </div>
+
+      {mode === "builder" ? (
+        <>
+          <div className="live-builder" style={{ marginTop: 14 }}>
+            <div className="live-builder-col">
+              <div className="mini-label">Provider catalog</div>
+              <table className="t">
+                <thead>
+                  <tr>
+                    <th>Use</th>
+                    <th>Provider</th>
+                    <th>Capabilities</th>
+                    <th>Ask</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {providerCatalog.map((provider) => {
+                    const selected = builderPayload.providers.some((p) => p.id === provider.id);
+                    return (
+                      <tr key={provider.id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleProvider(provider)}
+                            aria-label={`Select ${provider.id}`}
+                          />
+                        </td>
+                        <td className="mono">{provider.id}</td>
+                        <td>{provider.capabilities.join(", ")}</td>
+                        <td>{usd(provider.priceUsdc, 2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {builderPayload.providers.length > 0 ? (
+                <div style={{ marginTop: 12 }}>
+                  <div className="mini-label">Selected providers (editable)</div>
+                  <table className="t">
+                    <thead>
+                      <tr>
+                        <th>Provider</th>
+                        <th>Capabilities</th>
+                        <th>Ask</th>
+                        <th>Bond</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {builderPayload.providers.map((provider) => (
+                        <tr key={provider.id}>
+                          <td className="mono">{provider.id}</td>
+                          <td>
+                            <input
+                              type="text"
+                              value={provider.capabilities.join(", ")}
+                              onChange={(e) => patchProvider(provider.id, "capabilities", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={provider.priceUsdc}
+                              onChange={(e) => patchProvider(provider.id, "priceUsdc", e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={provider.bondOfferedUsdc}
+                              onChange={(e) => patchProvider(provider.id, "bondOfferedUsdc", e.target.value)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="live-builder-col">
+              <div className="mini-label">Workflow steps and dependencies</div>
+              <table className="t">
+                <thead>
+                  <tr>
+                    <th>Step ID</th>
+                    <th>Capability</th>
+                    <th>Value</th>
+                    <th>Quality floor</th>
+                    <th>Depends on</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {builderPayload.graph.nodes.map((node) => (
+                    <tr key={node.nodeId}>
+                      <td>
+                        <input
+                          type="text"
+                          value={node.nodeId}
+                          onChange={(e) => renameNode(node.nodeId, e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          value={node.capability}
+                          onChange={(e) => patchNode(node.nodeId, { capability: e.target.value })}
+                        >
+                          {capabilityCatalog.map((cap) => (
+                            <option key={cap} value={cap}>
+                              {cap}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={node.valueUsdc}
+                          onChange={(e) => patchNode(node.nodeId, { valueUsdc: normalizeCurrencyInput(e.target.value) })}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={node.qualityFloor == null ? "" : String(node.qualityFloor)}
+                          placeholder="optional"
+                          onChange={(e) => {
+                            const v = e.target.value.trim();
+                            patchNode(node.nodeId, { qualityFloor: v ? Number(v) : null });
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={dependenciesForNode(builderPayload, node.nodeId).join(", ")}
+                          onChange={(e) => setNodeDependencies(node.nodeId, e.target.value)}
+                        />
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="btn ghost" onClick={() => removeNode(node.nodeId)}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="btn ghost" onClick={addNode}>
+                  + Add step
+                </button>
+                <button className="btn ghost" onClick={syncJsonDraft}>
+                  Sync JSON draft
+                </button>
+              </div>
+              {depError ? <div className="callout warn" style={{ marginTop: 10 }}>{depError}</div> : null}
+            </div>
+          </div>
+
+          <div className="field" style={{ marginTop: 14 }}>
+            <label>graph id</label>
+            <input
+              type="text"
+              value={builderPayload.graph.id}
+              onChange={(e) => patchGraphMeta({ id: e.target.value })}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="field" style={{ marginTop: 14 }}>
+          <label>paste full run payload JSON</label>
+          <textarea
+            className="json-editor"
+            value={jsonPayload}
+            onChange={(e) => setJsonPayload(e.target.value)}
+            spellCheck={false}
+          />
+        </div>
+      )}
+
+      {draftIssues.length > 0 ? (
+        <div className="callout warn" style={{ marginTop: 14 }}>
+          <strong>Fix these inputs before running:</strong>
+          <ul style={{ margin: "8px 0 0 18px", padding: 0 }}>
+            {draftIssues.map((issue, idx) => (
+              <li key={`${issue.path}:${idx}`}>
+                <span className="mono">{issue.path}</span>: {issue.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div style={{ marginTop: 14 }}>
+        <button
+          className="btn"
+          onClick={mode === "builder" ? runBuilder : runJson}
+          disabled={running}
+        >
+            {running ? <span className="spinner" /> : "Run clearing ▸"}
+        </button>
       </div>
 
       {r ? (
@@ -103,7 +531,9 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
             <Badge tone={resp!.source === "serverless" ? "mint" : "amber"}>
               {resp!.source === "serverless" ? "ran on the server" : "ran in your browser"}
             </Badge>
-            <Badge tone={calibration === "on" ? "mint" : "amber"}>calibration {calibration}</Badge>
+            <Badge tone={normalized?.run.calibration === "on" ? "mint" : "amber"}>
+              calibration {normalized?.run.calibration}
+            </Badge>
             <Badge>{r.ok ? "cleared" : "no feasible plan"}</Badge>
           </div>
 
@@ -116,7 +546,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
                 <Stat k="claimed success" v={pctSmall(r.claimedEndToEndSuccess)} small />
               </div>
               <DagView
-                graph={base.graph}
+                graph={normalized!.graph}
                 allocations={r.allocations.map((a) => ({
                   nodeId: a.nodeId,
                   taskId: "",
@@ -136,16 +566,46 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
 
       <Collapsible label="What runs here vs. the reference runs">
         <p>
-          This interactive path uses a fast greedy solver so it can run instantly anywhere — on a
-          serverless function, or entirely in your browser if no backend is deployed (no keys, no
-          money, no on-chain action).
+          This path accepts a full payload you define (graph + providers + run options). The same
+          payload can come from the builder or direct JSON paste. Contract doc:{" "}
+          <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">INPUT-CONTRACT.md</a>.
         </p>
         <p>
-          The reference scenarios above are the exact whole-graph clearings, plus the real Arc
-          on-chain receipts. Use this section to poke at the levers; use those for the canonical
-          results.
+          It uses a fast greedy solver so it can run instantly anywhere (serverless if available,
+          browser fallback if not). The historical runs above remain the canonical whole-graph
+          clears with exact solver output and real Arc receipts.
         </p>
       </Collapsible>
     </Panel>
   );
+}
+
+function buildProviderCatalog(runs: DemoRun[]): ProviderView[] {
+  const byId = new Map<string, ProviderView>();
+  for (const run of runs) {
+    for (const provider of run.providers) {
+      if (!byId.has(provider.id)) byId.set(provider.id, cloneProvider(provider));
+    }
+  }
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function cloneProvider(provider: ProviderView): ProviderView {
+  return { ...provider, capabilities: [...provider.capabilities] };
+}
+
+function splitCsv(raw: string): string[] {
+  return raw.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
+function normalizeCurrencyInput(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return "0";
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return trimmed;
+  return n.toFixed(2);
+}
+
+function dependenciesForNode(payload: LiveRunInput, nodeId: string): string[] {
+  return payload.graph.edges.filter((edge) => edge.to === nodeId).map((edge) => edge.from);
 }

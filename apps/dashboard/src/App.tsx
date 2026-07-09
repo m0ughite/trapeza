@@ -428,7 +428,13 @@ export function App() {
             <SectionHeader
               eyebrow="Run Your Own"
               title="Clear a workflow yourself"
-              why="Set a budget and risk appetite, flip calibration on or off, and run a real clearing — server-side, or in your browser if no backend is deployed. No money moves."
+              why={(
+                <>
+                  Build from provider/capability catalogs or paste JSON, then run a live clearing
+                  (server-side first, browser fallback). No money moves. Contract:{" "}
+                  <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">INPUT-CONTRACT.md</a>.
+                </>
+              )}
             />
             <LiveRunPanel runs={RUNS} />
             <Panel

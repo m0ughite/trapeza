@@ -841,6 +841,42 @@ table.t tr:last-child td {
   padding: 9px 10px;
   font-size: 13px;
 }
+.field textarea {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 10px;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+.json-editor {
+  min-height: 320px;
+  resize: vertical;
+  line-height: 1.45;
+}
+.live-builder {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.live-builder-col {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  padding: 12px;
+}
+.live-builder-col input[type="text"],
+.live-builder-col select {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  padding: 7px 8px;
+  font-size: 12.5px;
+}
 .btn {
   cursor: pointer;
   border: 1px solid var(--accent-dim);
