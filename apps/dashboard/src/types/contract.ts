@@ -95,6 +95,26 @@ export interface GraphView {
   edges: GraphEdgeView[];
 }
 
+/**
+ * Public "run your own" input contract.
+ *
+ * - `graph` and `providers` define the workflow market.
+ * - `run` defines execution-time levers (budget/deadline/risk/calibration).
+ * - The live endpoint accepts this payload directly.
+ */
+export interface LiveRunInput {
+  graph: GraphView;
+  providers: ProviderView[];
+  run: LiveRunOptions;
+}
+
+export interface LiveRunOptions {
+  budgetUsdc: string;
+  deadlineMs: number;
+  riskAversion: number;
+  calibration: "on" | "off";
+}
+
 /** One provider's calibration ledger row — the MarketBench moat, made visible. */
 export interface ProviderView {
   id: string;

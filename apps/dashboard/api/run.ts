@@ -15,7 +15,8 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { runLive } from "../src/lib/liveEngine";
-import type { GraphView, ProviderView } from "../src/types/contract";
+import { normalizeRunPayload, validateRunPayload } from "../src/lib/liveRunContract";
+import type { GraphView, LiveRunInput, ProviderView } from "../src/types/contract";
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 30;
@@ -45,21 +46,43 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
   }
 
   try {
-    const body = (typeof req.body === "string" ? JSON.parse(req.body) : req.body) as {
-      graph: GraphView;
-      providers: ProviderView[];
-      budgetUsdc?: string;
-      riskAversion?: number;
-      calibration?: "on" | "off";
-    };
-    if (!body?.graph?.nodes?.length || !Array.isArray(body.providers)) {
-      res.status(400).json({ error: "expected { graph, providers }" });
+    const body = (typeof req.body === "string" ? JSON.parse(req.body) : req.body) as
+      | LiveRunInput
+      | {
+        graph: GraphView;
+        providers: ProviderView[];
+        budgetUsdc?: string;
+        riskAversion?: number;
+        calibration?: "on" | "off";
+      };
+
+    const payload: LiveRunInput = body && typeof body === "object" && "run" in body
+      ? body
+      : {
+        graph: (body as { graph: GraphView }).graph,
+        providers: (body as { providers: ProviderView[] }).providers,
+        run: {
+          budgetUsdc: (body as { budgetUsdc?: string; graph: GraphView }).budgetUsdc
+            ?? (body as { graph: GraphView }).graph?.globalBudgetUsdc,
+          deadlineMs: (body as { graph: GraphView }).graph?.globalDeadlineMs,
+          riskAversion: (body as { riskAversion?: number; graph: GraphView }).riskAversion
+            ?? (body as { graph: GraphView }).graph?.riskAversion
+            ?? 1,
+          calibration: (body as { calibration?: "on" | "off" }).calibration ?? "on",
+        },
+      };
+
+    const issues = validateRunPayload(payload);
+    if (issues.length > 0) {
+      res.status(400).json({ error: "invalid run payload", issues });
       return;
     }
-    const result = runLive(body.graph, body.providers, {
-      budgetUsdc: body.budgetUsdc ?? body.graph.globalBudgetUsdc,
-      riskAversion: body.riskAversion ?? body.graph.riskAversion ?? 1,
-      calibration: body.calibration ?? "on",
+
+    const normalized = normalizeRunPayload(payload);
+    const result = runLive(normalized.graph, normalized.providers, {
+      budgetUsdc: normalized.run.budgetUsdc,
+      riskAversion: normalized.run.riskAversion,
+      calibration: normalized.run.calibration,
       engine: "serverless",
     });
     res.status(200).json(result);

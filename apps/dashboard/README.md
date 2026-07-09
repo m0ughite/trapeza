@@ -15,6 +15,7 @@ It runs in two modes:
   Tier-2 engine; if that isn't deployed it degrades gracefully to the **same**
   engine in the browser, clearly labeled. CP-SAT (Tier-1) is Python-only and does
   not run in live mode by design — it is the always-on historical content.
+  Input shape is documented in [`INPUT-CONTRACT.md`](./INPUT-CONTRACT.md).
 
 The live path performs **no on-chain action** (no funded wallet, no faucet). A
 real capped testnet nanopayment would sit behind an explicit, rate-limited,
@@ -46,6 +47,7 @@ imported by the browser and by the offline driver):
 
 - `src/fixtures/*.json` — one `DemoRun` per historical run (+ `manifest.json`).
 - `src/fixtures/onchain-receipts.json` — `OnchainReceipts`.
+- Live "run your own" payload — [`LiveRunInput` in `INPUT-CONTRACT.md`](./INPUT-CONTRACT.md).
 
 Honesty rule enforced in the UI: a Circle Gateway settlement id is a **batch
 UUID, not an EVM tx** and is never rendered as a `/tx/` link. Only real
