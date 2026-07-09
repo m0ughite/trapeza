@@ -7,18 +7,31 @@ import {
   validateRunPayload,
   type ValidationIssue,
 } from "../lib/liveRunContract";
+import { buildCapabilityCatalog } from "../lib/capabilityCatalog";
+import {
+  buildDefaultSimpleInput,
+  parseSimpleInputJson,
+  RISK_AVERSION,
+  RISK_LEVELS,
+  type SimpleIssue,
+} from "../lib/simpleInput";
 import type { DemoRun, GraphNodeView, LiveRunInput, ProviderView } from "../types/contract";
 import { runClearingInput, type LiveRunResponse } from "../services/liveClient";
 import { Badge, Collapsible, Panel, Stat, Tooltip } from "./ui";
 import { DagView } from "./DagView";
 import { pctSmall, usd } from "../services/format";
 
+type Mode = "simple" | "builder" | "json";
+
 export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const { runs } = props;
-  const [mode, setMode] = useState<"builder" | "json">("builder");
+  const catalog = useMemo(() => buildCapabilityCatalog(runs), [runs]);
+  const [mode, setMode] = useState<Mode>("simple");
   const [templateId, setTemplateId] = useState(runs[0]!.meta.runId);
   const [builderPayload, setBuilderPayload] = useState<LiveRunInput>(() => payloadFromDemo(runs[0]!));
   const [jsonPayload, setJsonPayload] = useState(() => JSON.stringify(payloadFromDemo(runs[0]!), null, 2));
+  const [simpleText, setSimpleText] = useState(() => JSON.stringify(buildDefaultSimpleInput(catalog), null, 2));
+  const [simpleIssues, setSimpleIssues] = useState<SimpleIssue[]>([]);
   const [builderIssues, setBuilderIssues] = useState<ValidationIssue[]>([]);
   const [jsonIssues, setJsonIssues] = useState<ValidationIssue[]>([]);
   const [depError, setDepError] = useState<string | null>(null);
@@ -27,13 +40,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const [lastRunPayload, setLastRunPayload] = useState<LiveRunInput | null>(null);
 
   const providerCatalog = useMemo(() => buildProviderCatalog(runs), [runs]);
-  const capabilityCatalog = useMemo(() => {
-    const all = new Set<string>();
-    for (const p of providerCatalog) {
-      for (const cap of p.capabilities) all.add(cap);
-    }
-    return [...all].sort();
-  }, [providerCatalog]);
+  const capabilityCatalog = useMemo(() => catalog.map((c) => c.capability), [catalog]);
   const template = useMemo(() => runs.find((r) => r.meta.runId === templateId)!, [runs, templateId]);
   const currentPayload = mode === "builder" ? builderPayload : lastRunPayload ?? builderPayload;
 
@@ -221,6 +228,20 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
     await execute(parsed.payload);
   }
 
+  async function runSimple() {
+    const { payload, issues } = parseSimpleInputJson(simpleText, catalog);
+    setSimpleIssues(issues);
+    // Warnings (e.g. budget hints) don't block; only error-severity issues do.
+    if (!payload) return;
+    await execute(payload);
+  }
+
+  function resetSimpleExample() {
+    setSimpleText(JSON.stringify(buildDefaultSimpleInput(catalog), null, 2));
+    setSimpleIssues([]);
+    setResp(null);
+  }
+
   const draftIssues = mode === "builder" ? builderIssues : jsonIssues;
   const r = resp?.result;
   const normalized = currentPayload ? normalizeRunPayload(currentPayload) : null;
@@ -232,25 +253,40 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       right={<Badge tone="violet">interactive</Badge>}
       sub={(
         <>
-          Build a workflow from provider/capability catalogs or paste a full JSON payload. Trapeza validates
-          the input contract before running the same live clearing path (serverless first, browser fallback).
-          No money moves.{" "}
+          Describe a workflow in a few plain lines (<strong>Simple</strong>) — Trapeza fills in the
+          providers, prices and bonds for you. Power users can still use the visual{" "}
+          <strong>Builder</strong> or paste a <strong>Full JSON</strong> payload. Every path runs the
+          same live clearing (serverless first, browser fallback). No money moves.{" "}
           <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">
-            Input contract
+            Input contract &amp; capability catalog
           </a>
           .
         </>
       )}
     >
       <div className="toggle" style={{ marginBottom: 14 }}>
+        <button className={`toggle-btn${mode === "simple" ? " active" : ""}`} onClick={() => setMode("simple")}>
+          Simple ✦
+        </button>
         <button className={`toggle-btn${mode === "builder" ? " active" : ""}`} onClick={() => setMode("builder")}>
           Builder
         </button>
         <button className={`toggle-btn${mode === "json" ? " active" : ""}`} onClick={() => setMode("json")}>
-          JSON paste
+          Full JSON
         </button>
       </div>
 
+      {mode === "simple" ? (
+        <SimpleMode
+          catalog={catalog}
+          text={simpleText}
+          onChange={setSimpleText}
+          onReset={resetSimpleExample}
+          running={running}
+        />
+      ) : null}
+
+      {mode === "builder" ? (
       <div className="controls">
         <div className="field">
           <label>template</label>
@@ -318,6 +354,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
           </button>
         </div>
       </div>
+      ) : null}
 
       {mode === "builder" ? (
         <>
@@ -490,7 +527,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
             />
           </div>
         </>
-      ) : (
+      ) : mode === "json" ? (
         <div className="field" style={{ marginTop: 14 }}>
           <label>paste full run payload JSON</label>
           <textarea
@@ -500,9 +537,13 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
             spellCheck={false}
           />
         </div>
-      )}
+      ) : null}
 
-      {draftIssues.length > 0 ? (
+      {mode === "simple" && simpleIssues.length > 0 ? (
+        <SimpleIssues issues={simpleIssues} />
+      ) : null}
+
+      {mode !== "simple" && draftIssues.length > 0 ? (
         <div className="callout warn" style={{ marginTop: 14 }}>
           <strong>Fix these inputs before running:</strong>
           <ul style={{ margin: "8px 0 0 18px", padding: 0 }}>
@@ -518,7 +559,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       <div style={{ marginTop: 14 }}>
         <button
           className="btn"
-          onClick={mode === "builder" ? runBuilder : runJson}
+          onClick={mode === "simple" ? runSimple : mode === "builder" ? runBuilder : runJson}
           disabled={running}
         >
             {running ? <span className="spinner" /> : "Run clearing ▸"}
@@ -577,6 +618,105 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
         </p>
       </Collapsible>
     </Panel>
+  );
+}
+
+function SimpleMode(props: {
+  catalog: ReturnType<typeof buildCapabilityCatalog>;
+  text: string;
+  onChange: (v: string) => void;
+  onReset: () => void;
+  running: boolean;
+}) {
+  const { catalog } = props;
+  return (
+    <div style={{ marginTop: 14 }}>
+      <p className="why" style={{ marginTop: 0 }}>
+        List your steps, pick a capability for each from the catalog below, and optionally say which
+        steps depend on which. Everything else — providers, prices, bonds, calibration — is filled in
+        automatically. The box is pre-loaded with a working example, so you can just hit{" "}
+        <strong>Run clearing</strong>.
+      </p>
+      <div className="field">
+        <label>describe your workflow (simple JSON)</label>
+        <textarea
+          className="json-editor"
+          value={props.text}
+          onChange={(e) => props.onChange(e.target.value)}
+          spellCheck={false}
+        />
+      </div>
+      <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button className="btn ghost" onClick={props.onReset} disabled={props.running}>
+          Reset example
+        </button>
+      </div>
+
+      <div className="callout" style={{ marginTop: 12 }}>
+        <strong>risk</strong> maps to how cautious the router is:{" "}
+        {RISK_LEVELS.map((lvl, i) => (
+          <span key={lvl} className="mono">
+            {i > 0 ? " · " : ""}
+            {lvl} → {RISK_AVERSION[lvl].toFixed(1)}
+          </span>
+        ))}
+        . <strong>budgetUsdc</strong> and <strong>deadlineMs</strong> are optional (auto-sized if
+        omitted). Steps run in the order listed unless <span className="mono">dependsOn</span> says
+        otherwise.
+      </div>
+
+      <Collapsible label={`Available capabilities (${catalog.length}) and who backs each`}>
+        <table className="t">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>What it does</th>
+              <th>Backed by</th>
+            </tr>
+          </thead>
+          <tbody>
+            {catalog.map((entry) => (
+              <tr key={entry.capability}>
+                <td className="mono">{entry.capability}</td>
+                <td>{entry.description}</td>
+                <td className="mono">{entry.providers.map((p) => p.id).join(", ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Collapsible>
+    </div>
+  );
+}
+
+function SimpleIssues(props: { issues: SimpleIssue[] }) {
+  const errors = props.issues.filter((i) => i.severity === "error");
+  const warnings = props.issues.filter((i) => i.severity === "warning");
+  return (
+    <>
+      {errors.length > 0 ? (
+        <div className="callout warn" style={{ marginTop: 14 }}>
+          <strong>Fix these before running:</strong>
+          <ul style={{ margin: "8px 0 0 18px", padding: 0 }}>
+            {errors.map((issue, idx) => (
+              <li key={`${issue.path}:${idx}`}>
+                <span className="mono">{issue.path}</span>: {issue.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {warnings.length > 0 ? (
+        <div className="callout" style={{ marginTop: 12 }}>
+          <strong>Heads up:</strong>
+          <ul style={{ margin: "8px 0 0 18px", padding: 0 }}>
+            {warnings.map((issue, idx) => (
+              <li key={`${issue.path}:${idx}`}>{issue.message}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </>
   );
 }
 
