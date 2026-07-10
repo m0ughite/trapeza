@@ -57,15 +57,17 @@ function Sidebar() {
 function Topbar() {
   return (
     <header className="topbar">
-      <div className="topbar-lead">
-        <span className="topbar-title">Trapeza</span>
-        <span className="topbar-vp">
-          Route agent work to whoever actually delivers — clear the whole workflow at once, settle
-          in USDC.
-        </span>
-      </div>
-      <div className="topbar-actions">
-        <ScenarioSelect />
+      <div className="topbar-inner">
+        <div className="topbar-lead">
+          <span className="topbar-title">Trapeza</span>
+          <span className="topbar-vp">
+            Route agent work to whoever actually delivers — clear the whole workflow at once, settle
+            in USDC.
+          </span>
+        </div>
+        <div className="topbar-actions">
+          <ScenarioSelect />
+        </div>
       </div>
     </header>
   );

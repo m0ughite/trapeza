@@ -200,12 +200,20 @@ a:hover {
   height: var(--topbar-h);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 0 32px;
+  padding: 0;
   background: rgba(10, 13, 18, 0.82);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-soft);
+}
+.topbar-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 .topbar-lead {
   display: flex;
@@ -264,7 +272,7 @@ a:hover {
 
 .shell-column {
   width: 100%;
-  max-width: none;
+  max-width: 1200px;
   margin: 0 auto;
   padding-inline: 32px;
 }
@@ -1317,7 +1325,8 @@ table.t tr:last-child td {
   .content {
     padding: 20px 0 72px;
   }
-  .shell-column {
+  .shell-column,
+  .topbar-inner {
     padding-inline: 20px;
   }
   .page-nav {
