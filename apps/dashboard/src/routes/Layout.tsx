@@ -57,15 +57,17 @@ function Sidebar() {
 function Topbar() {
   return (
     <header className="topbar">
-      <div className="topbar-lead">
-        <span className="topbar-title">Trapeza</span>
-        <span className="topbar-vp">
-          Route agent work to whoever actually delivers — clear the whole workflow at once, settle
-          in USDC.
-        </span>
-      </div>
-      <div className="topbar-actions">
-        <ScenarioSelect />
+      <div className="shell-column topbar-inner">
+        <div className="topbar-lead">
+          <span className="topbar-title">Trapeza</span>
+          <span className="topbar-vp">
+            Route agent work to whoever actually delivers — clear the whole workflow at once, settle
+            in USDC.
+          </span>
+        </div>
+        <div className="topbar-actions">
+          <ScenarioSelect />
+        </div>
       </div>
     </header>
   );
@@ -121,7 +123,7 @@ export function Layout() {
       <Sidebar />
       <div className="main">
         <Topbar />
-        <main className="content" id="main-content" tabIndex={-1}>
+        <main className="content shell-column" id="main-content" tabIndex={-1}>
           <div className="page" key={pathname}>
             <Outlet />
           </div>
