@@ -6,7 +6,7 @@
     "label": "Code-PR review pipeline",
     "description": "Generate a change, run the tests, review the diff, and security-scan it — a chain where every step carries a minimum-quality bar.",
     "narrative": "Each step sets a quality floor. The cheap, fast providers advertise near-perfect success but have a realized track record below the floor, so they are ineligible — the clearing must hire providers that actually clear the bar, even at a higher price.",
-    "generatedAt": "2026-07-09T02:13:39.661Z",
+    "generatedAt": "2026-07-10T02:50:42.615Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"

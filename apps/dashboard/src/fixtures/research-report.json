@@ -6,7 +6,7 @@
     "label": "Research → report",
     "description": "Research a topic, extract findings from three sources in parallel plus a data pull, reconcile everything, fact-check the claims, and format a report — a dense eight-step DAG under a tight deadline.",
     "narrative": "A real critical path with fan-out and fan-in. The clearing schedules the parallel extractions, then shows which constraint is actually binding via shadow prices, and dry-runs the plan thousands of times to score failure, deadline-miss and budget-overrun risk before a cent moves.",
-    "generatedAt": "2026-07-09T02:13:39.609Z",
+    "generatedAt": "2026-07-10T02:50:42.546Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"

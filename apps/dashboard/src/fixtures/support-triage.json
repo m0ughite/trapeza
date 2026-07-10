@@ -6,7 +6,7 @@
     "label": "Customer-support triage",
     "description": "Classify an inbound ticket, then in parallel look up the knowledge base, gauge sentiment and check entitlement, draft a reply, and tone-check it — a fan-out/fan-in graph on a tight SLA.",
     "narrative": "With a tight deadline and higher risk-aversion, the clearing avoids the fast auto-responder that fabricates answers and schedules the parallel checks so the reply is drafted only once its inputs are ready. Realized-outcome pricing keeps the reply step honest.",
-    "generatedAt": "2026-07-09T02:13:39.644Z",
+    "generatedAt": "2026-07-10T02:50:42.591Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"

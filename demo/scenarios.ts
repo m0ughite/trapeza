@@ -357,16 +357,58 @@ export const ragGraph: TaskGraph = {
   riskAversion: 1,
 };
 
-/** Brand-new providers, zero track record — the cold-start case. */
+/**
+ * A live RAG stack whose providers now carry a real verified track record.
+ * Each capability pairs an honest workhorse (modest claim, high realized) with a
+ * confident braggart (near-perfect claim, poor realized) — the same
+ * `trackRecord`/`makeProvider` pattern the other five scenarios use. With the
+ * ledger ON the market prices on realized outcomes and buys the workhorses; OFF
+ * it believes the braggarts' pitch and end-to-end accuracy collapses.
+ */
 export const ragProviders: SolverProvider[] = [
-  makeUncalibratedProvider("splitter", "doc.chunk", { priceUsdc: "0.16", claimedSuccessProb: 0.68, claimedLatencyMs: 400 }),
-  makeUncalibratedProvider("megachunk", "doc.chunk", { priceUsdc: "0.24", claimedSuccessProb: 0.99, claimedLatencyMs: 300 }),
-  makeUncalibratedProvider("embed-small", "embed.index", { priceUsdc: "0.20", claimedSuccessProb: 0.70, claimedLatencyMs: 600 }),
-  makeUncalibratedProvider("embed-xl", "embed.index", { priceUsdc: "0.30", claimedSuccessProb: 0.98, claimedLatencyMs: 450 }),
-  makeUncalibratedProvider("bm25-retriever", "retrieve.topk", { priceUsdc: "0.22", claimedSuccessProb: 0.69, claimedLatencyMs: 500 }),
-  makeUncalibratedProvider("vector-retriever", "retrieve.topk", { priceUsdc: "0.32", claimedSuccessProb: 0.97, claimedLatencyMs: 400 }),
-  makeUncalibratedProvider("grounded-answerer", "answer.generate", { priceUsdc: "0.55", claimedSuccessProb: 0.66, claimedLatencyMs: 1400 }),
-  makeUncalibratedProvider("confident-answerer", "answer.generate", { priceUsdc: "0.70", claimedSuccessProb: 0.99, claimedLatencyMs: 900 }),
-  makeUncalibratedProvider("citation-checker", "verify.grounding", { priceUsdc: "0.30", claimedSuccessProb: 0.67, claimedLatencyMs: 700 }),
-  makeUncalibratedProvider("vibe-checker", "verify.grounding", { priceUsdc: "0.40", claimedSuccessProb: 0.98, claimedLatencyMs: 350 }),
+  // doc.chunk — a careful splitter that delivers vs a "99%" mega-chunker that mangles context.
+  makeProvider("splitter", "doc.chunk", {
+    priceUsdc: "0.16", claimedSuccessProb: 0.68, claimedLatencyMs: 400,
+    outcomes: trackRecord(18, 20, "0.16", 400),
+  }),
+  makeProvider("megachunk", "doc.chunk", {
+    priceUsdc: "0.24", claimedSuccessProb: 0.99, claimedLatencyMs: 300,
+    outcomes: trackRecord(3, 20, "0.24", 300),
+  }),
+  // embed.index — a solid small embedder vs an "XL" model that advertises 98% but rarely lands.
+  makeProvider("embed-small", "embed.index", {
+    priceUsdc: "0.20", claimedSuccessProb: 0.70, claimedLatencyMs: 600,
+    outcomes: trackRecord(18, 20, "0.20", 600),
+  }),
+  makeProvider("embed-xl", "embed.index", {
+    priceUsdc: "0.30", claimedSuccessProb: 0.98, claimedLatencyMs: 450,
+    outcomes: trackRecord(3, 20, "0.30", 450),
+  }),
+  // retrieve.topk — a dependable BM25 retriever vs a flashy "97%" vector store.
+  makeProvider("bm25-retriever", "retrieve.topk", {
+    priceUsdc: "0.22", claimedSuccessProb: 0.69, claimedLatencyMs: 500,
+    outcomes: trackRecord(18, 20, "0.22", 500),
+  }),
+  makeProvider("vector-retriever", "retrieve.topk", {
+    priceUsdc: "0.32", claimedSuccessProb: 0.97, claimedLatencyMs: 400,
+    outcomes: trackRecord(4, 20, "0.32", 400),
+  }),
+  // answer.generate — the bottleneck: a grounded answerer vs a confident hallucinator.
+  makeProvider("grounded-answerer", "answer.generate", {
+    priceUsdc: "0.55", claimedSuccessProb: 0.66, claimedLatencyMs: 1400,
+    outcomes: trackRecord(19, 20, "0.55", 1400),
+  }),
+  makeProvider("confident-answerer", "answer.generate", {
+    priceUsdc: "0.70", claimedSuccessProb: 0.99, claimedLatencyMs: 900,
+    outcomes: trackRecord(2, 20, "0.70", 900),
+  }),
+  // verify.grounding — a real citation checker vs a "98%" vibe check that rubber-stamps.
+  makeProvider("citation-checker", "verify.grounding", {
+    priceUsdc: "0.30", claimedSuccessProb: 0.67, claimedLatencyMs: 700,
+    outcomes: trackRecord(19, 20, "0.30", 700),
+  }),
+  makeProvider("vibe-checker", "verify.grounding", {
+    priceUsdc: "0.40", claimedSuccessProb: 0.98, claimedLatencyMs: 350,
+    outcomes: trackRecord(3, 20, "0.40", 350),
+  }),
 ];

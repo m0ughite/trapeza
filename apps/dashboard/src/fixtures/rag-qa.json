@@ -4,9 +4,9 @@
   "meta": {
     "runId": "rag-qa",
     "label": "RAG document Q&A",
-    "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps served by brand-new providers with no track record.",
-    "narrative": "At cold-start the ledger has zero data, so it refuses to trust self-reported success and prices everyone at a neutral 0.5 prior — the cheaper honest provider wins each step. Turn the ledger OFF and the market believes the confident newcomers' inflated claims. Same graph, two very different markets.",
-    "generatedAt": "2026-07-09T02:13:39.677Z",
+    "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps where each capability offers an honest workhorse and a confident-but-unreliable braggart.",
+    "narrative": "Every step has a loud provider advertising near-perfect accuracy on a realized track record far below its pitch. With the ledger ON the market prices on verified outcomes and hires the honest workhorse at each step; flip it OFF and the same market believes the braggarts and buys a confident hallucinator to answer — realized end-to-end grounding collapses. Same graph, two very different markets.",
+    "generatedAt": "2026-07-10T02:50:42.635Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"
@@ -93,14 +93,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.68,
       "claimedLatencyMs": 400,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.16,
+      "latencyMeanMs": 420,
+      "nObservations": 20,
+      "archetype": "workhorse"
     },
     {
       "id": "megachunk",
@@ -111,14 +111,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.99,
       "claimedLatencyMs": 300,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 320,
+      "nObservations": 20,
+      "archetype": "braggart"
     },
     {
       "id": "embed-small",
@@ -129,14 +129,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.7,
       "claimedLatencyMs": 600,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.2,
+      "latencyMeanMs": 620.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
     },
     {
       "id": "embed-xl",
@@ -147,14 +147,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.98,
       "claimedLatencyMs": 450,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 470,
+      "nObservations": 20,
+      "archetype": "braggart"
     },
     {
       "id": "bm25-retriever",
@@ -165,14 +165,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.69,
       "claimedLatencyMs": 500,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.22,
+      "latencyMeanMs": 520.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
     },
     {
       "id": "vector-retriever",
@@ -183,14 +183,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.97,
       "claimedLatencyMs": 400,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.32,
+      "latencyMeanMs": 420,
+      "nObservations": 20,
+      "archetype": "braggart"
     },
     {
       "id": "grounded-answerer",
@@ -201,14 +201,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.66,
       "claimedLatencyMs": 1400,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.55,
+      "latencyMeanMs": 1419.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
     },
     {
       "id": "confident-answerer",
@@ -219,14 +219,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.99,
       "claimedLatencyMs": 900,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.7,
+      "latencyMeanMs": 920.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
     },
     {
       "id": "citation-checker",
@@ -237,14 +237,14 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.67,
       "claimedLatencyMs": 700,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 720.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
     },
     {
       "id": "vibe-checker",
@@ -255,20 +255,20 @@
       "bondOfferedUsdc": "0",
       "claimedSuccessProb": 0.98,
       "claimedLatencyMs": 350,
-      "calibratedSuccessProb": 0.5,
-      "pSuccessStdDev": 0.28867513459481287,
-      "successAlpha": 1,
-      "successBeta": 1,
-      "costMeanUsdc": 0,
-      "latencyMeanMs": 0,
-      "nObservations": 0,
-      "archetype": "neutral"
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.4,
+      "latencyMeanMs": 370,
+      "nObservations": 20,
+      "archetype": "braggart"
     }
   ],
   "clearing": {
     "solver": "cp_sat",
     "degraded": false,
-    "objectiveValue": -0.218674,
+    "objectiveValue": 1.948012,
     "makespanMs": 60000,
     "preflightPassed": true,
     "allocations": [
@@ -276,62 +276,62 @@
         "nodeId": "chunk",
         "taskId": "task-chunk",
         "providerId": "splitter",
-        "score": -0.008584391824351612
+        "score": 0.24582812895739545
       },
       {
         "nodeId": "index",
         "taskId": "task-index",
         "providerId": "embed-small",
-        "score": -0.018301270189221952
+        "score": 0.2869937547488745
       },
       {
         "nodeId": "retrieve",
         "taskId": "task-retrieve",
         "providerId": "bm25-retriever",
-        "score": -0.008018148554092275
+        "score": 0.34815938054035356
       },
       {
         "nodeId": "answer",
         "taskId": "task-answer",
         "providerId": "grounded-answerer",
-        "score": -0.15631941874331423
+        "score": 0.5827910314678517
       },
       {
         "nodeId": "grounding-check",
         "taskId": "task-grounding-check",
         "providerId": "citation-checker",
-        "score": -0.027451905283832873
+        "score": 0.4842399448623588
       }
     ],
     "schedule": [
       {
         "nodeId": "chunk",
         "startMs": 0,
-        "durationMs": 400,
-        "endMs": 400
+        "durationMs": 420,
+        "endMs": 420
       },
       {
         "nodeId": "index",
-        "startMs": 400,
-        "durationMs": 600,
-        "endMs": 1000
+        "startMs": 420,
+        "durationMs": 620,
+        "endMs": 1040
       },
       {
         "nodeId": "retrieve",
-        "startMs": 57400,
-        "durationMs": 500,
-        "endMs": 57900
+        "startMs": 57340,
+        "durationMs": 520,
+        "endMs": 57860
       },
       {
         "nodeId": "answer",
-        "startMs": 57900,
-        "durationMs": 1400,
-        "endMs": 59300
+        "startMs": 57860,
+        "durationMs": 1420,
+        "endMs": 59280
       },
       {
         "nodeId": "grounding-check",
-        "startMs": 59300,
-        "durationMs": 700,
+        "startMs": 59280,
+        "durationMs": 720,
         "endMs": 60000
       }
     ],
@@ -362,40 +362,40 @@
     "on": {
       "mode": "on",
       "solver": "cp_sat",
-      "objectiveValue": -0.218674,
+      "objectiveValue": 1.948012,
       "allocations": [
         {
           "nodeId": "chunk",
           "taskId": "task-chunk",
           "providerId": "splitter",
-          "score": -0.008584391824351612
+          "score": 0.24582812895739545
         },
         {
           "nodeId": "index",
           "taskId": "task-index",
           "providerId": "embed-small",
-          "score": -0.018301270189221952
+          "score": 0.2869937547488745
         },
         {
           "nodeId": "retrieve",
           "taskId": "task-retrieve",
           "providerId": "bm25-retriever",
-          "score": -0.008018148554092275
+          "score": 0.34815938054035356
         },
         {
           "nodeId": "answer",
           "taskId": "task-answer",
           "providerId": "grounded-answerer",
-          "score": -0.15631941874331423
+          "score": 0.5827910314678517
         },
         {
           "nodeId": "grounding-check",
           "taskId": "task-grounding-check",
           "providerId": "citation-checker",
-          "score": -0.027451905283832873
+          "score": 0.4842399448623588
         }
       ],
-      "realizedEndToEndSuccess": 0.145236168,
+      "realizedEndToEndSuccess": 0.5323624193578431,
       "claimedEndToEndSuccess": 0.145236168,
       "expectedSpendUsdc": "1.430000"
     },
@@ -435,7 +435,7 @@
           "score": 0.4775
         }
       ],
-      "realizedEndToEndSuccess": 0.9130493987999999,
+      "realizedEndToEndSuccess": 0.00018627639691774656,
       "claimedEndToEndSuccess": 0.9130493987999999,
       "expectedSpendUsdc": "1.960000"
     },
@@ -446,14 +446,14 @@
       "answer",
       "grounding-check"
     ],
-    "successLift": -0.7678132307999999
+    "successLift": 0.5321761429609254
   },
   "bakeOff": {
     "greedy": {
       "solverLabel": "Greedy + LNS (per-node, Tier-2)",
       "kind": "greedy_lns",
       "status": "cleared",
-      "objectiveValue": -0.21867513459481294,
+      "objectiveValue": 1.948012240576834,
       "errorCode": null,
       "errorMessage": null,
       "assignments": [
@@ -461,31 +461,31 @@
           "nodeId": "chunk",
           "taskId": "task-chunk",
           "providerId": "splitter",
-          "score": -0.008584391824351612
+          "score": 0.24582812895739545
         },
         {
           "nodeId": "index",
           "taskId": "task-index",
           "providerId": "embed-small",
-          "score": -0.018301270189221952
-        },
-        {
-          "nodeId": "retrieve",
-          "taskId": "task-retrieve",
-          "providerId": "bm25-retriever",
-          "score": -0.008018148554092275
+          "score": 0.2869937547488745
         },
         {
           "nodeId": "answer",
           "taskId": "task-answer",
           "providerId": "grounded-answerer",
-          "score": -0.15631941874331423
+          "score": 0.5827910314678517
         },
         {
           "nodeId": "grounding-check",
           "taskId": "task-grounding-check",
           "providerId": "citation-checker",
-          "score": -0.027451905283832873
+          "score": 0.4842399448623588
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": 0.34815938054035356
         }
       ]
     },
@@ -493,7 +493,7 @@
       "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
       "kind": "cp_sat",
       "status": "cleared",
-      "objectiveValue": -0.218674,
+      "objectiveValue": 1.948012,
       "errorCode": null,
       "errorMessage": null,
       "assignments": [
@@ -501,45 +501,45 @@
           "nodeId": "chunk",
           "taskId": "task-chunk",
           "providerId": "splitter",
-          "score": -0.008584391824351612
+          "score": 0.24582812895739545
         },
         {
           "nodeId": "index",
           "taskId": "task-index",
           "providerId": "embed-small",
-          "score": -0.018301270189221952
+          "score": 0.2869937547488745
         },
         {
           "nodeId": "retrieve",
           "taskId": "task-retrieve",
           "providerId": "bm25-retriever",
-          "score": -0.008018148554092275
+          "score": 0.34815938054035356
         },
         {
           "nodeId": "answer",
           "taskId": "task-answer",
           "providerId": "grounded-answerer",
-          "score": -0.15631941874331423
+          "score": 0.5827910314678517
         },
         {
           "nodeId": "grounding-check",
           "taskId": "task-grounding-check",
           "providerId": "citation-checker",
-          "score": -0.027451905283832873
+          "score": 0.4842399448623588
         }
       ]
     },
     "winner": "cp_sat",
-    "narrative": "Greedy optimizes each node in isolation (objective -0.2187) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective -0.2187) solves those constraints jointly and returns the feasible allocation the market actually settles."
+    "narrative": "Greedy optimizes each node in isolation (objective 1.9480) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.9480) solves those constraints jointly and returns the feasible allocation the market actually settles."
   },
   "twin": {
     "engine": "python",
     "iterations": 500,
     "deadlineMs": 60000,
-    "failureProbability": 0.96,
+    "failureProbability": 0.41800000000000004,
     "budgetOverrunProbability": 0,
     "deadlineBreachProbability": 0,
-    "expectedNetCostUsdc": 0.20442000000000002
+    "expectedNetCostUsdc": 0.9703599999999999
   },
   "preflight": {
     "fundedPassed": true,
@@ -582,10 +582,10 @@
       "phase": "assign",
       "nodeId": "chunk",
       "level": "info",
-      "message": "chunk: assigned splitter (score -0.0086)",
+      "message": "chunk: assigned splitter (score 0.2458)",
       "data": {
         "providerId": "splitter",
-        "score": -0.008584391824351612
+        "score": 0.24582812895739545
       }
     },
     {
@@ -593,10 +593,10 @@
       "phase": "assign",
       "nodeId": "index",
       "level": "info",
-      "message": "index: assigned embed-small (score -0.0183)",
+      "message": "index: assigned embed-small (score 0.2870)",
       "data": {
         "providerId": "embed-small",
-        "score": -0.018301270189221952
+        "score": 0.2869937547488745
       }
     },
     {
@@ -604,10 +604,10 @@
       "phase": "assign",
       "nodeId": "retrieve",
       "level": "info",
-      "message": "retrieve: assigned bm25-retriever (score -0.0080)",
+      "message": "retrieve: assigned bm25-retriever (score 0.3482)",
       "data": {
         "providerId": "bm25-retriever",
-        "score": -0.008018148554092275
+        "score": 0.34815938054035356
       }
     },
     {
@@ -615,10 +615,10 @@
       "phase": "assign",
       "nodeId": "answer",
       "level": "info",
-      "message": "answer: assigned grounded-answerer (score -0.1563)",
+      "message": "answer: assigned grounded-answerer (score 0.5828)",
       "data": {
         "providerId": "grounded-answerer",
-        "score": -0.15631941874331423
+        "score": 0.5827910314678517
       }
     },
     {
@@ -626,10 +626,10 @@
       "phase": "assign",
       "nodeId": "grounding-check",
       "level": "info",
-      "message": "grounding-check: assigned citation-checker (score -0.0275)",
+      "message": "grounding-check: assigned citation-checker (score 0.4842)",
       "data": {
         "providerId": "citation-checker",
-        "score": -0.027451905283832873
+        "score": 0.4842399448623588
       }
     },
     {
@@ -643,26 +643,26 @@
           {
             "nodeId": "chunk",
             "startMs": 0,
-            "endMs": 400
+            "endMs": 420
           },
           {
             "nodeId": "index",
-            "startMs": 400,
-            "endMs": 1000
+            "startMs": 420,
+            "endMs": 1040
           },
           {
             "nodeId": "retrieve",
-            "startMs": 57400,
-            "endMs": 57900
+            "startMs": 57340,
+            "endMs": 57860
           },
           {
             "nodeId": "answer",
-            "startMs": 57900,
-            "endMs": 59300
+            "startMs": 57860,
+            "endMs": 59280
           },
           {
             "nodeId": "grounding-check",
-            "startMs": 59300,
+            "startMs": 59280,
             "endMs": 60000
           }
         ]
@@ -725,8 +725,8 @@
       "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
       "data": {
         "winner": "cp_sat",
-        "greedyObj": -0.21867513459481294,
-        "optimalObj": -0.218674
+        "greedyObj": 1.948012240576834,
+        "optimalObj": 1.948012
       }
     },
     {
@@ -734,19 +734,19 @@
       "phase": "score-candidates",
       "nodeId": "chunk",
       "level": "info",
-      "message": "chunk: 2 candidates — top splitter (score -0.0086)",
+      "message": "chunk: 2 candidates — top splitter (score 0.2458)",
       "data": {
         "ranked": [
           {
             "providerId": "splitter",
-            "score": -0.008584391824351612,
-            "pHat": 0.5,
+            "score": 0.24582812895739545,
+            "pHat": 0.8636363636363636,
             "priceUsdc": "0.16"
           },
           {
             "providerId": "megachunk",
-            "score": -0.0885843918243516,
-            "pHat": 0.5,
+            "score": -0.26141649701056113,
+            "pHat": 0.18181818181818182,
             "priceUsdc": "0.24"
           }
         ]
@@ -756,7 +756,7 @@
       "seq": 14,
       "phase": "calibration",
       "level": "info",
-      "message": "Calibration contrast: 5 divergent nodes, success lift -0.768",
+      "message": "Calibration contrast: 5 divergent nodes, success lift 0.532",
       "data": {
         "divergentNodes": [
           "chunk",
@@ -765,7 +765,7 @@
           "answer",
           "grounding-check"
         ],
-        "successLift": -0.7678132307999999
+        "successLift": 0.5321761429609254
       }
     },
     {
@@ -773,19 +773,19 @@
       "phase": "score-candidates",
       "nodeId": "index",
       "level": "info",
-      "message": "index: 2 candidates — top embed-small (score -0.0183)",
+      "message": "index: 2 candidates — top embed-small (score 0.2870)",
       "data": {
         "ranked": [
           {
             "providerId": "embed-small",
-            "score": -0.018301270189221952,
-            "pHat": 0.5,
+            "score": 0.2869937547488745,
+            "pHat": 0.8636363636363636,
             "priceUsdc": "0.20"
           },
           {
             "providerId": "embed-xl",
-            "score": -0.11830127018922193,
-            "pHat": 0.5,
+            "score": -0.3256997964126734,
+            "pHat": 0.18181818181818182,
             "priceUsdc": "0.30"
           }
         ]
@@ -796,19 +796,19 @@
       "phase": "score-candidates",
       "nodeId": "retrieve",
       "level": "info",
-      "message": "retrieve: 2 candidates — top bm25-retriever (score -0.0080)",
+      "message": "retrieve: 2 candidates — top bm25-retriever (score 0.3482)",
       "data": {
         "ranked": [
           {
             "providerId": "bm25-retriever",
-            "score": -0.008018148554092275,
-            "pHat": 0.5,
+            "score": 0.34815938054035356,
+            "pHat": 0.8636363636363636,
             "priceUsdc": "0.22"
           },
           {
             "providerId": "vector-retriever",
-            "score": -0.10801814855409228,
-            "pHat": 0.5,
+            "score": -0.3114282447417035,
+            "pHat": 0.22727272727272727,
             "priceUsdc": "0.32"
           }
         ]
@@ -818,12 +818,12 @@
       "seq": 17,
       "phase": "twin",
       "level": "info",
-      "message": "Twin MC (python): failure p=0.960",
+      "message": "Twin MC (python): failure p=0.418",
       "data": {
-        "failureProbability": 0.96,
+        "failureProbability": 0.41800000000000004,
         "budgetOverrunProbability": 0,
         "deadlineBreachProbability": 0,
-        "expectedNetCostUsdc": 0.20442000000000002,
+        "expectedNetCostUsdc": 0.9703599999999999,
         "seed": 42,
         "iterations": 500,
         "engine": "python",
@@ -835,19 +835,19 @@
       "phase": "score-candidates",
       "nodeId": "answer",
       "level": "info",
-      "message": "answer: 2 candidates — top grounded-answerer (score -0.1563)",
+      "message": "answer: 2 candidates — top grounded-answerer (score 0.5828)",
       "data": {
         "ranked": [
           {
             "providerId": "grounded-answerer",
-            "score": -0.15631941874331423,
-            "pHat": 0.5,
+            "score": 0.5827910314678517,
+            "pHat": 0.9090909090909091,
             "priceUsdc": "0.55"
           },
           {
             "providerId": "confident-answerer",
-            "score": -0.30631941874331414,
-            "pHat": 0.5,
+            "score": -0.8266650465289538,
+            "pHat": 0.13636363636363635,
             "priceUsdc": "0.70"
           }
         ]
@@ -858,19 +858,19 @@
       "phase": "score-candidates",
       "nodeId": "grounding-check",
       "level": "info",
-      "message": "grounding-check: 2 candidates — top citation-checker (score -0.0275)",
+      "message": "grounding-check: 2 candidates — top citation-checker (score 0.4842)",
       "data": {
         "ranked": [
           {
             "providerId": "citation-checker",
-            "score": -0.027451905283832873,
-            "pHat": 0.5,
+            "score": 0.4842399448623588,
+            "pHat": 0.9090909090909091,
             "priceUsdc": "0.30"
           },
           {
             "providerId": "vibe-checker",
-            "score": -0.1274519052838329,
-            "pHat": 0.5,
+            "score": -0.4385496946190101,
+            "pHat": 0.18181818181818182,
             "priceUsdc": "0.40"
           }
         ]

@@ -6,7 +6,7 @@
     "label": "Invoice processing",
     "description": "Parse an invoice, extract line-items and totals, reconcile them, validate against rules, and format the result — six steps that match the narrative exactly.",
     "narrative": "Trapeza prices every provider from its realized-outcome ledger, not its sales pitch. A budget OCR vendor advertises 98% accuracy but has only ever delivered ~18%; with the ledger ON it never wins the work. Flip the ledger OFF and the same market buys that vendor across the pipeline — and end-to-end accuracy collapses.",
-    "generatedAt": "2026-07-09T02:13:39.570Z",
+    "generatedAt": "2026-07-10T02:50:42.500Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"

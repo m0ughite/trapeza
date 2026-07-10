@@ -6,7 +6,7 @@
     "label": "Data ETL & reconciliation",
     "description": "Extract a batch of records then reconcile them against a source of truth, under a tight budget where the expensive step is the one that matters.",
     "narrative": "The naive per-step router spends in order: it overpays on the easy extraction and has nothing left for the reconcile step — so it returns NO_PROVIDER. The whole-graph clearing sees the budget squeeze coming, buys cheap-but-adequate extraction, and reserves budget for the bottleneck. The single-task bonded broker is this graph's one-node special case.",
-    "generatedAt": "2026-07-09T02:13:39.623Z",
+    "generatedAt": "2026-07-10T02:50:42.569Z",
     "seed": 42,
     "solverServiceUp": true,
     "headlineSolver": "cp_sat"

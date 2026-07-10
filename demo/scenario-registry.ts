@@ -144,15 +144,15 @@ export const SCENARIOS: Scenario[] = [
     runId: "rag-qa",
     label: "RAG document Q&A",
     description:
-      "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps served by brand-new providers with no track record.",
+      "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps where each capability offers an honest workhorse and a confident-but-unreliable braggart.",
     narrative:
-      "At cold-start the ledger has zero data, so it refuses to trust self-reported success and prices everyone at a neutral 0.5 prior — the cheaper honest provider wins each step. Turn the ledger OFF and the market believes the confident newcomers' inflated claims. Same graph, two very different markets.",
+      "Every step has a loud provider advertising near-perfect accuracy on a realized track record far below its pitch. With the ledger ON the market prices on verified outcomes and hires the honest workhorse at each step; flip it OFF and the same market believes the braggarts and buys a confident hallucinator to answer — realized end-to-end grounding collapses. Same graph, two very different markets.",
     proves:
-      "Cold-start policy: ON is claim-free (neutral prior); OFF buys the loudest new provider.",
-    tags: ["calibration", "cold-start"],
+      "Realized-outcome pricing filters confident-but-unreliable RAG providers; trusting claims buys a hallucinator.",
+    tags: ["calibration", "risk"],
     emitFixture: true,
     tier: "tier2",
-    expect: { minDivergentNodes: 1 },
+    expect: { minDivergentNodes: 1, minSuccessLift: 0 },
     graph: ragGraph,
     providers: ragProviders,
     bottleneckNodeIds: ["answer"],

@@ -113,13 +113,13 @@
     {
       "runId": "rag-qa",
       "label": "RAG document Q&A",
-      "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps served by brand-new providers with no track record.",
-      "proves": "Cold-start policy: ON is claim-free (neutral prior); OFF buys the loudest new provider.",
+      "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps where each capability offers an honest workhorse and a confident-but-unreliable braggart.",
+      "proves": "Realized-outcome pricing filters confident-but-unreliable RAG providers; trusting claims buys a hallucinator.",
       "tags": [
         "calibration",
-        "cold-start"
+        "risk"
       ],
-      "headline": "obj -0.2187 · lift -0.768",
+      "headline": "obj 1.9480 · lift 0.532",
       "nodeCount": 5,
       "providerCount": 10,
       "capabilities": [
