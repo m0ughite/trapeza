@@ -471,3 +471,67 @@ nodes; driver wraps each in try/catch with proven-spike fallback.
 2. **On-chain:** per-node live settlement proven for invoice-processing (6 nodes). Extend to other scenarios or multi-scenario receipt bundles if demo needs it. Still TODO: surface post-batch-flush EVM settlement tx when Gateway exposes it.
 3. **Deploy + record:** re-screenshot dashboard with 6 scenarios; update `DEMO-SCENARIOS.md` walkthroughs.
 4. `@trapeza/adapter-arc` escrow/oracle surface — unchanged from prior open items.
+
+---
+
+## Jul 10 — feature/v2 correctness + analysis + cleanup pass
+
+Corrective pass. A prior worker was to do the rag-qa fix + cleanup but died
+without committing, so this reconciles the actual repo state against the log.
+
+**Part A — investigate & explain.**
+
+- **A1 (bake-off "always the same score").** Root cause is **legitimate ties**,
+  not a bug. The objective is fully separable (`objectiveFromAssignments` = Σ of
+  per-node `p̂·value − price − risk`); the only coupling is the global/per-node
+  budget, deadline, quality floors and bonds. On a loosely-constrained graph the
+  greedy per-node argmax **is** the global optimum, so greedy and CP-SAT return
+  identical objectives (CP-SAT merely rounds to 6 dp). Per-scenario greedy vs
+  CP-SAT: invoice 1.9443/1.9443, research 1.7780/1.7780, **data-reconciliation
+  greedy BUSTS / cp_sat 1.5375**, support 1.4124/1.4124, code-pr 1.5741/1.5741,
+  rag-qa 1.9480/1.9480. Only data-reconciliation (tight $1.00 budget) makes
+  greedy bust — and it is also the only scenario with a non-zero shadow price
+  (budget 1.15). Display path (`BakeOffPanel.tsx`) is clean; it renders both
+  objectives independently. Cosmetic-only caveat: on a tie the panel still badges
+  CP-SAT "winner" and the generated narrative calls greedy's number an "infeasible
+  upper bound" — misleading copy for a UI follow-up, not an algorithm defect.
+- **A2/A3.** Full per-scenario number analysis + a panel-by-panel and
+  data-provenance explanation written to `docs/DASHBOARD-EXPLAINED.md`.
+
+**Part B — fixes.**
+
+- **B1 (HIGH, rag-qa calibration inversion).** rag-qa used
+  `makeUncalibratedProvider` (zero track record), so `realizedPHat()` fell back to
+  `claimedSuccessProb`: ON picked honest low-claimers, OFF trusted braggarts, and
+  "realized" was computed from claimed probs — so OFF mechanically won
+  (lift **−0.768**). Converted all ten rag providers to `makeProvider` +
+  `trackRecord` (workhorses ~18–19/20 realized vs braggarts ~2–4/20), updated the
+  scenario narrative/`proves`/tags off the stale cold-start framing, added
+  `expect.minSuccessLift`. Re-emitted (never hand-edited). Now ON realized
+  **0.5324** vs OFF **0.0002**, lift **+0.5322**.
+- **B2.** No other algorithm fix required — the bake-off is not a bug, and
+  data-reconciliation already demonstrates the greedy-vs-CP-SAT contrast, so no
+  scenario budget was fabricated. Flagged (not fixed): research-report's `proves`
+  promises a shadow-price readout its loose graph never delivers (all duals 0.00).
+- **B3.** Re-emitted all six fixtures from the real engine with the CP-SAT
+  service up. `meta.headlineSolver` = **`cp_sat`** for all six (Tier-1, not
+  degraded). On-chain receipts unchanged (invoice-processing allocation identical,
+  so no regen needed).
+
+**Part C — cleanup.**
+
+- **C1.** Removed the 3 orphan legacy fixtures `invoice-workflow.json`,
+  `budget-bottleneck.json`, `research-pipeline.json`. **Log reconciliation:** the
+  Jul 9 Phase-1 entry claimed these were "Removed," but they were still on disk —
+  they are now actually deleted. Confirmed unreferenced (only stale docstrings in
+  `emit-run.ts` / `emit-onchain.ts` / `contract.ts` mentioned the names); build
+  stays green.
+- **C2.** Rewrote `apps/dashboard/DEMO-SCENARIOS.md` for the current six scenarios
+  with real run IDs, real re-emitted numbers, the simple-mode "Run Your Own"
+  walkthrough, and the on-chain settlement walkthrough.
+- **C4.** This entry.
+
+**Verification (real, Jul 10).** `npm test` → **89 passed (19 files)** (was 70 /
+17 files at Jul 9 Phase 1) · `npm run typecheck` → exit 0 · `npm run build
+--workspace apps/dashboard` → success. CP-SAT solver healthy on 127.0.0.1:8000
+throughout.
