@@ -276,6 +276,12 @@ a:hover {
   min-width: 0;
   padding-block: 24px 72px;
 }
+.content.shell-column {
+  /* Guard against regressions where max-width lands on <main> itself. */
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
 
 .page {
   display: flex;
