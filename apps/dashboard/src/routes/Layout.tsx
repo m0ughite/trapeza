@@ -123,19 +123,21 @@ export function Layout() {
       <Sidebar />
       <div className="main">
         <Topbar />
-        <main className="content shell-column" id="main-content" tabIndex={-1}>
-          <div className="page" key={pathname}>
-            <Outlet />
+        <main className="content" id="main-content" tabIndex={-1}>
+          <div className="shell-column">
+            <div className="page" key={pathname}>
+              <Outlet />
+            </div>
+            <PageNav />
+            <footer className="footer">
+              Historical runs are real engine output emitted offline by{" "}
+              <span className="mono">demo/emit-run.ts</span>; on-chain receipts are real Arc-testnet
+              transactions. Batch settlement IDs are labeled as such and never linked as transactions —
+              only real 0x+64-hex hashes link to the explorer. Fixture generated{" "}
+              {new Date(run.meta.generatedAt).toLocaleDateString()}. Built for the Lepton Agents
+              Hackathon (Canteen × Circle).
+            </footer>
           </div>
-          <PageNav />
-          <footer className="footer">
-            Historical runs are real engine output emitted offline by{" "}
-            <span className="mono">demo/emit-run.ts</span>; on-chain receipts are real Arc-testnet
-            transactions. Batch settlement IDs are labeled as such and never linked as transactions —
-            only real 0x+64-hex hashes link to the explorer. Fixture generated{" "}
-            {new Date(run.meta.generatedAt).toLocaleDateString()}. Built for the Lepton Agents
-            Hackathon (Canteen × Circle).
-          </footer>
         </main>
       </div>
     </div>
