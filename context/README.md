@@ -5,13 +5,8 @@ Local cache of all Lepton Agents Hackathon (Canteen × Circle) materials, resear
 ```
 context/
 ├── README.md                  ← this index
-├── hackathon/
-│   └── lepton-hackathon-spec.md
 ├── papers/
-│   ├── agent-exchange-aex.md
-│   ├── marketbench.md
-│   ├── caster.md
-│   └── state-twins.md
+│   └── README.md              ← paper references (full texts removed; citations only)
 └── samples/
     └── context-arc/           ← cloned, 8 sample repos as submodules + bundled docs
         ├── samples/           ← arc-* reference repos
@@ -22,7 +17,10 @@ context/
 
 ## 1. Hackathon spec
 
-[`hackathon/lepton-hackathon-spec.md`](hackathon/lepton-hackathon-spec.md) — cleaned spec.
+The locally cached hackathon spec was removed to avoid redistributing
+third-party material. See the public hackathon sources instead:
+<https://lepton.thecanteenapp.com/> and
+<https://github.com/the-canteen-dev/context-arc>.
 
 **Key facts:** Hosted by **Canteen × Circle**; settles on **Arc** (Circle's stablecoin-native L1) in **USDC**; **nanopayments down to $0.000001** via Gateway (gas-free, batched); **<500ms** settlement; **x402** protocol for pay-per-request; **Jun 15–29, 2026**; **$50k** in prizes.
 
@@ -34,14 +32,19 @@ context/
 
 ## 2. Research papers
 
-Each file has a header with title, arXiv ID, authors, and a relevance note. Together they form a coherent agent-economy stack: **AEX** (market infra) → **MarketBench** (can agents bid honestly?) → **CASTER** (spend efficiently) → **State Twins** (simulate before settling).
+Full texts were removed to avoid redistributing third-party copyrighted
+material — see [`papers/README.md`](papers/README.md) for the citations (title +
+arXiv URL) and consult the linked sources directly. Together the four papers form
+a coherent agent-economy stack: **AEX** (market infra) → **MarketBench** (can
+agents bid honestly?) → **CASTER** (spend efficiently) → **State Twins**
+(simulate before settling).
 
 | Paper | arXiv | One-line summary | Maps to project |
 | --- | --- | --- | --- |
-| [Agent Exchange (AEX)](papers/agent-exchange-aex.md) | 2507.03904 | A central RTB-style **auction exchange** brokering tasks among agent hubs, with Shapley-value payout splitting. | **Macro auction market infrastructure** — the matchmaking + payment-splitting layer for an agent-to-agent network (RFB 3 AgentBroker/AgentMesh). |
-| [MarketBench](papers/marketbench.md) | 2604.23897 | Benchmark showing LLMs are **badly miscalibrated** at forecasting their own success probability and cost, so naive market bids fail. | **Agent self-calibration / bid accuracy** — the diagnostic + quality-scoring backbone for any auction where agents price their own work; motivates reputation/escrow/slashing. |
-| [CASTER](papers/caster.md) | 2601.19793 | A lightweight neural router doing **per-step strong-vs-weak model selection** in graph MAS; up to 72.4% cost cut at parity quality. | **Cost-aware neural routing in multi-agent graphs** — the spend-efficiency brain for a paying agent deciding which service/model is worth a nanopayment. |
-| [State Twins](papers/state-twins.md) | 2605.11522 | A typed, forkable **off-chain replica** of on-chain AMM state enabling N counterfactual scenarios per single RPC read, sub-second. | **Off-chain sub-second simulation of on-chain state** — simulate Arc settlement/pricing outcomes locally before committing real USDC. |
+| Agent Exchange (AEX) | 2507.03904 | A central RTB-style **auction exchange** brokering tasks among agent hubs, with Shapley-value payout splitting. | **Macro auction market infrastructure** — the matchmaking + payment-splitting layer for an agent-to-agent network (RFB 3 AgentBroker/AgentMesh). |
+| MarketBench | 2604.23897 | Benchmark showing LLMs are **badly miscalibrated** at forecasting their own success probability and cost, so naive market bids fail. | **Agent self-calibration / bid accuracy** — the diagnostic + quality-scoring backbone for any auction where agents price their own work; motivates reputation/escrow/slashing. |
+| CASTER | 2601.19793 | A lightweight neural router doing **per-step strong-vs-weak model selection** in graph MAS; up to 72.4% cost cut at parity quality. | **Cost-aware neural routing in multi-agent graphs** — the spend-efficiency brain for a paying agent deciding which service/model is worth a nanopayment. |
+| State Twins | 2605.11522 | A typed, forkable **off-chain replica** of on-chain AMM state enabling N counterfactual scenarios per single RPC read, sub-second. | **Off-chain sub-second simulation of on-chain state** — simulate Arc settlement/pricing outcomes locally before committing real USDC. |
 
 ---
 

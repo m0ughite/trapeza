@@ -59,7 +59,7 @@ Even shorter — the only truly required field is `steps` (everything else is de
 ### What gets filled in automatically
 
 You never supply a provider, a price, a bond or a calibration number. The transform
-([`src/lib/simpleInput.ts` → `expandSimpleInput()`](./src/lib/simpleInput.ts)) does it
+([`src/lib/simpleInput.ts` → `expandSimpleInput()`](https://github.com/m0ughite/trapeza/blob/main/apps/dashboard/src/lib/simpleInput.ts)) does it
 deterministically from the catalog:
 
 - **Providers** — every catalog provider that advertises a step's capability is added
@@ -171,7 +171,7 @@ successfully produced payload is always contract-valid.
 
 Power users can bypass simple mode and supply the entire market directly. The source
 types are `LiveRunInput`, `LiveRunOptions`, `GraphView`, and `ProviderView` in
-[`src/types/contract.ts`](./src/types/contract.ts). The dashboard's **Builder** and
+[`src/types/contract.ts`](https://github.com/m0ughite/trapeza/blob/main/apps/dashboard/src/types/contract.ts). The dashboard's **Builder** and
 **Full JSON** tabs both emit this shape.
 
 ### Shape
@@ -231,7 +231,7 @@ types are `LiveRunInput`, `LiveRunOptions`, `GraphView`, and `ProviderView` in
 
 ### Full-contract validation
 
-Enforced by [`src/lib/liveRunContract.ts`](./src/lib/liveRunContract.ts) in both the UI
+Enforced by [`src/lib/liveRunContract.ts`](https://github.com/m0ughite/trapeza/blob/main/apps/dashboard/src/lib/liveRunContract.ts) in both the UI
 and API paths:
 
 - payload has `graph`, `providers`, and `run`; non-empty graph and providers

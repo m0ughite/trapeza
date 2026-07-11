@@ -24,7 +24,7 @@ import { pctSmall, usd } from "../services/format";
 type Mode = "simple" | "builder" | "json";
 type BuilderSection = "setup" | "providers" | "workflow";
 
-const INPUT_CONTRACT_URL = "https://github.com/m0ughite/trapeza/blob/main/apps/dashboard/INPUT-CONTRACT.md";
+const INPUT_CONTRACT_URL = "/input-contract.md";
 
 export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const { runs } = props;
