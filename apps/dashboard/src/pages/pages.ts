@@ -53,7 +53,7 @@ export const PAGES: PageDef[] = [
     eyebrow: "Calibration Ledger",
     title: "Providers scored on what they delivered — not what they claimed",
     intro:
-      "Flip the ledger ON and OFF to watch confident-but-unreliable providers get filtered out and the quiet performers win the work.",
+      "Flip the ledger ON and OFF to see overstated bids filtered out while consistently reliable providers win the work.",
   },
   {
     path: "/bottlenecks",
@@ -78,9 +78,9 @@ export const PAGES: PageDef[] = [
     num: "07",
     navLabel: "Settlement",
     eyebrow: "Settlement",
-    title: "Real USDC receipts on Arc — labeled honestly",
+    title: "USDC receipts on Arc — labeled clearly",
     intro:
-      "Cleared steps settle in USDC on Circle's Arc testnet. Real transaction hashes link to the explorer; batch IDs never masquerade as transactions.",
+      "Cleared steps settle in USDC on Circle's Arc testnet. Verified transaction hashes link to the explorer; batch IDs are never presented as transactions.",
   },
   {
     path: "/run",
@@ -89,7 +89,7 @@ export const PAGES: PageDef[] = [
     eyebrow: "Run Your Own",
     title: "Clear a workflow yourself",
     intro:
-      "Build your own workflow in plain language, from the visual builder, or by pasting JSON — then clear it live. No money moves.",
+      "Build your own workflow in plain language, from the visual builder, or by pasting JSON — then clear it live. No funds move.",
   },
 ];
 

@@ -130,10 +130,10 @@ export function Layout() {
             </div>
             <PageNav />
             <footer className="footer">
-              Historical runs are real engine output emitted offline by{" "}
-              <span className="mono">demo/emit-run.ts</span>; on-chain receipts are real Arc-testnet
+              Historical runs are engine output emitted offline by{" "}
+              <span className="mono">demo/emit-run.ts</span>; on-chain receipts are Arc-testnet
               transactions. Batch settlement IDs are labeled as such and never linked as transactions —
-              only real 0x+64-hex hashes link to the explorer. Fixture generated{" "}
+              only verified 0x+64-hex hashes link to the explorer. Fixture generated{" "}
               {new Date(run.meta.generatedAt).toLocaleDateString()}. Built for the Lepton Agents
               Hackathon (Canteen × Circle).
             </footer>

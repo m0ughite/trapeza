@@ -39,9 +39,9 @@ export function OverviewPage() {
             Stop paying agents for what they <em>claim</em>. Pay for what they <em>deliver</em>.
           </h1>
           <p className="hero-lede">
-            You hand Trapeza a whole workflow and a budget. It scores every provider on its real
+            You hand Trapeza a whole workflow and a budget. It scores every provider on observed
             track record, solves the entire task graph in one shot instead of picking each step
-            blind, dry-runs the plan for risk, and settles in USDC on Circle&apos;s Arc — with honest,
+            blind, dry-runs the plan for risk, and settles in USDC on Circle&apos;s Arc with labeled,
             verifiable receipts.
           </p>
           <div className="hero-cta">
@@ -49,7 +49,7 @@ export function OverviewPage() {
               See a live clearing →
             </Link>
             <Link className="btn ghost" to={{ pathname: "/calibration", search }}>
-              Why calibration is the moat
+              Inspect calibration impact →
             </Link>
           </div>
         </div>
@@ -64,7 +64,7 @@ export function OverviewPage() {
           </div>
           <div className="hero-stat">
             <div className="hs-v mint">{pctSmall(cal.on.realizedEndToEndSuccess)}</div>
-            <div className="hs-k">real end-to-end success</div>
+            <div className="hs-k">observed end-to-end success</div>
           </div>
           <div className="hero-stat">
             <div className="hs-v">{ms(run.traction.makespanMs)}</div>
@@ -91,7 +91,7 @@ export function OverviewPage() {
           <h4>Priced on realized outcomes</h4>
           <p>
             Providers are scored on what they actually delivered, not the success rate they claim.
-            Confident liars get filtered out; quiet performers get the work.
+            Overstated bids get filtered out, while consistently reliable providers win work.
           </p>
           <Link className="linklike" to={{ pathname: "/calibration", search }}>
             Toggle the ledger on/off →
@@ -110,10 +110,10 @@ export function OverviewPage() {
         </div>
         <div className="value-card">
           <div className="vc-icon" aria-hidden>◈</div>
-          <h4>Real USDC settlement</h4>
+          <h4>USDC settlement on Arc</h4>
           <p>
-            Cleared work settles per step in USDC on Arc. Every receipt is labeled honestly — real
-            transaction hashes link out; batch IDs never masquerade as transactions.
+            Cleared work settles per step in USDC on Arc. Every receipt is labeled clearly:
+            transaction hashes link out, and batch IDs are never presented as transactions.
           </p>
           <Link className="linklike" to={{ pathname: "/settlement", search }}>
             See on-chain receipts →
@@ -126,7 +126,7 @@ export function OverviewPage() {
           <div>
             <div className="eyebrow">Pick a scenario</div>
             <p className="why">
-              Six bundled workflows, each replaying a real solver run. Your choice drives every page
+              Six bundled workflows, each replaying a solver-backed run. Your choice drives every page
               and stays selected as you navigate.
             </p>
           </div>

@@ -9,7 +9,6 @@ export function RunPage() {
   return (
     <>
       <PageHeader path="/run" />
-      <LiveRunPanel runs={runs} />
       <Panel
         title="What the market moved"
         hint="from the cleared plan"
@@ -17,6 +16,7 @@ export function RunPage() {
       >
         <TractionStrip traction={run.traction} />
       </Panel>
+      <LiveRunPanel runs={runs} />
     </>
   );
 }

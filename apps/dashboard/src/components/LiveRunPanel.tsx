@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   canApplyDependencies,
   normalizeRunPayload,
@@ -22,11 +22,15 @@ import { DagView } from "./DagView";
 import { pctSmall, usd } from "../services/format";
 
 type Mode = "simple" | "builder" | "json";
+type BuilderSection = "setup" | "providers" | "workflow";
+
+const INPUT_CONTRACT_URL = "https://github.com/m0ughite/trapeza/blob/main/apps/dashboard/INPUT-CONTRACT.md";
 
 export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const { runs } = props;
   const catalog = useMemo(() => buildCapabilityCatalog(runs), [runs]);
   const [mode, setMode] = useState<Mode>("simple");
+  const [builderSection, setBuilderSection] = useState<BuilderSection>("setup");
   const [templateId, setTemplateId] = useState(runs[0]!.meta.runId);
   const [builderPayload, setBuilderPayload] = useState<LiveRunInput>(() => payloadFromDemo(runs[0]!));
   const [jsonPayload, setJsonPayload] = useState(() => JSON.stringify(payloadFromDemo(runs[0]!), null, 2));
@@ -38,6 +42,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
   const [running, setRunning] = useState(false);
   const [resp, setResp] = useState<LiveRunResponse | null>(null);
   const [lastRunPayload, setLastRunPayload] = useState<LiveRunInput | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const providerCatalog = useMemo(() => buildProviderCatalog(runs), [runs]);
   const capabilityCatalog = useMemo(() => catalog.map((c) => c.capability), [catalog]);
@@ -208,6 +213,14 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       const out = await runClearingInput(payload);
       setResp(out);
       setLastRunPayload(payload);
+      if (typeof window !== "undefined") {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            resultsRef.current?.focus({ preventScroll: true });
+          });
+        });
+      }
     } finally {
       setRunning(false);
     }
@@ -256,8 +269,8 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
           Describe a workflow in a few plain lines (<strong>Simple</strong>) — Trapeza fills in the
           providers, prices and bonds for you. Power users can still use the visual{" "}
           <strong>Builder</strong> or paste a <strong>Full JSON</strong> payload. Every path runs the
-          same live clearing (serverless first, browser fallback). No money moves.{" "}
-          <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">
+          same live clearing (serverless first, browser fallback). No funds move.{" "}
+          <a href={INPUT_CONTRACT_URL} target="_blank" rel="noreferrer">
             Input contract &amp; capability catalog
           </a>
           .
@@ -268,7 +281,13 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
         <button className={`toggle-btn${mode === "simple" ? " active" : ""}`} onClick={() => setMode("simple")}>
           Simple ✦
         </button>
-        <button className={`toggle-btn${mode === "builder" ? " active" : ""}`} onClick={() => setMode("builder")}>
+        <button
+          className={`toggle-btn${mode === "builder" ? " active" : ""}`}
+          onClick={() => {
+            setMode("builder");
+            setBuilderSection("setup");
+          }}
+        >
           Builder
         </button>
         <button className={`toggle-btn${mode === "json" ? " active" : ""}`} onClick={() => setMode("json")}>
@@ -287,79 +306,100 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       ) : null}
 
       {mode === "builder" ? (
-      <div className="controls">
-        <div className="field">
-          <label>template</label>
-          <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-            {runs.map((rn) => (
-              <option key={rn.meta.runId} value={rn.meta.runId}>
-                {rn.meta.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label>
-            global budget · {usd(builderPayload.run.budgetUsdc, 2)}
-            <Tooltip>Budget is the shared spend cap for the whole workflow.</Tooltip>
-          </label>
-          <input
-            type="range"
-            min={0.2}
-            max={Math.max(0.5, baseBudget * 2).toFixed(2)}
-            step={0.05}
-            value={Number(builderPayload.run.budgetUsdc)}
-            onChange={(e) => patchRun({ budgetUsdc: Number(e.target.value).toFixed(2) })}
-          />
-        </div>
-        <div className="field">
-          <label>deadline (ms)</label>
-          <input
-            type="text"
-            value={String(builderPayload.run.deadlineMs)}
-            onChange={(e) => patchRun({ deadlineMs: Number(e.target.value) || 0 })}
-          />
-        </div>
-        <div className="field">
-          <label>risk aversion · {builderPayload.run.riskAversion.toFixed(1)}</label>
-          <input
-            type="range"
-            min={0}
-            max={3}
-            step={0.1}
-            value={builderPayload.run.riskAversion}
-            onChange={(e) => patchRun({ riskAversion: Number(e.target.value) })}
-          />
-        </div>
-        <div className="field">
-          <label>calibration</label>
-          <select
-            value={builderPayload.run.calibration}
-            onChange={(e) => patchRun({ calibration: e.target.value as "on" | "off" })}
-          >
-            <option value="on">ON (realized outcomes)</option>
-            <option value="off">OFF (trust bids)</option>
-          </select>
-        </div>
-        <div className="field">
-          <label>actions</label>
-          <button className="btn ghost" onClick={loadTemplate} disabled={running}>
-            Load template
-          </button>
-        </div>
-        <div className="field">
-          <label>&nbsp;</label>
-          <button className="btn ghost" onClick={startFromScratch} disabled={running}>
-            Start from scratch
-          </button>
-        </div>
-      </div>
-      ) : null}
-
-      {mode === "builder" ? (
         <>
-          <div className="live-builder" style={{ marginTop: 14 }}>
-            <div className="live-builder-col">
+          <div className="toggle live-builder-tabs" role="group" aria-label="builder sections" style={{ marginBottom: 14, flexWrap: "wrap" }}>
+            <button
+              className={`toggle-btn${builderSection === "setup" ? " active" : ""}`}
+              onClick={() => setBuilderSection("setup")}
+            >
+              Run setup
+            </button>
+            <button
+              className={`toggle-btn${builderSection === "providers" ? " active" : ""}`}
+              onClick={() => setBuilderSection("providers")}
+            >
+              Providers
+            </button>
+            <button
+              className={`toggle-btn${builderSection === "workflow" ? " active" : ""}`}
+              onClick={() => setBuilderSection("workflow")}
+            >
+              Workflow
+            </button>
+          </div>
+
+          {builderSection === "setup" ? (
+            <div className="controls">
+              <div className="field">
+                <label>template</label>
+                <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+                  {runs.map((rn) => (
+                    <option key={rn.meta.runId} value={rn.meta.runId}>
+                      {rn.meta.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>
+                  global budget · {usd(builderPayload.run.budgetUsdc, 2)}
+                  <Tooltip>Budget is the shared spend cap for the whole workflow.</Tooltip>
+                </label>
+                <input
+                  type="range"
+                  min={0.2}
+                  max={Math.max(0.5, baseBudget * 2).toFixed(2)}
+                  step={0.05}
+                  value={Number(builderPayload.run.budgetUsdc)}
+                  onChange={(e) => patchRun({ budgetUsdc: Number(e.target.value).toFixed(2) })}
+                />
+              </div>
+              <div className="field">
+                <label>deadline (ms)</label>
+                <input
+                  type="text"
+                  value={String(builderPayload.run.deadlineMs)}
+                  onChange={(e) => patchRun({ deadlineMs: Number(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="field">
+                <label>risk aversion · {builderPayload.run.riskAversion.toFixed(1)}</label>
+                <input
+                  type="range"
+                  min={0}
+                  max={3}
+                  step={0.1}
+                  value={builderPayload.run.riskAversion}
+                  onChange={(e) => patchRun({ riskAversion: Number(e.target.value) })}
+                />
+              </div>
+              <div className="field">
+                <label>calibration</label>
+                <select
+                  value={builderPayload.run.calibration}
+                  onChange={(e) => patchRun({ calibration: e.target.value as "on" | "off" })}
+                >
+                  <option value="on">ON (observed outcomes)</option>
+                  <option value="off">OFF (trust bids)</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>actions</label>
+                <button className="btn ghost" onClick={loadTemplate} disabled={running}>
+                  Load template
+                </button>
+              </div>
+              <div className="field">
+                <label>&nbsp;</label>
+                <button className="btn ghost" onClick={startFromScratch} disabled={running}>
+                  Start from scratch
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {builderSection === "providers" ? (
+            <div className="live-builder-col" style={{ marginTop: 14 }}>
               <div className="mini-label">Provider catalog</div>
               <table className="t">
                 <thead>
@@ -436,8 +476,10 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
                 </div>
               ) : null}
             </div>
+          ) : null}
 
-            <div className="live-builder-col">
+          {builderSection === "workflow" ? (
+            <div className="live-builder-col" style={{ marginTop: 14 }}>
               <div className="mini-label">Workflow steps and dependencies</div>
               <table className="t">
                 <thead>
@@ -515,17 +557,16 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
                 </button>
               </div>
               {depError ? <div className="callout warn" style={{ marginTop: 10 }}>{depError}</div> : null}
+              <div className="field" style={{ marginTop: 14 }}>
+                <label>graph id</label>
+                <input
+                  type="text"
+                  value={builderPayload.graph.id}
+                  onChange={(e) => patchGraphMeta({ id: e.target.value })}
+                />
+              </div>
             </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>graph id</label>
-            <input
-              type="text"
-              value={builderPayload.graph.id}
-              onChange={(e) => patchGraphMeta({ id: e.target.value })}
-            />
-          </div>
+          ) : null}
         </>
       ) : mode === "json" ? (
         <div className="field" style={{ marginTop: 14 }}>
@@ -567,7 +608,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
       </div>
 
       {r ? (
-        <div style={{ marginTop: 18 }}>
+        <div ref={resultsRef} tabIndex={-1} style={{ marginTop: 18 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
             <Badge tone={resp!.source === "serverless" ? "mint" : "amber"}>
               {resp!.source === "serverless" ? "ran on the server" : "ran in your browser"}
@@ -583,7 +624,7 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
               <div className="stat-row" style={{ marginBottom: 14 }}>
                 <Stat k="plan score" v={r.objectiveValue.toFixed(4)} tone="mint" />
                 <Stat k="total spend" v={usd(r.totalSpendUsdc)} small />
-                <Stat k="real end-to-end success" v={pctSmall(r.realizedEndToEndSuccess)} tone="mint" />
+                <Stat k="observed end-to-end success" v={pctSmall(r.realizedEndToEndSuccess)} tone="mint" />
                 <Stat k="claimed success" v={pctSmall(r.claimedEndToEndSuccess)} small />
               </div>
               <DagView
@@ -609,12 +650,12 @@ export function LiveRunPanel(props: { runs: DemoRun[] }) {
         <p>
           This path accepts a full payload you define (graph + providers + run options). The same
           payload can come from the builder or direct JSON paste. Contract doc:{" "}
-          <a href="/INPUT-CONTRACT.md" target="_blank" rel="noreferrer">INPUT-CONTRACT.md</a>.
+          <a href={INPUT_CONTRACT_URL} target="_blank" rel="noreferrer">INPUT-CONTRACT.md</a>.
         </p>
         <p>
           It uses a fast greedy solver so it can run instantly anywhere (serverless if available,
           browser fallback if not). The historical runs above remain the canonical whole-graph
-          clears with exact solver output and real Arc receipts.
+          clears with exact solver output and Arc receipts.
         </p>
       </Collapsible>
     </Panel>
