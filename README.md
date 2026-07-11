@@ -38,7 +38,9 @@ packages/
   adapter-gateway/  @trapeza/adapter-gateway Circle Gateway / x402 USDC settlement.
 solver/                                      Python OR-Tools CP-SAT + Monte-Carlo service.
 demo/                                        deterministic, chain-free engine walkthrough.
-apps/dashboard/     @trapeza/dashboard       Vite + React SPA visualizing clearings + receipts.
+apps/dashboard/     @trapeza/dashboard       Vite + React multi-page SPA: clearing, bake-off,
+                                             calibration, bottlenecks, risk, settlement, and a
+                                             "Run Your Own" builder that clears live in-browser.
 ```
 
 The **module boundary is a hard rule**: `@trapeza/core` is chain-agnostic; every Circle/Arc-specific call lives in an adapter. Full design detail lives in `[docs/PROJECT-DIAGRAMS.md](docs/PROJECT-DIAGRAMS.md)` and the canonical `[docs/SOURCE-OF-TRUTH.md](docs/SOURCE-OF-TRUTH.md)`.
@@ -47,7 +49,7 @@ The **module boundary is a hard rule**: `@trapeza/core` is chain-agnostic; every
 
 ```bash
 npm install                # install the TS monorepo
-npm test                   # run the full test suite (57 tests)
+npm test                   # run the full test suite (89 tests)
 npm run typecheck          # type-check core + clearinghouse + oracle + both adapters
 
 # optional: the Python OR-Tools CP-SAT solver (Tier-1, exact clearing)
@@ -66,11 +68,16 @@ npm run build --workspace @trapeza/dashboard    # tsc + vite build → dist/
 
 ## Demo scenarios
 
-Three deterministic, real-engine scenarios ship as bundled dashboard fixtures:
+Six deterministic, real-engine workflows ship as bundled dashboard fixtures — each replays an actual solver run, so every number on screen came from the engine:
 
-- **Invoice workflow (6-node DAG)** — extract → reconcile → fact-check → format, where braggart providers claim 97–99% but realize ~15%. Shows the calibration mode (ON vs OFF).
-- **Budget bottleneck (greedy busts)** — a two-node logo → code graph under a tight $1.00 budget: naive per-task greedy busts the budget; the CP-SAT clearing finds the feasible joint plan.
-- **Research pipeline (8-node, tight deadline)** — research → extract×3 → reconcile → fact-check → format under a tight deadline, stressing the schedule and the Monte-Carlo risk preflight.
+- **Invoice processing (6 steps)** — parse → extract line-items → extract totals → reconcile → validate → format. A budget OCR vendor advertises 98% but has only ever realized ~18%; with the calibration ledger ON it never wins, and flipping it OFF collapses end-to-end accuracy.
+- **Research → report (8 steps)** — research → three parallel source extractions + a data pull → reconcile → fact-check → format, under a tight deadline. Exercises fan-out/fan-in scheduling, shadow prices, and the Monte-Carlo risk preflight.
+- **Data ETL & reconciliation (2 steps)** — extract → reconcile under a tight $1.00 budget: the greedy per-step router overpays early and busts (NO_PROVIDER on the bottleneck); the whole-graph clearing reserves budget for the step that matters.
+- **Customer-support triage (6 steps)** — classify, then parallel KB-lookup / sentiment / entitlement → draft → tone-check on a tight SLA. Fan-out/fan-in scheduling under elevated risk-aversion.
+- **Code-PR review pipeline (4 steps)** — generate → test → review → security-scan, where each step sets a minimum-quality floor that excludes providers whose *realized* reliability is below the bar.
+- **RAG document Q&A (5 steps)** — chunk → index → retrieve → answer → grounding-check, where every step offers an honest workhorse and a confident-but-unreliable braggart. Calibration ON hires the workhorse; OFF buys a hallucinator.
+
+Beyond the bundled runs, the **Run Your Own** page lets you clear a workflow of your own — describe it in plain language, assemble it in the visual builder, or paste JSON — and it clears live in-browser (no funds move). The input shape is documented at [`/input-contract.md`](apps/dashboard/public/input-contract.md).
 
 ## On-chain settlement (Arc testnet, honestly labeled)
 
@@ -82,7 +89,7 @@ Settlement targets **Circle's Arc testnet** (`eip155:5042002`) using USDC via **
   - Circle Gateway deposit (real on-chain tx into the unified balance) — `[0xb64a686a…d4fff6e0](https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0)`
 - **A Circle Gateway settlement id is a batch UUID, NOT an EVM transaction.** It is never rendered as a `/tx/` link. (The batch settles on-chain when it flushes.)
 
-Both on-chain integrations — one x402/Gateway USDC nanopayment and one ERC-8004 identity registration — are written, run against the live testnet, and gated by a `[BLOCKED]` preflight so a hash only ever appears if a transaction actually settled. They never fabricate a tx hash. See `[docs/SETUP.md](docs/SETUP.md)`.
+The on-chain integrations — x402/Gateway USDC nanopayments and ERC-8004 identity/reputation — are written, run against the live testnet, and gated by a `[BLOCKED]` preflight so a hash only ever appears if a transaction actually settled; they never fabricate a tx hash. A cleared allocation now settles **per node**: `npm run demo:onchain` walks the invoice-processing plan and settles each hop over x402/Gateway (falling back to the proven receipts when no funded wallet is supplied). See `[docs/SETUP.md](docs/SETUP.md)`.
 
 ## Tech stack
 
@@ -90,7 +97,7 @@ Both on-chain integrations — one x402/Gateway USDC nanopayment and one ERC-800
 - **Python OR-Tools CP-SAT solver** (CPython 3.12, FastAPI) for the exact Tier-1 clearing + Monte-Carlo twin; a portable TypeScript greedy+LNS Tier-2 solver runs in-process and in the browser as the degrade path.
 - **Vite + React + TypeScript dashboard** — bundled historical runs (zero backend) plus an optional serverless live-run.
 - **Chain:** Circle Arc testnet, USDC, x402, Circle Gateway, ERC-8004; `viem`.
-- **Tests:** Vitest (57 tests across core, clearinghouse, oracle) + pytest for the solver.
+- **Tests:** Vitest (89 tests across core, clearinghouse, oracle, and the dashboard) + pytest for the solver.
 
 ## Hackathon alignment
 
@@ -98,12 +105,11 @@ Built for the **Lepton Agents Hackathon (Canteen × Circle)**. Trapeza targets t
 
 ## Roadmap / coming next
 
-- Realistic, use-case scenarios beyond the three seed graphs.
-- A generic **bring-your-own-workflow** builder: submit any DAG, not just the bundled fixtures.
-- **Per-node on-chain settlement** — wire cleared allocations to live per-hop ERC-8183 escrow release / x402 payment (the chain-layer adapter plan is staged).
-- **Constrained natural-language → workflow generation** — describe a task in plain language; a guardrailed, schema-validated planner emits the task DAG.
+- **Constrained natural-language → workflow generation** — describe a task in plain language; a guardrailed, schema-validated planner emits the task DAG (the Run Your Own page already accepts plain-language, visual-builder, and JSON input).
+- **Per-node settlement across every scenario** — today the invoice pipeline is the canonical on-chain proof; next is per-hop settlement for all workflows plus post-batch EVM-tx surfacing.
+- **Bonded escrow + slashing** — wire cleared allocations to live per-hop ERC-8183 escrow release so under-delivery is slashed on-chain.
 - An **MCP server** so any agent can hire the clearinghouse in one call.
-- **Live provider integrations** (e.g. agentcash.dev) to route real paid demand.
+- **Live provider integrations** (e.g. agentcash.dev) to route real paid demand against external x402 endpoints.
 - **Quality-adjusted unified clearing price (UCP)** per capability class.
 
 ## License
