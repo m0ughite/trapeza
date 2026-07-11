@@ -79,7 +79,7 @@ export interface SimpleExpandResult {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Defaults (the abstraction knobs — documented in public/input-contract.md, served at /input-contract.md)
+// Defaults (the abstraction knobs — documented in apps/dashboard/INPUT-CONTRACT.md)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const RISK_LEVELS: RiskLevel[] = ["low", "medium", "high"];

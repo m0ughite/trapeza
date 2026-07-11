@@ -77,7 +77,7 @@ Six deterministic, real-engine workflows ship as bundled dashboard fixtures — 
 - **Code-PR review pipeline (4 steps)** — generate → test → review → security-scan, where each step sets a minimum-quality floor that excludes providers whose *realized* reliability is below the bar.
 - **RAG document Q&A (5 steps)** — chunk → index → retrieve → answer → grounding-check, where every step offers an honest workhorse and a confident-but-unreliable braggart. Calibration ON hires the workhorse; OFF buys a hallucinator.
 
-Beyond the bundled runs, the **Run Your Own** page lets you clear a workflow of your own — describe it in plain language, assemble it in the visual builder, or paste JSON — and it clears live in-browser (no funds move). The input shape is documented at [`/input-contract.md`](apps/dashboard/public/input-contract.md).
+Beyond the bundled runs, the **Run Your Own** page lets you clear a workflow of your own — describe it in plain language, assemble it in the visual builder, or paste JSON — and it clears live in-browser (no funds move). The input shape is documented in [`apps/dashboard/INPUT-CONTRACT.md`](apps/dashboard/INPUT-CONTRACT.md).
 
 ## On-chain settlement (Arc testnet, honestly labeled)
 
