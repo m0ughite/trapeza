@@ -155,6 +155,6 @@ export function runLive(
     note:
       opts.calibration === "on"
         ? "Calibration ON: routed by each provider's realized track record."
-        : "Calibration OFF: routed by self-reported claims — watch the real end-to-end success drop.",
+        : "Calibration OFF: routed by self-reported claims — watch observed end-to-end success drop.",
   };
 }

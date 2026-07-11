@@ -20,7 +20,18 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["packages/**/test/**/*.test.ts"],
+    include: [
+      "packages/**/test/**/*.test.ts",
+      "demo/test/**/*.test.ts",
+      "apps/dashboard/test/**/*.test.ts",
+    ],
     environment: "node",
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
+    fileParallelism: false,
   },
 });

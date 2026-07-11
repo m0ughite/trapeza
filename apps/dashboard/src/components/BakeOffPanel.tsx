@@ -8,14 +8,21 @@ function solverName(kind: SolverKind): string {
   return "Whole-graph clearing";
 }
 
-function SolverCard(props: { r: BakeOffSolverResult; win: boolean }) {
-  const { r, win } = props;
+function SolverCard(props: { r: BakeOffSolverResult; win: boolean; tie: boolean }) {
+  const { r, win, tie } = props;
   const failed = r.status === "failed";
+  const cls = tie ? "tie" : win ? "win" : failed ? "lose" : "";
   return (
-    <div className={`solver-card ${win ? "win" : failed ? "lose" : ""}`}>
+    <div className={`solver-card ${cls}`}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <strong style={{ fontSize: 14 }}>{solverName(r.kind)}</strong>
-        {win ? <Badge tone="mint">winner</Badge> : failed ? <Badge tone="red">busts</Badge> : null}
+        {tie ? (
+          <Badge>matched</Badge>
+        ) : win ? (
+          <Badge tone="mint">winner</Badge>
+        ) : failed ? (
+          <Badge tone="red">busts</Badge>
+        ) : null}
       </div>
       {failed ? (
         <>
@@ -28,7 +35,7 @@ function SolverCard(props: { r: BakeOffSolverResult; win: boolean }) {
         </>
       ) : (
         <>
-          <div className="sc-obj" style={{ color: win ? "var(--accent)" : "var(--text)" }}>
+          <div className="sc-obj" style={{ color: win && !tie ? "var(--accent)" : "var(--text)" }}>
             {num(r.objectiveValue ?? 0, 4)}
             <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)", marginLeft: 8 }}>
               plan score
@@ -58,20 +65,49 @@ function SolverCard(props: { r: BakeOffSolverResult; win: boolean }) {
   );
 }
 
+/**
+ * A "tie" is when both solvers produced a feasible plan with effectively equal
+ * objective values. The graph solver's number is rounded to 6 dp on the Python
+ * side while greedy carries full float precision, so we compare with a small
+ * epsilon rather than for exact equality.
+ */
+function isTie(bakeOff: BakeOff): boolean {
+  const { greedy, optimal } = bakeOff;
+  if (greedy.status !== "cleared" || optimal.status !== "cleared") return false;
+  if (greedy.objectiveValue == null || optimal.objectiveValue == null) return false;
+  return Math.abs(greedy.objectiveValue - optimal.objectiveValue) <= 1e-3;
+}
+
 export function BakeOffPanel(props: { bakeOff: BakeOff }) {
   const { bakeOff } = props;
+  const tie = isTie(bakeOff);
+  const greedyWins = !tie && bakeOff.winner === bakeOff.greedy.kind;
+  const optimalWins = !tie && bakeOff.winner === bakeOff.optimal.kind;
+
   return (
     <Panel
       title="Same graph, two solvers"
-      right={<Badge tone="mint">best plan wins</Badge>}
+      right={<Badge tone={tie ? "default" : "mint"}>{tie ? "tie on this graph" : "best plan wins"}</Badge>}
       sub="The naive router picks each step in isolation, blind to the shared budget, deadline and quality floors. The whole-graph clearing sees every step at once."
     >
       <div className="bakeoff">
-        <SolverCard r={bakeOff.greedy} win={bakeOff.winner === bakeOff.greedy.kind} />
-        <SolverCard r={bakeOff.optimal} win={bakeOff.winner === bakeOff.optimal.kind} />
+        <SolverCard r={bakeOff.greedy} win={greedyWins} tie={tie} />
+        <SolverCard r={bakeOff.optimal} win={optimalWins} tie={tie} />
       </div>
       <div className="callout" style={{ marginTop: 14 }}>
-        {plain(bakeOff.narrative)}
+        {tie ? (
+          <>
+            <strong>Tie — greedy matches the optimum on this graph.</strong> No global constraint
+            (budget, deadline, quality floor or bond) binds here, so picking the best provider for
+            each step independently already gives the optimal whole-graph plan. Both solvers return
+            the same feasible allocation and the same plan score — this is not a case where solving
+            jointly changes the answer. To see the graph solver pull ahead, switch to the{" "}
+            <strong>Data ETL &amp; reconciliation</strong> scenario, where a tight budget makes the
+            greedy router bust.
+          </>
+        ) : (
+          plain(bakeOff.narrative)
+        )}
       </div>
       <Collapsible label="How the two solvers differ">
         <p>

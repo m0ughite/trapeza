@@ -16,10 +16,9 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   parseUsdcToMicro,
-  pSuccessMean,
   type CalibrationRecord,
 } from "@trapeza/core";
-import { scoreProviderForNode, providerBondMicro, providerCostMicro } from "./score.js";
+import { scoreProviderForNode, providerBondMicro, providerCostMicro, pHat } from "./score.js";
 import { latencyMs } from "./schedule.js";
 import type { NodeAssignment, SolverInput, SolverProvider } from "./types.js";
 import type { NodeSchedule } from "@trapeza/core";
@@ -63,33 +62,28 @@ function getValidators() {
 
 const HUGE_MICRO = "1000000000000"; // 1e6 USDC — effectively unbounded default
 
-function pHatOf(p: SolverProvider): number {
-  return p.calibration.nObservations > 0
-    ? pSuccessMean(p.calibration)
-    : p.claimedSuccessProb;
-}
-
 /** Build the shared-contract SolveRequest from a resolved SolverInput. */
 export function buildSolveRequest(
   input: SolverInput,
   options?: { timeLimitMs?: number },
 ): unknown {
   const { graph, providers } = input;
+  const useCalibration = input.useCalibration ?? true;
   const candidates: unknown[] = [];
   for (const node of graph.nodes) {
     const valueMicro = parseUsdcToMicro(node.task.valueUsdc ?? node.task.budgetUsdc);
     for (const p of providers) {
       if (!p.capabilities.includes(node.task.capability)) continue;
       const bond = providerBondMicro(p, node.task.bondRatio ?? 0.1, node.task.valueUsdc);
-      const costPlusBond = providerCostMicro(p) + bond;
+      const costPlusBond = providerCostMicro(p, useCalibration) + bond;
       candidates.push({
         nodeId: node.nodeId,
         providerId: p.id,
-        score: scoreProviderForNode(graph, node.nodeId, p),
+        score: scoreProviderForNode(graph, node.nodeId, p, useCalibration),
         costPlusBondUsdcMicro: costPlusBond.toString(),
         bondUsdcMicro: bond.toString(),
-        pHat: pHatOf(p),
-        latencyMs: latencyMs(p),
+        pHat: pHat(p, useCalibration),
+        latencyMs: latencyMs(p, useCalibration),
       });
     }
   }

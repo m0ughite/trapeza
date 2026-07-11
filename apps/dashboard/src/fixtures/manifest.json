@@ -2,19 +2,135 @@
   "schemaVersion": "1.0.0",
   "runs": [
     {
-      "runId": "invoice-workflow",
-      "label": "Invoice workflow (6-node DAG)",
-      "description": "A six-node extraction → reconcile → fact-check → format pipeline where braggart providers claim 97–99% but realize ~15%."
+      "runId": "invoice-processing",
+      "label": "Invoice processing",
+      "description": "Parse an invoice, extract line-items and totals, reconcile them, validate against rules, and format the result — six steps that match the narrative exactly.",
+      "proves": "Scoring on realized outcomes filters confident-but-unreliable providers; trusting claims buys lemons.",
+      "tags": [
+        "calibration",
+        "risk"
+      ],
+      "headline": "obj 1.9443 · lift 0.412",
+      "nodeCount": 6,
+      "providerCount": 10,
+      "capabilities": [
+        "doc.parse",
+        "data.extract",
+        "data.reconcile",
+        "verify.rules",
+        "report.format"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
     },
     {
-      "runId": "budget-bottleneck",
-      "label": "Budget bottleneck (greedy busts)",
-      "description": "A two-node logo → code graph under a tight $1.00 budget: the CP-SAT clearing vs the naive greedy router."
+      "runId": "research-report",
+      "label": "Research → report",
+      "description": "Research a topic, extract findings from three sources in parallel plus a data pull, reconcile everything, fact-check the claims, and format a report — a dense eight-step DAG under a tight deadline.",
+      "proves": "Whole-graph scheduling + shadow-price readout + Monte-Carlo risk preflight on a dense DAG.",
+      "tags": [
+        "scheduling",
+        "risk",
+        "budget"
+      ],
+      "headline": "obj 1.7780 · lift 0.292",
+      "nodeCount": 8,
+      "providerCount": 10,
+      "capabilities": [
+        "web.research",
+        "doc.extract",
+        "data.aggregate",
+        "data.reconcile",
+        "verify.claims",
+        "report.format"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
     },
     {
-      "runId": "research-pipeline",
-      "label": "Research pipeline (8-node, tight deadline)",
-      "description": "An eight-node research → extract×3 → reconcile → fact-check → format DAG under a tight deadline, stressing the schedule and the twin risk preflight."
+      "runId": "data-reconciliation",
+      "label": "Data ETL & reconciliation",
+      "description": "Extract a batch of records then reconcile them against a source of truth, under a tight budget where the expensive step is the one that matters.",
+      "proves": "Graph-aware clearing reserves budget for the bottleneck where a greedy per-step router busts.",
+      "tags": [
+        "budget",
+        "bottleneck"
+      ],
+      "headline": "obj 1.5375 · lift 0.000",
+      "nodeCount": 2,
+      "providerCount": 4,
+      "capabilities": [
+        "data.extract",
+        "data.reconcile"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "support-triage",
+      "label": "Customer-support triage",
+      "description": "Classify an inbound ticket, then in parallel look up the knowledge base, gauge sentiment and check entitlement, draft a reply, and tone-check it — a fan-out/fan-in graph on a tight SLA.",
+      "proves": "Fan-out/fan-in scheduling under a tight deadline and elevated risk-aversion.",
+      "tags": [
+        "scheduling",
+        "risk"
+      ],
+      "headline": "obj 1.4124 · lift 0.457",
+      "nodeCount": 6,
+      "providerCount": 8,
+      "capabilities": [
+        "ticket.classify",
+        "kb.lookup",
+        "sentiment.analyze",
+        "entitlement.check",
+        "response.draft",
+        "verify.tone"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "code-pr-pipeline",
+      "label": "Code-PR review pipeline",
+      "description": "Generate a change, run the tests, review the diff, and security-scan it — a chain where every step carries a minimum-quality bar.",
+      "proves": "Per-step quality floors exclude providers whose realized reliability is below the bar.",
+      "tags": [
+        "quality-floor",
+        "calibration"
+      ],
+      "headline": "obj 1.5741 · lift 0.658",
+      "nodeCount": 4,
+      "providerCount": 8,
+      "capabilities": [
+        "code.generate",
+        "test.run",
+        "code.review",
+        "security.scan"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
+    },
+    {
+      "runId": "rag-qa",
+      "label": "RAG document Q&A",
+      "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps where each capability offers an honest workhorse and a confident-but-unreliable braggart.",
+      "proves": "Realized-outcome pricing filters confident-but-unreliable RAG providers; trusting claims buys a hallucinator.",
+      "tags": [
+        "calibration",
+        "risk"
+      ],
+      "headline": "obj 1.9480 · lift 0.532",
+      "nodeCount": 5,
+      "providerCount": 10,
+      "capabilities": [
+        "doc.chunk",
+        "embed.index",
+        "retrieve.topk",
+        "answer.generate",
+        "verify.grounding"
+      ],
+      "tier": "tier2",
+      "status": "cleared"
     }
   ]
 }

@@ -8,7 +8,7 @@ export function TwinRiskPanel(props: { twin: TwinMonteCarlo | null }) {
     <Panel
       title="Failure, deadline & budget risk"
       right={t ? <Badge tone="violet">{t.iterations.toLocaleString()} simulations</Badge> : undefined}
-      sub="Before committing on-chain, the cleared plan is replayed thousands of times using each provider's real outcome distribution — scoring how often it fails, misses the deadline or overruns the budget."
+      sub="Before committing on-chain, the cleared plan is replayed thousands of times using each provider's observed outcome distribution — scoring how often it fails, misses the deadline or overruns the budget."
     >
       {!t ? (
         <div className="callout">No risk preflight was recorded for this scenario.</div>

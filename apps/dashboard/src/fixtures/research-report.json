@@ -1,0 +1,1155 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "research-report",
+    "label": "Research → report",
+    "description": "Research a topic, extract findings from three sources in parallel plus a data pull, reconcile everything, fact-check the claims, and format a report — a dense eight-step DAG under a tight deadline.",
+    "narrative": "A real critical path with fan-out and fan-in. The clearing schedules the parallel extractions, then shows which constraint is actually binding via shadow prices, and dry-runs the plan thousands of times to score failure, deadline-miss and budget-overrun risk before a cent moves.",
+    "generatedAt": "2026-07-10T02:50:42.546Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "research-report",
+    "globalBudgetUsdc": "7.00",
+    "globalDeadlineMs": 12000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "research",
+        "capability": "web.research",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "extract-a",
+        "capability": "doc.extract",
+        "valueUsdc": "0.55",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "extract-b",
+        "capability": "doc.extract",
+        "valueUsdc": "0.55",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "extract-c",
+        "capability": "doc.extract",
+        "valueUsdc": "0.55",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "gather",
+        "capability": "data.aggregate",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "reconcile",
+        "capability": "data.reconcile",
+        "valueUsdc": "1.30",
+        "budgetUsdc": "1.50",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "fact-check",
+        "capability": "verify.claims",
+        "valueUsdc": "1.10",
+        "budgetUsdc": "1.30",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "format",
+        "capability": "report.format",
+        "valueUsdc": "0.40",
+        "budgetUsdc": "0.60",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "research",
+        "to": "extract-a"
+      },
+      {
+        "from": "research",
+        "to": "extract-b"
+      },
+      {
+        "from": "research",
+        "to": "extract-c"
+      },
+      {
+        "from": "research",
+        "to": "gather"
+      },
+      {
+        "from": "extract-a",
+        "to": "reconcile"
+      },
+      {
+        "from": "extract-b",
+        "to": "reconcile"
+      },
+      {
+        "from": "extract-c",
+        "to": "reconcile"
+      },
+      {
+        "from": "gather",
+        "to": "reconcile"
+      },
+      {
+        "from": "reconcile",
+        "to": "fact-check"
+      },
+      {
+        "from": "fact-check",
+        "to": "format"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "web-scout",
+      "capabilities": [
+        "web.research"
+      ],
+      "priceUsdc": "0.28",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.72,
+      "claimedLatencyMs": 1200,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.28,
+      "latencyMeanMs": 1199.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "headline-grabber",
+      "capabilities": [
+        "web.research"
+      ],
+      "priceUsdc": "0.24",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 540.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "sonnet-reader",
+      "capabilities": [
+        "doc.extract"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.71,
+      "claimedLatencyMs": 950,
+      "calibratedSuccessProb": 0.8181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 18,
+      "successBeta": 4,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 950.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "skim-bot",
+      "capabilities": [
+        "doc.extract"
+      ],
+      "priceUsdc": "0.26",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 420,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.26,
+      "latencyMeanMs": 460,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "aggregator",
+      "capabilities": [
+        "data.aggregate"
+      ],
+      "priceUsdc": "0.32",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.74,
+      "claimedLatencyMs": 800,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.32,
+      "latencyMeanMs": 810.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "ledger-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.58",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 1400,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.58,
+      "latencyMeanMs": 1399.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "quick-reconciler",
+      "capabilities": [
+        "data.reconcile"
+      ],
+      "priceUsdc": "0.50",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.96,
+      "claimedLatencyMs": 600,
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.5,
+      "latencyMeanMs": 640.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "claim-auditor",
+      "capabilities": [
+        "verify.claims"
+      ],
+      "priceUsdc": "0.52",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.73,
+      "claimedLatencyMs": 1100,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.52,
+      "latencyMeanMs": 1099.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "rubber-stamp",
+      "capabilities": [
+        "verify.claims"
+      ],
+      "priceUsdc": "0.44",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 300,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.44,
+      "latencyMeanMs": 340,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "report-formatter",
+      "capabilities": [
+        "report.format"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.8,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.2,
+      "latencyMeanMs": 460,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.778033,
+    "makespanMs": 12000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "research",
+        "taskId": "task-research",
+        "providerId": "web-scout",
+        "score": 0.2069937547488745
+      },
+      {
+        "nodeId": "extract-a",
+        "taskId": "task-extract-a",
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      },
+      {
+        "nodeId": "extract-b",
+        "taskId": "task-extract-b",
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      },
+      {
+        "nodeId": "extract-c",
+        "taskId": "task-extract-c",
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      },
+      {
+        "nodeId": "gather",
+        "taskId": "task-gather",
+        "providerId": "aggregator",
+        "score": 0.1669937547488745
+      },
+      {
+        "nodeId": "reconcile",
+        "taskId": "task-reconcile",
+        "providerId": "ledger-reconciler",
+        "score": 0.4751531352892282
+      },
+      {
+        "nodeId": "fact-check",
+        "taskId": "task-fact-check",
+        "providerId": "claim-auditor",
+        "score": 0.4385154881651053
+      },
+      {
+        "nodeId": "format",
+        "taskId": "task-format",
+        "providerId": "report-formatter",
+        "score": 0.14855108660549285
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "research",
+        "startMs": 0,
+        "durationMs": 1200,
+        "endMs": 1200
+      },
+      {
+        "nodeId": "extract-a",
+        "startMs": 1200,
+        "durationMs": 950,
+        "endMs": 2150
+      },
+      {
+        "nodeId": "extract-b",
+        "startMs": 1200,
+        "durationMs": 950,
+        "endMs": 2150
+      },
+      {
+        "nodeId": "extract-c",
+        "startMs": 1200,
+        "durationMs": 950,
+        "endMs": 2150
+      },
+      {
+        "nodeId": "gather",
+        "startMs": 1200,
+        "durationMs": 810,
+        "endMs": 2010
+      },
+      {
+        "nodeId": "reconcile",
+        "startMs": 9040,
+        "durationMs": 1400,
+        "endMs": 10440
+      },
+      {
+        "nodeId": "fact-check",
+        "startMs": 10440,
+        "durationMs": 1100,
+        "endMs": 11540
+      },
+      {
+        "nodeId": "format",
+        "startMs": 11540,
+        "durationMs": 460,
+        "endMs": 12000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "research": "0.280000",
+      "extract-a": "0.300000",
+      "extract-b": "0.300000",
+      "extract-c": "0.300000",
+      "gather": "0.320000",
+      "reconcile": "0.580000",
+      "fact-check": "0.520000",
+      "format": "0.200000"
+    },
+    "totalClearedUsdc": "2.800000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:web-scout": "0.000000",
+      "capacity:headline-grabber": "0.000000",
+      "capacity:sonnet-reader": "0.000000",
+      "capacity:skim-bot": "0.000000",
+      "capacity:aggregator": "0.000000",
+      "capacity:ledger-reconciler": "0.000000",
+      "capacity:quick-reconciler": "0.000000",
+      "capacity:claim-auditor": "0.000000",
+      "capacity:rubber-stamp": "0.000000",
+      "capacity:report-formatter": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.778033,
+      "allocations": [
+        {
+          "nodeId": "research",
+          "taskId": "task-research",
+          "providerId": "web-scout",
+          "score": 0.2069937547488745
+        },
+        {
+          "nodeId": "extract-a",
+          "taskId": "task-extract-a",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-b",
+          "taskId": "task-extract-b",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-c",
+          "taskId": "task-extract-c",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "gather",
+          "taskId": "task-gather",
+          "providerId": "aggregator",
+          "score": 0.1669937547488745
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.4751531352892282
+        },
+        {
+          "nodeId": "fact-check",
+          "taskId": "task-fact-check",
+          "providerId": "claim-auditor",
+          "score": 0.4385154881651053
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.14855108660549285
+        }
+      ],
+      "realizedEndToEndSuccess": 0.2915794167632365,
+      "claimedEndToEndSuccess": 0.07795610815103998,
+      "expectedSpendUsdc": "2.800000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 2.719375,
+      "allocations": [
+        {
+          "nodeId": "research",
+          "taskId": "task-research",
+          "providerId": "headline-grabber",
+          "score": 0.345
+        },
+        {
+          "nodeId": "extract-a",
+          "taskId": "task-extract-a",
+          "providerId": "skim-bot",
+          "score": 0.269375
+        },
+        {
+          "nodeId": "extract-b",
+          "taskId": "task-extract-b",
+          "providerId": "skim-bot",
+          "score": 0.269375
+        },
+        {
+          "nodeId": "extract-c",
+          "taskId": "task-extract-c",
+          "providerId": "skim-bot",
+          "score": 0.269375
+        },
+        {
+          "nodeId": "gather",
+          "taskId": "task-gather",
+          "providerId": "aggregator",
+          "score": 0.08499999999999999
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "quick-reconciler",
+          "score": 0.735
+        },
+        {
+          "nodeId": "fact-check",
+          "taskId": "task-fact-check",
+          "providerId": "rubber-stamp",
+          "score": 0.64625
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.10000000000000006
+        }
+      ],
+      "realizedEndToEndSuccess": 0.00002659092067195481,
+      "claimedEndToEndSuccess": 0.5032333478430719,
+      "expectedSpendUsdc": "2.480000"
+    },
+    "divergentNodes": [
+      "research",
+      "extract-a",
+      "extract-b",
+      "extract-c",
+      "reconcile",
+      "fact-check"
+    ],
+    "successLift": 0.29155282584256453
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.778032779422724,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "research",
+          "taskId": "task-research",
+          "providerId": "web-scout",
+          "score": 0.2069937547488745
+        },
+        {
+          "nodeId": "extract-a",
+          "taskId": "task-extract-a",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-b",
+          "taskId": "task-extract-b",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-c",
+          "taskId": "task-extract-c",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "gather",
+          "taskId": "task-gather",
+          "providerId": "aggregator",
+          "score": 0.1669937547488745
+        },
+        {
+          "nodeId": "fact-check",
+          "taskId": "task-fact-check",
+          "providerId": "claim-auditor",
+          "score": 0.4385154881651053
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.4751531352892282
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.14855108660549285
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.778033,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "research",
+          "taskId": "task-research",
+          "providerId": "web-scout",
+          "score": 0.2069937547488745
+        },
+        {
+          "nodeId": "extract-a",
+          "taskId": "task-extract-a",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-b",
+          "taskId": "task-extract-b",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "extract-c",
+          "taskId": "task-extract-c",
+          "providerId": "sonnet-reader",
+          "score": 0.1139418532883828
+        },
+        {
+          "nodeId": "gather",
+          "taskId": "task-gather",
+          "providerId": "aggregator",
+          "score": 0.1669937547488745
+        },
+        {
+          "nodeId": "reconcile",
+          "taskId": "task-reconcile",
+          "providerId": "ledger-reconciler",
+          "score": 0.4751531352892282
+        },
+        {
+          "nodeId": "fact-check",
+          "taskId": "task-fact-check",
+          "providerId": "claim-auditor",
+          "score": 0.4385154881651053
+        },
+        {
+          "nodeId": "format",
+          "taskId": "task-format",
+          "providerId": "report-formatter",
+          "score": 0.14855108660549285
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.7780) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.7780) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 10000,
+    "failureProbability": 0.708,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 1.5886399999999998
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-2.750000 errors=9",
+      "errors": [
+        "overdraw at research: fee 280000 > requester 50000",
+        "overdraw at extract-a: fee 300000 > requester -230000",
+        "overdraw at extract-b: fee 300000 > requester -530000",
+        "overdraw at extract-c: fee 300000 > requester -830000",
+        "overdraw at gather: fee 320000 > requester -1130000",
+        "overdraw at reconcile: fee 580000 > requester -1450000",
+        "overdraw at fact-check: fee 520000 > requester -2030000",
+        "overdraw at format: fee 200000 > requester -2550000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 8,
+    "totalClearedUsdc": "2.800000",
+    "resultPerUsdc": 2.0178571428571432,
+    "makespanMs": 12000,
+    "paymentChainDepth": 5,
+    "graphDensity": 1.25,
+    "providerCount": 10
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 8 nodes, 10 edges",
+      "data": {
+        "graphId": "research-report",
+        "nodeCount": 8,
+        "edgeCount": 10
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "research",
+      "level": "info",
+      "message": "research: assigned web-scout (score 0.2070)",
+      "data": {
+        "providerId": "web-scout",
+        "score": 0.2069937547488745
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "extract-a",
+      "level": "info",
+      "message": "extract-a: assigned sonnet-reader (score 0.1139)",
+      "data": {
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "extract-b",
+      "level": "info",
+      "message": "extract-b: assigned sonnet-reader (score 0.1139)",
+      "data": {
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "extract-c",
+      "level": "info",
+      "message": "extract-c: assigned sonnet-reader (score 0.1139)",
+      "data": {
+        "providerId": "sonnet-reader",
+        "score": 0.1139418532883828
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "gather",
+      "level": "info",
+      "message": "gather: assigned aggregator (score 0.1670)",
+      "data": {
+        "providerId": "aggregator",
+        "score": 0.1669937547488745
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "assign",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: assigned ledger-reconciler (score 0.4752)",
+      "data": {
+        "providerId": "ledger-reconciler",
+        "score": 0.4751531352892282
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "assign",
+      "nodeId": "fact-check",
+      "level": "info",
+      "message": "fact-check: assigned claim-auditor (score 0.4385)",
+      "data": {
+        "providerId": "claim-auditor",
+        "score": 0.4385154881651053
+      }
+    },
+    {
+      "seq": 9,
+      "phase": "assign",
+      "nodeId": "format",
+      "level": "info",
+      "message": "format: assigned report-formatter (score 0.1486)",
+      "data": {
+        "providerId": "report-formatter",
+        "score": 0.14855108660549285
+      }
+    },
+    {
+      "seq": 10,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 12000ms",
+      "data": {
+        "makespanMs": 12000,
+        "schedule": [
+          {
+            "nodeId": "research",
+            "startMs": 0,
+            "endMs": 1200
+          },
+          {
+            "nodeId": "extract-a",
+            "startMs": 1200,
+            "endMs": 2150
+          },
+          {
+            "nodeId": "extract-b",
+            "startMs": 1200,
+            "endMs": 2150
+          },
+          {
+            "nodeId": "extract-c",
+            "startMs": 1200,
+            "endMs": 2150
+          },
+          {
+            "nodeId": "gather",
+            "startMs": 1200,
+            "endMs": 2010
+          },
+          {
+            "nodeId": "reconcile",
+            "startMs": 9040,
+            "endMs": 10440
+          },
+          {
+            "nodeId": "fact-check",
+            "startMs": 10440,
+            "endMs": 11540
+          },
+          {
+            "nodeId": "format",
+            "startMs": 11540,
+            "endMs": 12000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 12000ms ≤ 12000ms"
+    },
+    {
+      "seq": 12,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 13,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (12 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:web-scout": "0.000000",
+          "capacity:headline-grabber": "0.000000",
+          "capacity:sonnet-reader": "0.000000",
+          "capacity:skim-bot": "0.000000",
+          "capacity:aggregator": "0.000000",
+          "capacity:ledger-reconciler": "0.000000",
+          "capacity:quick-reconciler": "0.000000",
+          "capacity:claim-auditor": "0.000000",
+          "capacity:rubber-stamp": "0.000000",
+          "capacity:report-formatter": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 2.800000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "research": "0.280000",
+          "extract-a": "0.300000",
+          "extract-b": "0.300000",
+          "extract-c": "0.300000",
+          "gather": "0.320000",
+          "reconcile": "0.580000",
+          "fact-check": "0.520000",
+          "format": "0.200000"
+        },
+        "totalClearedUsdc": "2.800000"
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.778032779422724,
+        "optimalObj": 1.778033
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "score-candidates",
+      "nodeId": "research",
+      "level": "info",
+      "message": "research: 2 candidates — top web-scout (score 0.2070)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "web-scout",
+            "score": 0.2069937547488745,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.28"
+          },
+          {
+            "providerId": "headline-grabber",
+            "score": -0.2326527812071744,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.24"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 6 divergent nodes, success lift 0.292",
+      "data": {
+        "divergentNodes": [
+          "research",
+          "extract-a",
+          "extract-b",
+          "extract-c",
+          "reconcile",
+          "fact-check"
+        ],
+        "successLift": 0.29155282584256453
+      }
+    },
+    {
+      "seq": 18,
+      "phase": "score-candidates",
+      "nodeId": "extract-a",
+      "level": "info",
+      "message": "extract-a: 2 candidates — top sonnet-reader (score 0.1139)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-reader",
+            "score": 0.1139418532883828,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "skim-bot",
+            "score": -0.2835581467116173,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.26"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 19,
+      "phase": "score-candidates",
+      "nodeId": "extract-b",
+      "level": "info",
+      "message": "extract-b: 2 candidates — top sonnet-reader (score 0.1139)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-reader",
+            "score": 0.1139418532883828,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "skim-bot",
+            "score": -0.2835581467116173,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.26"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 20,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.708",
+      "data": {
+        "failureProbability": 0.708,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 1.5886399999999998,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 10000
+      }
+    },
+    {
+      "seq": 21,
+      "phase": "score-candidates",
+      "nodeId": "extract-c",
+      "level": "info",
+      "message": "extract-c: 2 candidates — top sonnet-reader (score 0.1139)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "sonnet-reader",
+            "score": 0.1139418532883828,
+            "pHat": 0.8181818181818182,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "skim-bot",
+            "score": -0.2835581467116173,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.26"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 22,
+      "phase": "score-candidates",
+      "nodeId": "gather",
+      "level": "info",
+      "message": "gather: 1 candidates — top aggregator (score 0.1670)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "aggregator",
+            "score": 0.1669937547488745,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.32"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 23,
+      "phase": "score-candidates",
+      "nodeId": "reconcile",
+      "level": "info",
+      "message": "reconcile: 2 candidates — top ledger-reconciler (score 0.4752)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "ledger-reconciler",
+            "score": 0.4751531352892282,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.58"
+          },
+          {
+            "providerId": "quick-reconciler",
+            "score": -0.6266650465289538,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.50"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 24,
+      "phase": "score-candidates",
+      "nodeId": "fact-check",
+      "level": "info",
+      "message": "fact-check: 2 candidates — top claim-auditor (score 0.4385)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "claim-auditor",
+            "score": 0.4385154881651053,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.52"
+          },
+          {
+            "providerId": "rubber-stamp",
+            "score": -0.4871162934232346,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.44"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 25,
+      "phase": "score-candidates",
+      "nodeId": "format",
+      "level": "info",
+      "message": "format: 1 candidates — top report-formatter (score 0.1486)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "report-formatter",
+            "score": 0.14855108660549285,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.20"
+          }
+        ]
+      }
+    }
+  ]
+}

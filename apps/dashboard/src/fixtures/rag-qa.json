@@ -1,0 +1,880 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "cleared",
+  "meta": {
+    "runId": "rag-qa",
+    "label": "RAG document Q&A",
+    "description": "Chunk a document, build an index, retrieve the top passages, generate a grounded answer, and check it for grounding — five steps where each capability offers an honest workhorse and a confident-but-unreliable braggart.",
+    "narrative": "Every step has a loud provider advertising near-perfect accuracy on a realized track record far below its pitch. With the ledger ON the market prices on verified outcomes and hires the honest workhorse at each step; flip it OFF and the same market believes the braggarts and buys a confident hallucinator to answer — realized end-to-end grounding collapses. Same graph, two very different markets.",
+    "generatedAt": "2026-07-10T02:50:42.635Z",
+    "seed": 42,
+    "solverServiceUp": true,
+    "headlineSolver": "cp_sat"
+  },
+  "graph": {
+    "id": "rag-qa",
+    "globalBudgetUsdc": "6.00",
+    "globalDeadlineMs": 60000,
+    "globalQualityFloor": null,
+    "riskAversion": 1,
+    "nodes": [
+      {
+        "nodeId": "chunk",
+        "capability": "doc.chunk",
+        "valueUsdc": "0.50",
+        "budgetUsdc": "0.80",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "index",
+        "capability": "embed.index",
+        "valueUsdc": "0.60",
+        "budgetUsdc": "0.90",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "retrieve",
+        "capability": "retrieve.topk",
+        "valueUsdc": "0.70",
+        "budgetUsdc": "1.00",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      },
+      {
+        "nodeId": "answer",
+        "capability": "answer.generate",
+        "valueUsdc": "1.30",
+        "budgetUsdc": "1.60",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": true
+      },
+      {
+        "nodeId": "grounding-check",
+        "capability": "verify.grounding",
+        "valueUsdc": "0.90",
+        "budgetUsdc": "1.10",
+        "bondRatio": 0.1,
+        "qualityFloor": null,
+        "bottleneck": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "chunk",
+        "to": "index"
+      },
+      {
+        "from": "index",
+        "to": "retrieve"
+      },
+      {
+        "from": "retrieve",
+        "to": "answer"
+      },
+      {
+        "from": "answer",
+        "to": "grounding-check"
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "splitter",
+      "capabilities": [
+        "doc.chunk"
+      ],
+      "priceUsdc": "0.16",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.68,
+      "claimedLatencyMs": 400,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.16,
+      "latencyMeanMs": 420,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "megachunk",
+      "capabilities": [
+        "doc.chunk"
+      ],
+      "priceUsdc": "0.24",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 300,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.24,
+      "latencyMeanMs": 320,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "embed-small",
+      "capabilities": [
+        "embed.index"
+      ],
+      "priceUsdc": "0.20",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.7,
+      "claimedLatencyMs": 600,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.2,
+      "latencyMeanMs": 620.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "embed-xl",
+      "capabilities": [
+        "embed.index"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 450,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 470,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "bm25-retriever",
+      "capabilities": [
+        "retrieve.topk"
+      ],
+      "priceUsdc": "0.22",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.69,
+      "claimedLatencyMs": 500,
+      "calibratedSuccessProb": 0.8636363636363636,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 19,
+      "successBeta": 3,
+      "costMeanUsdc": 0.22,
+      "latencyMeanMs": 520.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "vector-retriever",
+      "capabilities": [
+        "retrieve.topk"
+      ],
+      "priceUsdc": "0.32",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.97,
+      "claimedLatencyMs": 400,
+      "calibratedSuccessProb": 0.22727272727272727,
+      "pSuccessStdDev": 0.08738217774479899,
+      "successAlpha": 5,
+      "successBeta": 17,
+      "costMeanUsdc": 0.32,
+      "latencyMeanMs": 420,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "grounded-answerer",
+      "capabilities": [
+        "answer.generate"
+      ],
+      "priceUsdc": "0.55",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.66,
+      "claimedLatencyMs": 1400,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.55,
+      "latencyMeanMs": 1419.9999999999995,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "confident-answerer",
+      "capabilities": [
+        "answer.generate"
+      ],
+      "priceUsdc": "0.70",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.99,
+      "claimedLatencyMs": 900,
+      "calibratedSuccessProb": 0.13636363636363635,
+      "pSuccessStdDev": 0.07155678652265483,
+      "successAlpha": 3,
+      "successBeta": 19,
+      "costMeanUsdc": 0.7,
+      "latencyMeanMs": 920.0000000000002,
+      "nObservations": 20,
+      "archetype": "braggart"
+    },
+    {
+      "id": "citation-checker",
+      "capabilities": [
+        "verify.grounding"
+      ],
+      "priceUsdc": "0.30",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.67,
+      "claimedLatencyMs": 700,
+      "calibratedSuccessProb": 0.9090909090909091,
+      "pSuccessStdDev": 0.059943679399617,
+      "successAlpha": 20,
+      "successBeta": 2,
+      "costMeanUsdc": 0.3,
+      "latencyMeanMs": 720.0000000000002,
+      "nObservations": 20,
+      "archetype": "workhorse"
+    },
+    {
+      "id": "vibe-checker",
+      "capabilities": [
+        "verify.grounding"
+      ],
+      "priceUsdc": "0.40",
+      "bondOfferedUsdc": "0",
+      "claimedSuccessProb": 0.98,
+      "claimedLatencyMs": 350,
+      "calibratedSuccessProb": 0.18181818181818182,
+      "pSuccessStdDev": 0.08042288517539843,
+      "successAlpha": 4,
+      "successBeta": 18,
+      "costMeanUsdc": 0.4,
+      "latencyMeanMs": 370,
+      "nObservations": 20,
+      "archetype": "braggart"
+    }
+  ],
+  "clearing": {
+    "solver": "cp_sat",
+    "degraded": false,
+    "objectiveValue": 1.948012,
+    "makespanMs": 60000,
+    "preflightPassed": true,
+    "allocations": [
+      {
+        "nodeId": "chunk",
+        "taskId": "task-chunk",
+        "providerId": "splitter",
+        "score": 0.24582812895739545
+      },
+      {
+        "nodeId": "index",
+        "taskId": "task-index",
+        "providerId": "embed-small",
+        "score": 0.2869937547488745
+      },
+      {
+        "nodeId": "retrieve",
+        "taskId": "task-retrieve",
+        "providerId": "bm25-retriever",
+        "score": 0.34815938054035356
+      },
+      {
+        "nodeId": "answer",
+        "taskId": "task-answer",
+        "providerId": "grounded-answerer",
+        "score": 0.5827910314678517
+      },
+      {
+        "nodeId": "grounding-check",
+        "taskId": "task-grounding-check",
+        "providerId": "citation-checker",
+        "score": 0.4842399448623588
+      }
+    ],
+    "schedule": [
+      {
+        "nodeId": "chunk",
+        "startMs": 0,
+        "durationMs": 420,
+        "endMs": 420
+      },
+      {
+        "nodeId": "index",
+        "startMs": 420,
+        "durationMs": 620,
+        "endMs": 1040
+      },
+      {
+        "nodeId": "retrieve",
+        "startMs": 57340,
+        "durationMs": 520,
+        "endMs": 57860
+      },
+      {
+        "nodeId": "answer",
+        "startMs": 57860,
+        "durationMs": 1420,
+        "endMs": 59280
+      },
+      {
+        "nodeId": "grounding-check",
+        "startMs": 59280,
+        "durationMs": 720,
+        "endMs": 60000
+      }
+    ],
+    "settlementPricesUsdc": {
+      "chunk": "0.160000",
+      "index": "0.200000",
+      "retrieve": "0.220000",
+      "answer": "0.550000",
+      "grounding-check": "0.300000"
+    },
+    "totalClearedUsdc": "1.430000",
+    "shadowPricesUsdc": {
+      "budget": "0.000000",
+      "deadline": "0.000000",
+      "capacity:splitter": "0.000000",
+      "capacity:megachunk": "0.000000",
+      "capacity:embed-small": "0.000000",
+      "capacity:embed-xl": "0.000000",
+      "capacity:bm25-retriever": "0.000000",
+      "capacity:vector-retriever": "0.000000",
+      "capacity:grounded-answerer": "0.000000",
+      "capacity:confident-answerer": "0.000000",
+      "capacity:citation-checker": "0.000000",
+      "capacity:vibe-checker": "0.000000"
+    }
+  },
+  "calibration": {
+    "on": {
+      "mode": "on",
+      "solver": "cp_sat",
+      "objectiveValue": 1.948012,
+      "allocations": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": 0.24582812895739545
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": 0.2869937547488745
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": 0.34815938054035356
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": 0.5827910314678517
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": 0.4842399448623588
+        }
+      ],
+      "realizedEndToEndSuccess": 0.5323624193578431,
+      "claimedEndToEndSuccess": 0.145236168,
+      "expectedSpendUsdc": "1.430000"
+    },
+    "off": {
+      "mode": "off",
+      "solver": "cp_sat",
+      "objectiveValue": 1.95375,
+      "allocations": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "megachunk",
+          "score": 0.25375000000000003
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-xl",
+          "score": 0.285
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "vector-retriever",
+          "score": 0.3537499999999999
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "confident-answerer",
+          "score": 0.58375
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "vibe-checker",
+          "score": 0.4775
+        }
+      ],
+      "realizedEndToEndSuccess": 0.00018627639691774656,
+      "claimedEndToEndSuccess": 0.9130493987999999,
+      "expectedSpendUsdc": "1.960000"
+    },
+    "divergentNodes": [
+      "chunk",
+      "index",
+      "retrieve",
+      "answer",
+      "grounding-check"
+    ],
+    "successLift": 0.5321761429609254
+  },
+  "bakeOff": {
+    "greedy": {
+      "solverLabel": "Greedy + LNS (per-node, Tier-2)",
+      "kind": "greedy_lns",
+      "status": "cleared",
+      "objectiveValue": 1.948012240576834,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": 0.24582812895739545
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": 0.2869937547488745
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": 0.5827910314678517
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": 0.4842399448623588
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": 0.34815938054035356
+        }
+      ]
+    },
+    "optimal": {
+      "solverLabel": "CP-SAT graph clearing (Python Tier-1)",
+      "kind": "cp_sat",
+      "status": "cleared",
+      "objectiveValue": 1.948012,
+      "errorCode": null,
+      "errorMessage": null,
+      "assignments": [
+        {
+          "nodeId": "chunk",
+          "taskId": "task-chunk",
+          "providerId": "splitter",
+          "score": 0.24582812895739545
+        },
+        {
+          "nodeId": "index",
+          "taskId": "task-index",
+          "providerId": "embed-small",
+          "score": 0.2869937547488745
+        },
+        {
+          "nodeId": "retrieve",
+          "taskId": "task-retrieve",
+          "providerId": "bm25-retriever",
+          "score": 0.34815938054035356
+        },
+        {
+          "nodeId": "answer",
+          "taskId": "task-answer",
+          "providerId": "grounded-answerer",
+          "score": 0.5827910314678517
+        },
+        {
+          "nodeId": "grounding-check",
+          "taskId": "task-grounding-check",
+          "providerId": "citation-checker",
+          "score": 0.4842399448623588
+        }
+      ]
+    },
+    "winner": "cp_sat",
+    "narrative": "Greedy optimizes each node in isolation (objective 1.9480) but is blind to the shared budget, deadline, quality floor and bond limits — its number is an infeasible upper bound. The CP-SAT clearing (objective 1.9480) solves those constraints jointly and returns the feasible allocation the market actually settles."
+  },
+  "twin": {
+    "engine": "python",
+    "iterations": 500,
+    "deadlineMs": 60000,
+    "failureProbability": 0.41800000000000004,
+    "budgetOverrunProbability": 0,
+    "deadlineBreachProbability": 0,
+    "expectedNetCostUsdc": 0.9703599999999999
+  },
+  "preflight": {
+    "fundedPassed": true,
+    "underFunded": {
+      "passed": false,
+      "summary": "requester=-1.380000 errors=6",
+      "errors": [
+        "overdraw at chunk: fee 160000 > requester 50000",
+        "overdraw at index: fee 200000 > requester -110000",
+        "overdraw at retrieve: fee 220000 > requester -310000",
+        "overdraw at answer: fee 550000 > requester -530000",
+        "overdraw at grounding-check: fee 300000 > requester -1080000",
+        "requester balance negative"
+      ]
+    }
+  },
+  "traction": {
+    "nodesCleared": 5,
+    "totalClearedUsdc": "1.430000",
+    "resultPerUsdc": 2.7972027972027975,
+    "makespanMs": 60000,
+    "paymentChainDepth": 5,
+    "graphDensity": 0.8,
+    "providerCount": 10
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "phase": "validate-dag",
+      "level": "info",
+      "message": "DAG valid: 5 nodes, 4 edges",
+      "data": {
+        "graphId": "rag-qa",
+        "nodeCount": 5,
+        "edgeCount": 4
+      }
+    },
+    {
+      "seq": 2,
+      "phase": "assign",
+      "nodeId": "chunk",
+      "level": "info",
+      "message": "chunk: assigned splitter (score 0.2458)",
+      "data": {
+        "providerId": "splitter",
+        "score": 0.24582812895739545
+      }
+    },
+    {
+      "seq": 3,
+      "phase": "assign",
+      "nodeId": "index",
+      "level": "info",
+      "message": "index: assigned embed-small (score 0.2870)",
+      "data": {
+        "providerId": "embed-small",
+        "score": 0.2869937547488745
+      }
+    },
+    {
+      "seq": 4,
+      "phase": "assign",
+      "nodeId": "retrieve",
+      "level": "info",
+      "message": "retrieve: assigned bm25-retriever (score 0.3482)",
+      "data": {
+        "providerId": "bm25-retriever",
+        "score": 0.34815938054035356
+      }
+    },
+    {
+      "seq": 5,
+      "phase": "assign",
+      "nodeId": "answer",
+      "level": "info",
+      "message": "answer: assigned grounded-answerer (score 0.5828)",
+      "data": {
+        "providerId": "grounded-answerer",
+        "score": 0.5827910314678517
+      }
+    },
+    {
+      "seq": 6,
+      "phase": "assign",
+      "nodeId": "grounding-check",
+      "level": "info",
+      "message": "grounding-check: assigned citation-checker (score 0.4842)",
+      "data": {
+        "providerId": "citation-checker",
+        "score": 0.4842399448623588
+      }
+    },
+    {
+      "seq": 7,
+      "phase": "schedule",
+      "level": "info",
+      "message": "Schedule computed: makespan 60000ms",
+      "data": {
+        "makespanMs": 60000,
+        "schedule": [
+          {
+            "nodeId": "chunk",
+            "startMs": 0,
+            "endMs": 420
+          },
+          {
+            "nodeId": "index",
+            "startMs": 420,
+            "endMs": 1040
+          },
+          {
+            "nodeId": "retrieve",
+            "startMs": 57340,
+            "endMs": 57860
+          },
+          {
+            "nodeId": "answer",
+            "startMs": 57860,
+            "endMs": 59280
+          },
+          {
+            "nodeId": "grounding-check",
+            "startMs": 59280,
+            "endMs": 60000
+          }
+        ]
+      }
+    },
+    {
+      "seq": 8,
+      "phase": "deadline-check",
+      "level": "info",
+      "message": "Deadline ok: makespan 60000ms ≤ 60000ms"
+    },
+    {
+      "seq": 9,
+      "phase": "preflight",
+      "level": "info",
+      "message": "Preflight passed — requester funded and bonds sufficient"
+    },
+    {
+      "seq": 10,
+      "phase": "shadow-prices",
+      "level": "info",
+      "message": "Shadow prices computed (12 constraints)",
+      "data": {
+        "shadowPricesUsdc": {
+          "budget": "0.000000",
+          "deadline": "0.000000",
+          "capacity:splitter": "0.000000",
+          "capacity:megachunk": "0.000000",
+          "capacity:embed-small": "0.000000",
+          "capacity:embed-xl": "0.000000",
+          "capacity:bm25-retriever": "0.000000",
+          "capacity:vector-retriever": "0.000000",
+          "capacity:grounded-answerer": "0.000000",
+          "capacity:confident-answerer": "0.000000",
+          "capacity:citation-checker": "0.000000",
+          "capacity:vibe-checker": "0.000000"
+        }
+      }
+    },
+    {
+      "seq": 11,
+      "phase": "settlement",
+      "level": "info",
+      "message": "Settlement prices computed: 1.430000 total cleared",
+      "data": {
+        "settlementPricesUsdc": {
+          "chunk": "0.160000",
+          "index": "0.200000",
+          "retrieve": "0.220000",
+          "answer": "0.550000",
+          "grounding-check": "0.300000"
+        },
+        "totalClearedUsdc": "1.430000"
+      }
+    },
+    {
+      "seq": 12,
+      "phase": "bake-off",
+      "level": "info",
+      "message": "Bake-off: winner=cp_sat, greedy=cleared, optimal=cleared",
+      "data": {
+        "winner": "cp_sat",
+        "greedyObj": 1.948012240576834,
+        "optimalObj": 1.948012
+      }
+    },
+    {
+      "seq": 13,
+      "phase": "score-candidates",
+      "nodeId": "chunk",
+      "level": "info",
+      "message": "chunk: 2 candidates — top splitter (score 0.2458)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "splitter",
+            "score": 0.24582812895739545,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.16"
+          },
+          {
+            "providerId": "megachunk",
+            "score": -0.26141649701056113,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.24"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 14,
+      "phase": "calibration",
+      "level": "info",
+      "message": "Calibration contrast: 5 divergent nodes, success lift 0.532",
+      "data": {
+        "divergentNodes": [
+          "chunk",
+          "index",
+          "retrieve",
+          "answer",
+          "grounding-check"
+        ],
+        "successLift": 0.5321761429609254
+      }
+    },
+    {
+      "seq": 15,
+      "phase": "score-candidates",
+      "nodeId": "index",
+      "level": "info",
+      "message": "index: 2 candidates — top embed-small (score 0.2870)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "embed-small",
+            "score": 0.2869937547488745,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.20"
+          },
+          {
+            "providerId": "embed-xl",
+            "score": -0.3256997964126734,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.30"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 16,
+      "phase": "score-candidates",
+      "nodeId": "retrieve",
+      "level": "info",
+      "message": "retrieve: 2 candidates — top bm25-retriever (score 0.3482)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "bm25-retriever",
+            "score": 0.34815938054035356,
+            "pHat": 0.8636363636363636,
+            "priceUsdc": "0.22"
+          },
+          {
+            "providerId": "vector-retriever",
+            "score": -0.3114282447417035,
+            "pHat": 0.22727272727272727,
+            "priceUsdc": "0.32"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 17,
+      "phase": "twin",
+      "level": "info",
+      "message": "Twin MC (python): failure p=0.418",
+      "data": {
+        "failureProbability": 0.41800000000000004,
+        "budgetOverrunProbability": 0,
+        "deadlineBreachProbability": 0,
+        "expectedNetCostUsdc": 0.9703599999999999,
+        "seed": 42,
+        "iterations": 500,
+        "engine": "python",
+        "deadlineMs": 60000
+      }
+    },
+    {
+      "seq": 18,
+      "phase": "score-candidates",
+      "nodeId": "answer",
+      "level": "info",
+      "message": "answer: 2 candidates — top grounded-answerer (score 0.5828)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "grounded-answerer",
+            "score": 0.5827910314678517,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.55"
+          },
+          {
+            "providerId": "confident-answerer",
+            "score": -0.8266650465289538,
+            "pHat": 0.13636363636363635,
+            "priceUsdc": "0.70"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 19,
+      "phase": "score-candidates",
+      "nodeId": "grounding-check",
+      "level": "info",
+      "message": "grounding-check: 2 candidates — top citation-checker (score 0.4842)",
+      "data": {
+        "ranked": [
+          {
+            "providerId": "citation-checker",
+            "score": 0.4842399448623588,
+            "pHat": 0.9090909090909091,
+            "priceUsdc": "0.30"
+          },
+          {
+            "providerId": "vibe-checker",
+            "score": -0.4385496946190101,
+            "pHat": 0.18181818181818182,
+            "priceUsdc": "0.40"
+          }
+        ]
+      }
+    }
+  ]
+}

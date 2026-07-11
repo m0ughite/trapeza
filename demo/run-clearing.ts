@@ -20,17 +20,20 @@ import {
   solverHealthy,
   type SolverProvider,
 } from "@trapeza/clearinghouse";
+import { DEMO_SEED, fundedSnapshot, underFundedSnapshot } from "./data.js";
 import {
-  DEMO_SEED,
-  budgetBottleneckGraph,
-  budgetBottleneckProvidersUncalibrated,
-  fundedSnapshot,
-  underFundedSnapshot,
-  workflowGraph,
-  workflowGraphTightDeadline,
-  workflowProviders,
-} from "./data.js";
+  etlGraph,
+  etlProviders,
+  invoiceGraph,
+  invoiceProviders,
+} from "./scenarios.js";
 import { fmtPct, fmtUsdc, kv, section, table } from "./format.js";
+
+const invoiceTightDeadline: TaskGraph = {
+  ...invoiceGraph,
+  id: "invoice-tight",
+  globalDeadlineMs: 4500,
+};
 
 function printGraph(graph: TaskGraph): void {
   kv("graph id", graph.id);
@@ -80,7 +83,7 @@ async function main(): Promise<void> {
 
   // ── 1. Scenario ──────────────────────────────────────────────────────────
   section("1. Scenario — six-node workflow DAG");
-  printGraph(workflowGraph);
+  printGraph(invoiceGraph);
 
   // ── 2. Calibration vs bragging ───────────────────────────────────────────
   section("2. Calibration vs bragging — realized record beats claims");
@@ -91,7 +94,7 @@ async function main(): Promise<void> {
     "  Workhorse providers claim 65–70% but realized ~85–90%.",
   );
   console.log("");
-  printCalibrationTable(workflowProviders);
+  printCalibrationTable(invoiceProviders);
 
   // ── 3. Clearing ──────────────────────────────────────────────────────────
   section("3. Clearing — submitGraph end to end");
@@ -103,18 +106,18 @@ async function main(): Promise<void> {
   );
   console.log("");
   const ch = createClearinghouse({
-    providers: workflowProviders,
+    providers: invoiceProviders,
     seed: DEMO_SEED,
     snapshot: {
-      getSettlementState: async () => fundedSnapshot(workflowProviders),
+      getSettlementState: async () => fundedSnapshot(invoiceProviders),
     },
   });
-  const clearing = await ch.submitGraph(workflowGraph);
+  const clearing = await ch.submitGraph(invoiceGraph);
 
   table(
     ["node", "provider", "score"],
     clearing.allocations.map((a) => {
-      const node = workflowGraph.nodes.find((n) => n.task.id === a.taskId)!;
+      const node = invoiceGraph.nodes.find((n) => n.task.id === a.taskId)!;
       return [node.nodeId, a.providerId, a.score.toFixed(4)];
     }),
   );
@@ -153,23 +156,24 @@ async function main(): Promise<void> {
   kv("preflight passed", clearing.meta.preflightPassed);
 
   const assignments = clearing.allocations.map((a) => {
-    const node = workflowGraph.nodes.find((n) => n.task.id === a.taskId)!;
+    const node = invoiceGraph.nodes.find((n) => n.task.id === a.taskId)!;
     return { nodeId: node.nodeId, providerId: a.providerId, score: a.score };
   });
 
   // ── 4. Bake-off ──────────────────────────────────────────────────────────
   section("4. Bake-off — CP-SAT (Python Tier-1) vs greedy+LNS (TS Tier-2)");
-  printGraph(budgetBottleneckGraph);
+  printGraph(etlGraph);
   console.log("");
   console.log(
-    "  Greedy+LNS overspends on the easy logo step and cannot afford the bottleneck.",
+    "  Greedy+LNS overspends on the easy extraction step and cannot afford the reconcile bottleneck.",
   );
 
   const bakeInput = {
-    graph: budgetBottleneckGraph,
-    providers: budgetBottleneckProvidersUncalibrated,
+    graph: etlGraph,
+    providers: etlProviders,
     riskAversion: 1,
     seed: DEMO_SEED,
+    useCalibration: false,
   };
 
   try {
@@ -201,7 +205,7 @@ async function main(): Promise<void> {
     );
     console.log("");
     console.log(
-      "  CP-SAT sees the whole graph: cheap-logo + mid-code, both under $1.00.",
+      "  CP-SAT sees the whole graph: budget-extractor + ledger-reconciler, both under $1.00.",
     );
   } else {
     const milp = await solveMilp(bakeInput);
@@ -212,7 +216,7 @@ async function main(): Promise<void> {
     );
     console.log("");
     console.log(
-      "  Python service down → TS HiGHS stand-in clears cheap-logo + mid-code.",
+      "  Python service down → TS HiGHS stand-in clears budget-extractor + ledger-reconciler.",
     );
   }
 
@@ -227,17 +231,17 @@ async function main(): Promise<void> {
       : "  Engine: in-process TS fallback (service down).",
   );
   console.log("");
-  kv("deadline (tight)", `${workflowGraphTightDeadline.globalDeadlineMs} ms`);
+  kv("deadline (tight)", `${invoiceTightDeadline.globalDeadlineMs} ms`);
   const mcCh = createClearinghouse({
-    providers: workflowProviders,
+    providers: invoiceProviders,
     seed: DEMO_SEED,
     snapshot: {
-      getSettlementState: async () => fundedSnapshot(workflowProviders),
+      getSettlementState: async () => fundedSnapshot(invoiceProviders),
     },
     monteCarlo: { enabled: true, iterations: 500 },
   });
   try {
-    const mcClearing = await mcCh.submitGraph(workflowGraphTightDeadline);
+    const mcClearing = await mcCh.submitGraph(invoiceTightDeadline);
     const mc = mcClearing.twinSimulation;
     if (mc) {
       kv("twin engine", mc.engine);
@@ -259,10 +263,10 @@ async function main(): Promise<void> {
   );
   console.log("");
   const badPreflight = preflightSettlement(
-    underFundedSnapshot(workflowProviders),
+    underFundedSnapshot(invoiceProviders),
     {
-      graph: workflowGraph,
-      providers: workflowProviders,
+      graph: invoiceGraph,
+      providers: invoiceProviders,
       riskAversion: 1,
       seed: DEMO_SEED,
     },

@@ -37,6 +37,22 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-color: #2a3a4d var(--bg);
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+*::-webkit-scrollbar-thumb {
+  background: #2a3a4d;
+  border-radius: 5px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #33475f;
 }
 
 html,
@@ -184,12 +200,20 @@ a:hover {
   height: var(--topbar-h);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 0 32px;
+  padding: 0;
   background: rgba(10, 13, 18, 0.82);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-soft);
+}
+.topbar-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 .topbar-lead {
   display: flex;
@@ -243,9 +267,125 @@ a:hover {
 /* ── content + sections ─────────────────────────────────────────────────── */
 .content {
   width: 100%;
-  max-width: 1080px;
+  padding: 28px 0 72px;
+}
+
+.shell-column {
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 8px 32px 96px;
+  padding-inline: 32px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.page .section-head {
+  margin-bottom: 22px;
+}
+.page .overview {
+  gap: 36px;
+}
+
+/* skip-to-content link (a11y) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--accent);
+  color: #05130d;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  left: 0;
+  text-decoration: none;
+}
+
+/* sidebar brand is now a link */
+.sidebar-brand {
+  color: inherit;
+  text-decoration: none;
+}
+.sidebar-brand:hover {
+  text-decoration: none;
+}
+
+/* nav items are now router links */
+.nav-item {
+  text-decoration: none;
+}
+.nav-item:hover {
+  text-decoration: none;
+}
+
+/* prev / next page pagination */
+.page-nav {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-soft);
+}
+.page-nav > span {
+  flex: 1;
+}
+.page-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 0 1 260px;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.page-nav-link:hover {
+  border-color: var(--accent-dim);
+  background: rgba(61, 220, 151, 0.06);
+  text-decoration: none;
+}
+.page-nav-link.next {
+  align-items: flex-end;
+  text-align: right;
+}
+.page-nav-dir {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-weight: 700;
+}
+.page-nav-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.page-nav-scenario {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 720px) {
+  .page-nav-scenario {
+    display: flex;
+  }
 }
 .section {
   scroll-margin-top: calc(var(--topbar-h) + 16px);
@@ -783,6 +923,10 @@ table.t tr:last-child td {
   border-color: #5a2530;
   background: rgba(255, 92, 92, 0.04);
 }
+.solver-card.tie {
+  border-color: var(--border);
+  background: var(--bg-elev);
+}
 .solver-card .sc-obj {
   font-size: 26px;
   font-weight: 800;
@@ -840,6 +984,42 @@ table.t tr:last-child td {
   color: var(--text);
   padding: 9px 10px;
   font-size: 13px;
+}
+.field textarea {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 10px;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+.json-editor {
+  min-height: 320px;
+  resize: vertical;
+  line-height: 1.45;
+}
+.live-builder {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.live-builder-col {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  padding: 12px;
+}
+.live-builder-col input[type="text"],
+.live-builder-col select {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  padding: 7px 8px;
+  font-size: 12.5px;
 }
 .btn {
   cursor: pointer;
@@ -1006,6 +1186,85 @@ table.t tr:last-child td {
   }
 }
 
+/* ── Run trace ─────────────────────────────────────────────────────────── */
+.trace-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.trace-pos {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+.trace-current {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--bg-elev);
+}
+.trace-current p {
+  margin: 10px 0 0;
+}
+.trace-data {
+  font-size: 11px;
+  overflow-x: auto;
+  margin: 8px 0 0;
+  max-height: 200px;
+}
+.trace-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+.trace-item button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.trace-item.active button {
+  background: rgba(61, 220, 151, 0.08);
+  color: var(--text);
+}
+.trace-item.past button {
+  opacity: 0.75;
+}
+.trace-seq {
+  font-family: var(--mono);
+  width: 28px;
+  flex-shrink: 0;
+}
+.trace-node {
+  flex-shrink: 0;
+}
+.trace-msg {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dag-node.active rect {
+  fill: rgba(61, 220, 151, 0.12);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
 /* ── responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 1080px) {
   .value-grid {
@@ -1064,7 +1323,14 @@ table.t tr:last-child td {
     font-size: 30px;
   }
   .content {
-    padding: 8px 20px 80px;
+    padding: 20px 0 72px;
+  }
+  .shell-column,
+  .topbar-inner {
+    padding-inline: 20px;
+  }
+  .page-nav {
+    flex-wrap: wrap;
   }
   .section-head {
     flex-direction: column;

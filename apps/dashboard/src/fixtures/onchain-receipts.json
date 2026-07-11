@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
   "meta": {
-    "generatedAt": "2026-07-05T22:19:40.637Z",
+    "generatedAt": "2026-07-09T02:20:55.001Z",
     "network": "Arc Testnet",
     "caip2": "eip155:5042002",
     "explorer": "https://testnet.arcscan.app",
-    "runId": "invoice-workflow",
+    "runId": "invoice-processing",
     "honestyNote": "A Circle Gateway settlement id is a batch UUID, NOT an EVM tx hash — it is never rendered as a /tx/ link. Only real 0x+64hex hashes (the Gateway deposit and the ERC-8004 identity/reputation writes) are linked to arcscan.",
-    "mode": "fallback-proven"
+    "mode": "live"
   },
   "identity": {
     "agentId": "842573",
@@ -28,11 +28,11 @@
   },
   "settlements": [
     {
-      "nodeId": "n1",
-      "providerId": "workhorse-1",
+      "nodeId": "parse",
+      "providerId": "sonnet-parser",
       "amountUsdc": "0.001",
-      "live": false,
-      "latencyMs": 437,
+      "live": true,
+      "latencyMs": 305,
       "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
       "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
       "depositTx": {
@@ -40,17 +40,142 @@
         "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
         "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
         "linkable": true,
-        "label": "Gateway deposit (real on-chain tx into the unified balance)"
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
       },
       "gatewaySettlementId": {
         "kind": "gateway-settlement-id",
-        "value": "05f9f115-9837-4926-8f46-5009eb7660d7",
+        "value": "cc134412-2ee7-408b-a562-6972caf48e25",
         "url": null,
         "linkable": false,
         "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
       },
       "settlementTx": null,
-      "note": "Proven prior spike (IMPLEMENTATION-LOG P0''): buyer Gateway available balance debited exactly 0.001 USDC. Shown as a labeled representative settlement; run `npm run demo:onchain` with funded BUYER/SELLER env to produce per-node live receipts."
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
+    },
+    {
+      "nodeId": "extract-line-items",
+      "providerId": "sonnet-extractor",
+      "amountUsdc": "0.001",
+      "live": true,
+      "latencyMs": 307,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "e8be8847-73b6-42bd-8d51-32b37b2a1258",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
+    },
+    {
+      "nodeId": "extract-totals",
+      "providerId": "sonnet-extractor",
+      "amountUsdc": "0.001",
+      "live": true,
+      "latencyMs": 297,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "13bda1d1-3e88-4ac1-854f-8d8ae3695e58",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
+    },
+    {
+      "nodeId": "reconcile",
+      "providerId": "ledger-reconciler",
+      "amountUsdc": "0.001",
+      "live": true,
+      "latencyMs": 287,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "c936c6a2-cab1-4c73-98eb-a19bb0a65232",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
+    },
+    {
+      "nodeId": "validate",
+      "providerId": "rules-validator",
+      "amountUsdc": "0.001",
+      "live": true,
+      "latencyMs": 333,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "9c443af9-d16a-4f9e-adcd-b30cb72b4434",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
+    },
+    {
+      "nodeId": "format",
+      "providerId": "report-formatter",
+      "amountUsdc": "0.001",
+      "live": true,
+      "latencyMs": 287,
+      "payer": "0x3ec80Bb34f7b617D2E90efcd62a4A72C08b4d3bd",
+      "seller": "0x609b04C59525C2BD2f5C640FaE934d4AC4D3f101",
+      "depositTx": {
+        "kind": "evm-tx",
+        "value": "0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "url": "https://testnet.arcscan.app/tx/0xb64a686acb4951a394f797d7439f1c9afc88e02655377f31240e5d2cd4fff6e0",
+        "linkable": true,
+        "label": "Prior Gateway deposit (real on-chain tx; balance already funded)"
+      },
+      "gatewaySettlementId": {
+        "kind": "gateway-settlement-id",
+        "value": "e54e9976-ee9f-413d-90f2-5ed6137bcf23",
+        "url": null,
+        "linkable": false,
+        "label": "Circle Gateway settlement/batch UUID (not an EVM tx; on-chain transfer settles when the batch flushes)"
+      },
+      "settlementTx": null,
+      "note": "Live settlement: authorization accepted by the Circle Gateway facilitator; buyer Gateway balance debited. The batched on-chain transfer to the seller settles asynchronously."
     }
   ]
 }

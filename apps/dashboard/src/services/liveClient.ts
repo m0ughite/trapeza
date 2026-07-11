@@ -6,7 +6,8 @@
  */
 
 import { runLive, type LiveOptions, type LiveResult } from "../lib/liveEngine";
-import type { GraphView, ProviderView } from "../types/contract";
+import { normalizeRunPayload } from "../lib/liveRunContract";
+import type { GraphView, LiveRunInput, ProviderView } from "../types/contract";
 
 export interface LiveRunResponse {
   result: LiveResult;
@@ -40,4 +41,13 @@ export async function runClearing(
       serverlessError: e instanceof Error ? e.message : String(e),
     };
   }
+}
+
+export async function runClearingInput(input: LiveRunInput): Promise<LiveRunResponse> {
+  const normalized = normalizeRunPayload(input);
+  return runClearing(normalized.graph, normalized.providers, {
+    budgetUsdc: normalized.run.budgetUsdc,
+    riskAversion: normalized.run.riskAversion,
+    calibration: normalized.run.calibration,
+  });
 }

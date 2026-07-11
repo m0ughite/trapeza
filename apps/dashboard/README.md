@@ -10,11 +10,15 @@ It runs in two modes:
 - **Historical runs (always-on, zero backend).** Bundled `demo-run.json` fixtures
   emitted offline by the real engine (Python OR-Tools CP-SAT Tier-1). Fully static
   — works on any host, including a pure static Vercel deploy.
-- **Run-your-own (live).** Configure a clearing (budget / risk / calibration) and
-  execute it. Prefers a Vercel serverless function (`/api/run`) running the TS
-  Tier-2 engine; if that isn't deployed it degrades gracefully to the **same**
-  engine in the browser, clearly labeled. CP-SAT (Tier-1) is Python-only and does
-  not run in live mode by design — it is the always-on historical content.
+- **Run-your-own (live).** Two ways in: **Simple mode** (default) — describe a
+  workflow as a few plain steps and Trapeza auto-fills providers/prices/bonds from a
+  capability catalog; or the **advanced full contract** (visual Builder / JSON paste)
+  where you supply the whole market. Both run the same clearing: it prefers a Vercel
+  serverless function (`/api/run`, TS Tier-2 engine) and degrades gracefully to the
+  **same** engine in the browser, clearly labeled. CP-SAT (Tier-1) is Python-only and
+  does not run in live mode by design — it is the always-on historical content. Both
+  input shapes, the capability catalog and the risk mapping are documented in
+  [`INPUT-CONTRACT.md`](./INPUT-CONTRACT.md).
 
 The live path performs **no on-chain action** (no funded wallet, no faucet). A
 real capped testnet nanopayment would sit behind an explicit, rate-limited,
@@ -46,6 +50,7 @@ imported by the browser and by the offline driver):
 
 - `src/fixtures/*.json` — one `DemoRun` per historical run (+ `manifest.json`).
 - `src/fixtures/onchain-receipts.json` — `OnchainReceipts`.
+- Live "run your own" payload — [`LiveRunInput` in `INPUT-CONTRACT.md`](./INPUT-CONTRACT.md).
 
 Honesty rule enforced in the UI: a Circle Gateway settlement id is a **batch
 UUID, not an EVM tx** and is never rendered as a `/tx/` link. Only real

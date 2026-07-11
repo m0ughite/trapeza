@@ -27,6 +27,7 @@ npm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+.cursor/
 
 # next.js (apps added later)
 .next/

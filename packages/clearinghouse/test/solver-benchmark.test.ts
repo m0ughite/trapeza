@@ -50,7 +50,7 @@ describe("budget-vs-bottleneck benchmark", () => {
     }),
   ];
 
-  const input = { graph, providers, riskAversion: 1, seed: 42 };
+  const input = { graph, providers, riskAversion: 1, seed: 42, useCalibration: false };
 
   it("MILP finds feasible clearing where greedy fails", async () => {
     const milp = await solveMilp(input);
@@ -100,7 +100,12 @@ describe("budget-vs-bottleneck benchmark", () => {
         claimedSuccessProb: 0.95,
       }),
     ];
-    const milp = await solveMilp({ graph: g, providers: ps, riskAversion: 1 });
+    const milp = await solveMilp({
+      graph: g,
+      providers: ps,
+      riskAversion: 1,
+      useCalibration: false,
+    });
     expect(milp.assignments[0]!.providerId).toBe("high");
   });
 

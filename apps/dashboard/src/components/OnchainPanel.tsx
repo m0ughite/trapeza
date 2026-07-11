@@ -34,7 +34,7 @@ export function OnchainPanel(props: { receipts: OnchainReceipts }) {
           {receipts.meta.network} · {modeLabel}
         </Badge>
       }
-      sub="Cleared steps settle in USDC on Arc. Real transaction hashes link to the block explorer; a batch settlement ID is not a transaction and is never shown as one."
+      sub="Cleared steps settle in USDC on Arc. Verified transaction hashes link to the block explorer; a batch settlement ID is not a transaction and is never shown as one."
     >
       {receipts.identity ? (
         <div className="receipt">
@@ -70,13 +70,13 @@ export function OnchainPanel(props: { receipts: OnchainReceipts }) {
         </div>
       ))}
 
-      <Collapsible label="Why the honest labels matter">
+      <Collapsible label="Why labeling matters">
         <p>{receipts.meta.honestyNote}</p>
         <p>
-          A funded deposit into the shared USDC balance is a real on-chain transaction and links out.
+          A funded deposit into the shared USDC balance is an on-chain transaction and links out.
           The batch settlement ID is a Circle Gateway identifier for a transfer that settles when the
           batch flushes — it is not itself a transaction hash, so it is labeled and never linked as
-          one. Overclaiming here would be a credibility death; the receipts stay honest by design.
+          one. Clear labeling here is essential, and the receipts stay precise by design.
         </p>
       </Collapsible>
     </Panel>

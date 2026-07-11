@@ -39,7 +39,7 @@ export function CalibrationPanel(props: {
           </button>
         </div>
       }
-      sub="OFF hires on the success rate providers claim; ON hires on the rate they have actually delivered. Bars show claimed (amber) vs. delivered (mint); the ★ marks who this mode hires."
+      sub="OFF hires on the success rate providers claim; ON hires on the rate they have delivered. Bars show claimed (amber) vs. delivered (mint); the ★ marks who this mode hires."
     >
       {uncalibrated ? (
         <div className="callout warn" style={{ marginBottom: 14 }}>
@@ -50,7 +50,7 @@ export function CalibrationPanel(props: {
 
       <div className="stat-row" style={{ marginBottom: 16 }}>
         <Stat
-          k={`real end-to-end success (${mode})`}
+          k={`observed end-to-end success (${mode})`}
           v={pctSmall(active.realizedEndToEndSuccess)}
           tone={mode === "on" ? "mint" : undefined}
           note="chance the whole workflow actually succeeds"
@@ -136,9 +136,9 @@ export function CalibrationPanel(props: {
         </p>
         <p>
           With calibration OFF the market takes bids at face value and routes to whoever claims the
-          highest number — so confident-but-unreliable providers (&ldquo;braggarts&rdquo;) win and the
-          workflow quietly collapses. With it ON, the delivered rate drives the allocation and the
-          quiet performers (&ldquo;workhorses&rdquo;) get the work.
+          highest number, so overstated providers can dominate and workflow reliability drops. With
+          calibration ON, observed delivery drives allocation and consistently reliable providers get
+          the work.
         </p>
       </Collapsible>
     </Panel>
