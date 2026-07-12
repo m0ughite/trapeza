@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "@trapeza/core": ["packages/core/src/index.ts"],
+      "@trapeza/core/testing": ["packages/core/src/testing/index.ts"],
+      "@trapeza/adapter-arc": ["packages/adapter-arc/src/index.ts"]
+    }
+  },
+  "include": ["./**/*.ts"]
+}

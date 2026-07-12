@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "generatedAt": "2026-07-12T02:35:00.000Z",
+    "network": "Arc Testnet",
+    "caip2": "eip155:5042002",
+    "explorer": "https://testnet.arcscan.app",
+    "mode": "live",
+    "provider": "ArcTask (Arc-native job marketplace)",
+    "registryAddress": "0x4ab5791a689b15126fcc7a549f8e4c7e16c5e0b8",
+    "escrowAddress": "0x58ca473df727301bce771d6087f883364c83a3b6",
+    "usdcRail": "native",
+    "agentId": "14",
+    "jobId": "9",
+    "rewardUsdc": "0.01",
+    "settlement": "release",
+    "note": "Trapeza runs the full ArcTask escrow lifecycle end-to-end: register a provider agent, fund escrow, submit the deliverable, verify, then release escrow. Settlement goes through the chain-agnostic core seam (core.settle → ChainAdapter.resolveEscrow); no chain code lives in @trapeza/core. Every step is a real Arc-testnet transaction — hashes link to the explorer."
+  },
+  "steps": [
+    {
+      "key": "register",
+      "label": "Register agent",
+      "detail": "Provider agent #14 registered on the ArcTask agent registry.",
+      "ref": {
+        "kind": "evm-tx",
+        "value": "0xe72b852b32db37c0b9919dc22750c97452a19cebbb2917768428a55c17f7faa0",
+        "url": "https://testnet.arcscan.app/tx/0xe72b852b32db37c0b9919dc22750c97452a19cebbb2917768428a55c17f7faa0",
+        "linkable": true,
+        "label": "registerAgent → ArcTask registry"
+      }
+    },
+    {
+      "key": "createJob",
+      "label": "Open + fund escrow",
+      "detail": "Job #9 created and funded with 0.01 USDC held in escrow, evaluator = Trapeza.",
+      "ref": {
+        "kind": "evm-tx",
+        "value": "0xd3443ee4d33e3a74f54f801ec4fe54f3b011bbad9bb017e9b612c299fc3d9c8e",
+        "url": "https://testnet.arcscan.app/tx/0xd3443ee4d33e3a74f54f801ec4fe54f3b011bbad9bb017e9b612c299fc3d9c8e",
+        "linkable": true,
+        "label": "createJob → ArcTask escrow"
+      }
+    },
+    {
+      "key": "submitDeliverable",
+      "label": "Submit deliverable",
+      "detail": "Provider submits the deliverable hash on-chain, moving the job to Submitted.",
+      "ref": {
+        "kind": "evm-tx",
+        "value": "0x53a50daf9b9aa4fbedd83b5a0a86df4532a9c40276192dd6339aec9102503b35",
+        "url": "https://testnet.arcscan.app/tx/0x53a50daf9b9aa4fbedd83b5a0a86df4532a9c40276192dd6339aec9102503b35",
+        "linkable": true,
+        "label": "submitDeliverable → ArcTask escrow"
+      }
+    },
+    {
+      "key": "settle",
+      "label": "Verify + release escrow",
+      "detail": "Trapeza verifies the outcome and, as evaluator, releases escrow to the provider (acceptWork).",
+      "ref": {
+        "kind": "evm-tx",
+        "value": "0xccbe68b9a3d1677b4c4a102266ceeb36f7d3f92e05e3e713b6e51cff42f46f4b",
+        "url": "https://testnet.arcscan.app/tx/0xccbe68b9a3d1677b4c4a102266ceeb36f7d3f92e05e3e713b6e51cff42f46f4b",
+        "linkable": true,
+        "label": "acceptWork → ArcTask escrow (release)"
+      }
+    }
+  ]
+}

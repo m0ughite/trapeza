@@ -348,3 +348,44 @@ export interface OnchainReceipts {
   identity: IdentityReceipt | null;
   settlements: SettlementReceipt[];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// arctask-escrow.json — live external-marketplace escrow lifecycle
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One step in the ArcTask escrow lifecycle, each anchored by a real Arc-testnet
+ * transaction. ArcTask is an Arc-native job marketplace; Trapeza plugs in as the
+ * clearing + evaluator brain and settles the escrow (acceptWork / rejectWork).
+ */
+export interface ArcTaskStep {
+  key: "register" | "createJob" | "submitDeliverable" | "settle";
+  label: string;
+  detail: string;
+  ref: OnchainRef;
+}
+
+export interface ArcTaskEscrowReceipt {
+  schemaVersion: typeof ONCHAIN_RECEIPTS_SCHEMA_VERSION;
+  meta: {
+    generatedAt: string;
+    network: string;
+    caip2: string;
+    explorer: string;
+    /** live = executed against the deployed ArcTask contracts on Arc testnet. */
+    mode: "live";
+    /** Which marketplace this integrates with. */
+    provider: string;
+    /** ArcTask registry + escrow addresses and the USDC rail used. */
+    registryAddress: string;
+    escrowAddress: string;
+    usdcRail: "native" | "erc20";
+    agentId: string;
+    jobId: string;
+    rewardUsdc: string;
+    /** "release" (acceptWork) on verified success; "refund" (rejectWork) on fail. */
+    settlement: "release" | "refund";
+    note: string;
+  };
+  steps: ArcTaskStep[];
+}
