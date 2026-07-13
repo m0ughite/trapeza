@@ -5,7 +5,7 @@
  * on-chain data with zero backend.
  */
 
-import type { ArcTaskEscrowReceipt, DemoRun, OnchainReceipts } from "../types/contract";
+import type { ArcTaskClearingReceipt, DemoRun, OnchainReceipts } from "../types/contract";
 import invoiceProcessing from "./invoice-processing.json";
 import researchReport from "./research-report.json";
 import dataReconciliation from "./data-reconciliation.json";
@@ -13,7 +13,7 @@ import supportTriage from "./support-triage.json";
 import codePrPipeline from "./code-pr-pipeline.json";
 import ragQa from "./rag-qa.json";
 import onchainReceipts from "./onchain-receipts.json";
-import arctaskEscrow from "./arctask-escrow.json";
+import arctaskClearing from "./arctask-clearing.json";
 
 export const RUNS: DemoRun[] = [
   invoiceProcessing as unknown as DemoRun,
@@ -26,8 +26,8 @@ export const RUNS: DemoRun[] = [
 
 export const RECEIPTS: OnchainReceipts = onchainReceipts as unknown as OnchainReceipts;
 
-export const ARCTASK_ESCROW: ArcTaskEscrowReceipt =
-  arctaskEscrow as unknown as ArcTaskEscrowReceipt;
+export const ARCTASK_CLEARING: ArcTaskClearingReceipt =
+  arctaskClearing as unknown as ArcTaskClearingReceipt;
 
 export function runById(id: string): DemoRun | undefined {
   return RUNS.find((r) => r.meta.runId === id);

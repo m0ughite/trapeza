@@ -1,26 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
-  ArcTaskChainAdapter,
   decodeJobPayloadUri,
   encodeJobPayloadUri,
   jobToTaskSpec,
-  MarketplaceProviderSync,
   SimulatedArcTaskClient,
-  ArcTaskQuoteSource,
-  makeWallet,
   parseUsdcToWei,
 } from "../src/index.js";
 import { ARCTASK_USDC_MODE } from "../src/constants.js";
-import { InMemoryStore, MockOracle, MockSettlementAdapter } from "@trapeza/core/testing";
-import { createTrapezaCore } from "@trapeza/core";
+// The brain orchestrator lives at the harness/orchestration layer (not in the
+// adapter). We import it here to prove the shipped loop, not a reimplementation.
+import { runArcBrain, DEFAULT_SIM_ROSTER } from "../../../scripts/arc-brain.js";
 
-describe("ArcTask integration", () => {
+describe("ArcTask adapter surface", () => {
   it("exports arctask-client surface", async () => {
     const client = await import("../src/arctask-client.js");
     expect(client.ArcTaskClient).toBeDefined();
     expect(client.arctaskEscrowAbi).toBeDefined();
     expect(client.ArcTaskJobStatus.Funded).toBe(0);
   });
+
   it("decodes jobURI payloads", () => {
     const payload = { title: "test", description: "desc" };
     const uri = encodeJobPayloadUri(payload);
@@ -28,7 +26,6 @@ describe("ArcTask integration", () => {
   });
 
   it("maps jobs to TaskSpec", () => {
-    const client = new SimulatedArcTaskClient();
     const job = {
       jobId: 1n,
       client: "0x1111111111111111111111111111111111111111",
@@ -38,7 +35,7 @@ describe("ArcTask integration", () => {
       rewardAmount: parseUsdcToWei("0.01", ARCTASK_USDC_MODE),
       deadline: 9_999_999_999n,
       jobURI: encodeJobPayloadUri({ title: "T", description: "D" }),
-      deliverableHash: `0x${"0".repeat(64)}`,
+      deliverableHash: `0x${"0".repeat(64)}` as `0x${string}`,
       status: 0,
       createdAt: 1n,
       updatedAt: 1n,
@@ -47,73 +44,88 @@ describe("ArcTask integration", () => {
     expect(spec.id).toBe("arctask:job:1");
     expect(spec.capability).toBe("arctask.general.v1");
   });
+});
 
-  it("simulated harness loop: register → escrow → submit → settle", async () => {
-    const client = new SimulatedArcTaskClient();
-    const clientKey = ("0x" + "11".repeat(32)) as `0x${string}`;
-    const ownerKey = ("0x" + "22".repeat(32)) as `0x${string}`;
-    const evaluatorKey = ("0x" + "33".repeat(32)) as `0x${string}`;
+describe("Trapeza = clearing + evaluator brain over ArcTask", () => {
+  const fixedNow = Date.parse("2026-07-13T00:00:00.000Z");
 
-    const chain = new ArcTaskChainAdapter({
-      clientPrivateKey: clientKey,
-      evaluatorPrivateKey: evaluatorKey,
+  async function runBrain(client: SimulatedArcTaskClient) {
+    return runArcBrain({
       simulated: true,
+      usdcMode: "native",
+      seedJob: true,
+      useCalibration: true,
+      clientKey: ("0x" + "11".repeat(32)) as `0x${string}`,
+      evaluatorKey: ("0x" + "33".repeat(32)) as `0x${string}`,
+      ownerKey: ("0x" + "22".repeat(32)) as `0x${string}`,
       arctaskClient: client,
+      now: () => fixedNow,
+      generatedAt: "2026-07-13T00:00:00.000Z",
     });
+  }
 
-    const owner = makeWallet(ownerKey);
-    const { agentId } = await client.registerAgent(owner.account);
+  it("reads the registry into a calibrated directory", async () => {
+    const client = new SimulatedArcTaskClient();
+    const { receipt } = await runBrain(client);
+    expect(receipt.registry).toHaveLength(DEFAULT_SIM_ROSTER.length);
+    // Directory carries calibrated (realized) success, distinct from claims.
+    const workhorse = receipt.registry.find((r) => r.archetype === "workhorse")!;
+    const braggart = receipt.registry.find((r) => r.archetype === "braggart")!;
+    expect(workhorse.calibratedSuccessProb).toBeGreaterThan(braggart.calibratedSuccessProb);
+    expect(braggart.claimedSuccessProb).toBeGreaterThan(workhorse.claimedSuccessProb);
+  });
 
-    const sync = new MarketplaceProviderSync(client);
-    const providers = await sync.syncProviders();
-    expect(providers.length).toBeGreaterThan(0);
+  it("clears to the calibrated winner, not the loudest bidder", async () => {
+    const client = new SimulatedArcTaskClient();
+    const { receipt, winnerProviderId } = await runBrain(client);
+    // Calibration ON hires the workhorse; trusting the bids (OFF) would hire the braggart.
+    expect(receipt.clearing.calibratedWinner).not.toBe(receipt.clearing.claimedWinner);
+    expect(receipt.clearing.winnerProviderId).toBe(receipt.clearing.calibratedWinner);
+    const winnerRow = receipt.registry.find((r) => r.providerId === winnerProviderId)!;
+    expect(winnerRow.archetype).toBe("workhorse");
+    // The pick is the top-ranked candidate.
+    expect(receipt.clearing.ranked[0].hired).toBe(true);
+    expect(receipt.clearing.ranked[0].providerId).toBe(winnerProviderId);
+    expect(receipt.clearing.ranked[0].source).toBe("calibrated");
+  });
 
-    const taskId = "sim-task-1";
-    chain.registerEscrowIntent(taskId, {
-      agentId,
-      evaluator: chain.evaluatorAddress,
-      jobURI: encodeJobPayloadUri({ title: "sim" }),
-      deadline: BigInt(Math.floor(Date.now() / 1000) + 3600),
-      rewardAmountWei: parseUsdcToWei("0.01", ARCTASK_USDC_MODE),
-    });
+  it("never submits the deliverable itself; the worker is external", async () => {
+    const client = new SimulatedArcTaskClient();
+    const { receipt } = await runBrain(client);
+    expect(receipt.execution.submittedByTrapeza).toBe(false);
+    expect(receipt.execution.submitted).toBe(true);
+    expect(receipt.execution.worker).toBe("simulated-external-worker");
+  });
 
-    await chain.openEscrow(taskId, owner.account.address, "0.01");
-    const jobId = chain.intents.resolveTaskId(taskId);
-    const hash = client.hashDeliverable("ok");
-    await client.submitDeliverable(owner.account, owner.wallet, jobId, hash);
+  it("evaluates as a distinct evaluator and settles the escrow", async () => {
+    const client = new SimulatedArcTaskClient();
+    const { receipt, jobId, winnerAgentId } = await runBrain(client);
 
-    const store = new InMemoryStore();
-    for (const p of providers) await store.putProvider(p);
+    // Evaluator (Trapeza) is a different wallet than the worker/agent owner.
+    const winnerRow = receipt.registry.find(
+      (r) => r.agentId === winnerAgentId.toString(),
+    )!;
+    expect(receipt.meta.evaluator.toLowerCase()).not.toBe(winnerRow.wallet.toLowerCase());
 
-    const core = createTrapezaCore({
-      store,
-      chain,
-      settlement: new MockSettlementAdapter(),
-      oracle: new MockOracle({ passed: true, score: 90 }),
-      quotes: new ArcTaskQuoteSource(),
-    });
+    // Oracle verified → escrow released → reputation written.
+    expect(receipt.evaluation.passed).toBe(true);
+    expect(receipt.evaluation.settlement).toBe("release");
+    expect(receipt.evaluation.reputation).not.toBeNull();
 
-    const spec = {
-      id: taskId,
-      capability: "arctask.general.v1",
-      input: {},
-      oracleSpec: { schema: {}, groundTruth: {} },
-      valueUsdc: "0.01",
-      budgetUsdc: "0.01",
-      preference: { price: 0.25, latency: 0.25, quality: 0.25, risk: 0.25 },
-      deadlineMs: 60_000,
-    };
-    await store.putTask(spec);
-
-    const quotes = await core.collectQuotes(taskId);
-    const alloc = await core.route(taskId, quotes, false);
-    await core.postBond(alloc);
-    const result = await core.execute(alloc);
-    const outcome = await core.oracleVerify(spec, result);
-    const settled = await core.settle(taskId, outcome);
-
-    expect(settled.action).toBe("release");
+    // On-chain job reached Accepted (2) via acceptWork.
     const job = await client.getJob(jobId);
-    expect(job.status).toBe(2); // Accepted
+    expect(job.status).toBe(2);
+    // The escrow evaluator on the job is Trapeza's evaluator wallet.
+    expect(job.evaluator.toLowerCase()).toBe(receipt.meta.evaluator.toLowerCase());
+  });
+
+  it("emits a simulated receipt whose refs never link out", async () => {
+    const client = new SimulatedArcTaskClient();
+    const { receipt } = await runBrain(client);
+    expect(receipt.meta.mode).toBe("simulated");
+    for (const step of receipt.evaluation.steps) {
+      expect(step.ref.linkable).toBe(false);
+      expect(step.ref.url).toBeNull();
+    }
   });
 });

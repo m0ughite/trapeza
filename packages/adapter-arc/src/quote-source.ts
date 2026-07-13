@@ -1,14 +1,22 @@
 /**
- * ArcTaskQuoteSource — first real QuoteSource mapping registry agents to quotes.
+ * ArcTaskQuoteSource — the RFQ step, sourced from the ArcTask agent registry.
  *
- * In production this would hit each agent's x402 RFQ endpoint. For the harness
- * we derive quotes from on-chain agent metadata and a configurable price table.
+ * In production this hits each agent's x402 RFQ endpoint. Here we read the
+ * self-reported RFQ fields (price, claimed success, latency, bond) that agents
+ * publish in their on-chain registry metadata. These are PRIORS only: the router
+ * scores on the calibration ledger's realized outcomes, never on these claims
+ * (except on the deliberate CALIBRATION OFF demo path).
  */
 
 import type { ProviderProfile, Quote, QuoteSource, TaskSpec } from "@trapeza/core";
-import { parseUsdcToWei, formatErc20Usdc, formatNativeUsdc } from "./arctask.js";
+import {
+  ArcTaskClient,
+  parseUsdcToWei,
+  formatErc20Usdc,
+  formatNativeUsdc,
+} from "./arctask.js";
 import { ARCTASK_USDC_MODE } from "./constants.js";
-import { parseAgentMetadata } from "./provider-sync.js";
+import { parseAgentMetadata, type AgentMetadata } from "./provider-sync.js";
 
 export interface ArcTaskQuoteSourceConfig {
   /** Default self-reported success probability for cold-start agents. */
@@ -19,7 +27,33 @@ export interface ArcTaskQuoteSourceConfig {
 }
 
 export class ArcTaskQuoteSource implements QuoteSource {
-  constructor(private readonly cfg: ArcTaskQuoteSourceConfig = {}) {}
+  private readonly metaCache = new Map<string, AgentMetadata>();
+
+  /**
+   * @param cfg    default RFQ knobs.
+   * @param client optional registry client. When provided, each provider's
+   *   self-reported RFQ fields are read from its on-chain agent metadata; when
+   *   omitted, the configured defaults apply (kept for simple call sites/tests).
+   */
+  constructor(
+    private readonly cfg: ArcTaskQuoteSourceConfig = {},
+    private readonly client?: ArcTaskClient,
+  ) {}
+
+  private async readMeta(provider: ProviderProfile): Promise<AgentMetadata> {
+    if (!this.client || provider.agentId == null) return {};
+    const key = provider.agentId.toString();
+    const cached = this.metaCache.get(key);
+    if (cached) return cached;
+    try {
+      const agent = await this.client.getAgent(provider.agentId);
+      const meta = parseAgentMetadata(agent.metadataURI);
+      this.metaCache.set(key, meta);
+      return meta;
+    } catch {
+      return {};
+    }
+  }
 
   async quotesFor(
     spec: TaskSpec,
@@ -28,18 +62,18 @@ export class ArcTaskQuoteSource implements QuoteSource {
     const quotes: Quote[] = [];
     for (const provider of providers) {
       if (!provider.capabilities.includes(spec.capability)) continue;
-      const meta = parseAgentMetadata(provider.endpoint);
-      void meta;
+      const meta = await this.readMeta(provider);
       const priceUsdc =
+        meta.priceUsdc ??
         this.cfg.priceByCapability?.[spec.capability] ??
-        minPrice(spec.budgetUsdc, "0.001");
+        minPrice(spec.budgetUsdc, provider.priceSurface(0, 0));
 
       quotes.push({
         providerId: provider.id,
         priceUsdc,
-        claimedSuccessProb: this.cfg.defaultSuccessProb ?? 0.85,
-        claimedLatencyMs: this.cfg.defaultLatencyMs ?? 30_000,
-        bondOfferedUsdc: provider.bondBalanceUsdc,
+        claimedSuccessProb: meta.claimedSuccessProb ?? this.cfg.defaultSuccessProb ?? 0.85,
+        claimedLatencyMs: meta.claimedLatencyMs ?? this.cfg.defaultLatencyMs ?? 30_000,
+        bondOfferedUsdc: meta.bondUsdc ?? provider.bondBalanceUsdc,
       });
     }
     return quotes;

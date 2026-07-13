@@ -19,6 +19,7 @@
     "demo:emit": "tsx --tsconfig demo/tsconfig.json demo/emit-run.ts",
     "demo:onchain": "tsx --tsconfig demo/tsconfig.json demo/emit-onchain.ts",
     "harness:arc": "tsx --tsconfig scripts/tsconfig.json scripts/arc-integration-harness.ts",
+    "arctask:emit": "ARCTASK_SIMULATED=true ARCTASK_SEED_JOB=true ARCTASK_USDC_MODE=native ARCTASK_EMIT_RECEIPTS=true tsx --tsconfig scripts/tsconfig.json scripts/arc-integration-harness.ts",
     "setup:arctask-live": "bash integrations/arctask/setup-live.sh",
     "solver:install": "python3.12 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt",
     "solver": "cd solver && .venv/bin/python -m uvicorn trapeza_solver.app:app --host 127.0.0.1 --port 8000",

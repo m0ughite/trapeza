@@ -350,42 +350,141 @@ export interface OnchainReceipts {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// arctask-escrow.json — live external-marketplace escrow lifecycle
+// arctask-clearing.json — Trapeza as clearing + evaluator brain over ArcTask
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * One step in the ArcTask escrow lifecycle, each anchored by a real Arc-testnet
- * transaction. ArcTask is an Arc-native job marketplace; Trapeza plugs in as the
- * clearing + evaluator brain and settles the escrow (acceptWork / rejectWork).
+ * The ArcTask integration in the approved "brain" model: Trapeza reads the
+ * ArcTask agent registry, ranks the registered agents by calibrated expected
+ * net value, PICKS the winner (the routing decision — Trapeza's core value),
+ * assigns the job on-chain, lets ArcTask's OWN worker execute, then verifies as
+ * the registered evaluator and settles escrow (acceptWork / rejectWork). Trapeza
+ * is NEVER the worker; it never submits a deliverable.
+ *
+ * This file is emitted by `scripts/arc-integration-harness.ts`. In `simulated`
+ * mode the ranking is representative and the on-chain refs are non-linkable
+ * placeholders (never rendered as explorer links); any real 0x+64-hex hashes
+ * carried over from a proven prior live run are labeled as such and are the only
+ * refs that link out.
+ */
+export type ArcTaskMode = "simulated" | "live";
+
+/** One provider in the ArcTask registry directory, with its calibrated score. */
+export interface ArcRegistryAgentView {
+  agentId: string;
+  providerId: string;
+  wallet: string;
+  capabilities: string[];
+  status: "active" | "suspended";
+  /** Self-reported (bid) success probability — a PRIOR, never the signal. */
+  claimedSuccessProb: number;
+  /** Bayesian posterior mean of realized success (α/(α+β)) from the ledger. */
+  calibratedSuccessProb: number;
+  nObservations: number;
+  priceUsdc: string;
+  bondUsdc: string;
+  archetype: "workhorse" | "braggart" | "neutral";
+}
+
+/** One scored candidate in the clearing decision (from @trapeza/core router). */
+export interface ArcRankedCandidate {
+  rank: number;
+  providerId: string;
+  agentId: string;
+  /** score = p_success·value − price − risk_premium (decimal USDC of net value). */
+  score: number;
+  /** The p_success actually used to score (calibrated posterior, ON path). */
+  pSuccessUsed: number;
+  source: "calibrated" | "self-reported";
+  priceUsdc: number;
+  riskPremium: number;
+  /** True for the argmax-score agent that the clearing hired. */
+  hired: boolean;
+}
+
+/**
+ * One step of the on-chain lifecycle, each anchored by a ref. `key` names the
+ * marketplace action; only "evm-tx" refs that are real 0x+64-hex hashes link out.
  */
 export interface ArcTaskStep {
-  key: "register" | "createJob" | "submitDeliverable" | "settle";
+  key: "createJob" | "submitDeliverable" | "settle" | "reputation";
   label: string;
   detail: string;
   ref: OnchainRef;
 }
 
-export interface ArcTaskEscrowReceipt {
+export interface ArcTaskClearingReceipt {
   schemaVersion: typeof ONCHAIN_RECEIPTS_SCHEMA_VERSION;
   meta: {
     generatedAt: string;
     network: string;
     caip2: string;
     explorer: string;
-    /** live = executed against the deployed ArcTask contracts on Arc testnet. */
-    mode: "live";
+    mode: ArcTaskMode;
     /** Which marketplace this integrates with. */
     provider: string;
-    /** ArcTask registry + escrow addresses and the USDC rail used. */
     registryAddress: string;
     escrowAddress: string;
     usdcRail: "native" | "erc20";
-    agentId: string;
-    jobId: string;
-    rewardUsdc: string;
-    /** "release" (acceptWork) on verified success; "refund" (rejectWork) on fail. */
-    settlement: "release" | "refund";
+    /** Trapeza's registered evaluator wallet (accept/reject authority). */
+    evaluator: string;
+    /** True when the job was seeded by a demo client (ARCTASK_SEED_JOB). */
+    seededJob: boolean;
     note: string;
   };
-  steps: ArcTaskStep[];
+  job: {
+    jobId: string;
+    title: string;
+    description: string;
+    budgetUsdc: string;
+    deadlineIso: string;
+    /** "seeded" (posted by the demo client) vs "organic" (JobCreated ingestion). */
+    source: "seeded" | "organic";
+  };
+  /** The calibrated agent directory read from the ArcTask registry. */
+  registry: ArcRegistryAgentView[];
+  /** The differentiator: ranked agents + the pick, with calibrated-EV rationale. */
+  clearing: {
+    useCalibration: boolean;
+    winnerProviderId: string;
+    winnerAgentId: string;
+    mechanism: string;
+    ranked: ArcRankedCandidate[];
+    /** Whom calibration ON hires vs. whom trusting the bids (OFF) would hire. */
+    calibratedWinner: string;
+    claimedWinner: string;
+    rationale: string;
+  };
+  /** Execution is ArcTask's OWN worker — Trapeza never submits deliverables. */
+  execution: {
+    /** "arctask-agent-worker" (live) or "simulated-external-worker" (offline). */
+    worker: string;
+    submittedByTrapeza: false;
+    submitted: boolean;
+    deliverable: OnchainRef | null;
+    note: string;
+  };
+  /** Trapeza as registered evaluator: oracle verdict → accept/reject → reputation. */
+  evaluation: {
+    passed: boolean;
+    score: number;
+    settlement: "release" | "refund";
+    verdictNote: string;
+    steps: ArcTaskStep[];
+    reputation: OnchainRef | null;
+  };
+  /**
+   * Proven-prior on-chain lifecycle: REAL Arc-testnet transactions from an
+   * earlier live ArcTask escrow run against the deployed contracts. These are
+   * the only refs that link to the explorer (real 0x+64-hex). They prove the
+   * chain seam end-to-end while the clearing above is the current decision.
+   */
+  provenLive: {
+    note: string;
+    registryAddress: string;
+    escrowAddress: string;
+    agentId: string;
+    jobId: string;
+    steps: ArcTaskStep[];
+  } | null;
 }

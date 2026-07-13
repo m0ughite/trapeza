@@ -10,6 +10,13 @@ export interface AgentMetadata {
   capabilities?: string[];
   endpoint?: string;
   description?: string;
+  /** Self-reported RFQ fields carried in the registry metadata (priors only). */
+  priceUsdc?: string;
+  claimedSuccessProb?: number;
+  claimedLatencyMs?: number;
+  bondUsdc?: string;
+  /** Descriptive label for the dashboard directory (never a routing signal). */
+  archetype?: "workhorse" | "braggart" | "neutral";
 }
 
 /** Best-effort parse of agent metadataURI (ipfs, https, or inline json). */
@@ -38,6 +45,7 @@ export function agentToProviderProfile(
     meta.capabilities && meta.capabilities.length > 0
       ? meta.capabilities
       : [opts.defaultCapability ?? "arctask.general.v1"];
+  const priceUsdc = meta.priceUsdc ?? "0.001";
 
   return {
     id: `arctask-agent-${agent.agentId}`,
@@ -45,8 +53,8 @@ export function agentToProviderProfile(
     wallet: agent.owner,
     capabilities,
     endpoint: meta.endpoint ?? opts.defaultEndpoint ?? `arctask://agent/${agent.agentId}`,
-    priceSurface: () => "0.001",
-    bondBalanceUsdc: opts.bondBalanceUsdc ?? "0.01",
+    priceSurface: () => priceUsdc,
+    bondBalanceUsdc: meta.bondUsdc ?? opts.bondBalanceUsdc ?? "0.01",
     status: agent.active ? "active" : "suspended",
   };
 }
