@@ -17,6 +17,7 @@ export default defineConfig({
       "@trapeza/core": r("./packages/core/src/index.ts"),
       "@trapeza/oracle": r("./packages/oracle/src/index.ts"),
       "@trapeza/clearinghouse": r("./packages/clearinghouse/src/index.ts"),
+      "@trapeza/adapter-arc": r("./packages/adapter-arc/src/index.ts"),
     },
   },
   test: {

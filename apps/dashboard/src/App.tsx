@@ -8,6 +8,7 @@ import { CalibrationPage } from "./pages/CalibrationPage";
 import { BottlenecksPage } from "./pages/BottlenecksPage";
 import { RiskPage } from "./pages/RiskPage";
 import { SettlementPage } from "./pages/SettlementPage";
+import { ArcTaskPage } from "./pages/ArcTaskPage";
 import { RunPage } from "./pages/RunPage";
 
 export function App() {
@@ -23,6 +24,7 @@ export function App() {
             <Route path="bottlenecks" element={<BottlenecksPage />} />
             <Route path="risk" element={<RiskPage />} />
             <Route path="settlement" element={<SettlementPage />} />
+            <Route path="arctask" element={<ArcTaskPage />} />
             <Route path="run" element={<RunPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

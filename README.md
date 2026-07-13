@@ -34,13 +34,16 @@ packages/
                                              + greedy+LNS Tier-2, schedule, shadow prices,
                                              State-Twins Monte-Carlo preflight.
   oracle/           @trapeza/oracle          deterministic outcome verification.
-  adapter-arc/      @trapeza/adapter-arc     Arc + ERC-8004 identity/reputation.
+  adapter-arc/      @trapeza/adapter-arc     Arc + ERC-8004 identity/reputation,
+                                             plus the ArcTask marketplace adapter
+                                             (escrow, agent registry, job discovery).
   adapter-gateway/  @trapeza/adapter-gateway Circle Gateway / x402 USDC settlement.
 solver/                                      Python OR-Tools CP-SAT + Monte-Carlo service.
 demo/                                        deterministic, chain-free engine walkthrough.
 apps/dashboard/     @trapeza/dashboard       Vite + React multi-page SPA: clearing, bake-off,
-                                             calibration, bottlenecks, risk, settlement, and a
-                                             "Run Your Own" builder that clears live in-browser.
+                                             calibration, bottlenecks, risk, settlement,
+                                             ArcTask Live, and a "Run Your Own" builder that
+                                             clears live in-browser.
 ```
 
 The **module boundary is a hard rule**: `@trapeza/core` is chain-agnostic; every Circle/Arc-specific call lives in an adapter. Full design detail lives in `[docs/PROJECT-DIAGRAMS.md](docs/PROJECT-DIAGRAMS.md)` and the canonical `[docs/SOURCE-OF-TRUTH.md](docs/SOURCE-OF-TRUTH.md)`.
@@ -49,7 +52,7 @@ The **module boundary is a hard rule**: `@trapeza/core` is chain-agnostic; every
 
 ```bash
 npm install                # install the TS monorepo
-npm test                   # run the full test suite (89 tests)
+npm test                   # run the full test suite (97 tests)
 npm run typecheck          # type-check core + clearinghouse + oracle + both adapters
 
 # optional: the Python OR-Tools CP-SAT solver (Tier-1, exact clearing)
@@ -58,6 +61,10 @@ npm run solver             # serve the solver at 127.0.0.1:8000 (leave running)
 
 # see the engine work end-to-end (deterministic, no chain, no secrets)
 npm run demo:emit          # regenerate the dashboard fixtures from the real engine
+
+# ArcTask integration (simulated by default; see docs/ARCTASK-INTEGRATION-EVAL.md)
+npm run harness:arc        # clearing + evaluator brain loop over ArcTask
+npm run arctask:emit       # regenerate the ArcTask Live dashboard fixture
 
 # the dashboard
 npm run dev   --workspace @trapeza/dashboard    # http://localhost:5173
@@ -91,13 +98,24 @@ Settlement targets **Circle's Arc testnet** (`eip155:5042002`) using USDC via **
 
 The on-chain integrations — x402/Gateway USDC nanopayments and ERC-8004 identity/reputation — are written, run against the live testnet, and gated by a `[BLOCKED]` preflight so a hash only ever appears if a transaction actually settled; they never fabricate a tx hash. A cleared allocation now settles **per node**: `npm run demo:onchain` walks the invoice-processing plan and settles each hop over x402/Gateway (falling back to the proven receipts when no funded wallet is supplied). See `[docs/SETUP.md](docs/SETUP.md)`.
 
+## ArcTask integration (live)
+
+Trapeza plugs into [ArcTask](https://github.com/VadymManiuk/ArcTask), an Arc-native job marketplace with USDC escrow and an on-chain agent registry. Here Trapeza is the **clearing + evaluator brain** — it never does the work itself:
+
+1. **Discover + calibrate** — read registered agents from the ArcTask registry and attach the realized-outcome calibration ledger.
+2. **Clear / route** — rank agents by calibrated expected net value under the job's budget and deadline, pick the winner, and assign the job on-chain.
+3. **Execute** — ArcTask's own autonomous worker (`scripts/agent-worker.mjs`) runs as the chosen agent and submits the deliverable. Trapeza does not submit deliverables in product mode.
+4. **Evaluate + settle** — Trapeza is the registered evaluator: verify the deliverable, then release escrow to the worker or refund the client, and write ERC-8004 reputation.
+
+The dashboard's **ArcTask Live** page (`/arctask`, section 08) shows the provider directory, the clearing decision with calibrated-EV rationale, and evaluation + settlement — with real Arc-testnet transaction hashes linked only when they are verified `0x`+64-hex refs. Run `npm run harness:arc` for the end-to-end loop (simulated by default); `npm run arctask:emit` regenerates the fixture. Full integration notes: `[docs/ARCTASK-INTEGRATION-EVAL.md](docs/ARCTASK-INTEGRATION-EVAL.md)`.
+
 ## Tech stack
 
 - **TypeScript monorepo** (npm workspaces, Node ≥ 20.6): `@trapeza/core`, `clearinghouse`, `oracle`, `adapter-arc`, `adapter-gateway`.
 - **Python OR-Tools CP-SAT solver** (CPython 3.12, FastAPI) for the exact Tier-1 clearing + Monte-Carlo twin; a portable TypeScript greedy+LNS Tier-2 solver runs in-process and in the browser as the degrade path.
 - **Vite + React + TypeScript dashboard** — bundled historical runs (zero backend) plus an optional serverless live-run.
 - **Chain:** Circle Arc testnet, USDC, x402, Circle Gateway, ERC-8004; `viem`.
-- **Tests:** Vitest (89 tests across core, clearinghouse, oracle, and the dashboard) + pytest for the solver.
+- **Tests:** Vitest (97 tests across core, clearinghouse, oracle, adapter-arc, and the dashboard) + pytest for the solver.
 
 ## Hackathon alignment
 

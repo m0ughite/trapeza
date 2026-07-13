@@ -83,8 +83,17 @@ export const PAGES: PageDef[] = [
       "Cleared steps settle in USDC on Circle's Arc testnet. Verified transaction hashes link to the explorer; batch IDs are never presented as transactions.",
   },
   {
-    path: "/run",
+    path: "/arctask",
     num: "08",
+    navLabel: "ArcTask Live",
+    eyebrow: "ArcTask Integration",
+    title: "Trapeza as the clearing + evaluator brain over ArcTask",
+    intro:
+      "Plugged into ArcTask — an Arc-native job marketplace — Trapeza reads the agent registry, routes each job to the agent that actually delivers, then verifies the work and settles escrow. It never does the work itself.",
+  },
+  {
+    path: "/run",
+    num: "09",
     navLabel: "Run Your Own",
     eyebrow: "Run Your Own",
     title: "Clear a workflow yourself",

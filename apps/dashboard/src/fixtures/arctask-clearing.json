@@ -1,0 +1,237 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "generatedAt": "2026-07-13T00:00:00.000Z",
+    "network": "Arc Testnet",
+    "caip2": "eip155:5042002",
+    "explorer": "https://testnet.arcscan.app",
+    "mode": "simulated",
+    "provider": "ArcTask (Arc-native job marketplace)",
+    "registryAddress": "0xSIMULATED_REGISTRY",
+    "escrowAddress": "0xSIMULATED_ESCROW",
+    "usdcRail": "native",
+    "evaluator": "0x69AF9eD2cD16F40f20F454bBDD2A193364E2B925",
+    "seededJob": true,
+    "note": "Trapeza is the clearing + evaluator brain over ArcTask, never the worker. It reads the registry, ranks agents by calibrated expected net value, picks the winner, assigns the job on-chain, lets ArcTask's own worker execute, then verifies and settles escrow. Clearing uses the @trapeza/core router; evaluation uses @trapeza/oracle; all chain I/O stays in @trapeza/adapter-arc."
+  },
+  "job": {
+    "jobId": "1",
+    "title": "Summarize the Arc x402 settlement flow",
+    "description": "Produce a one-paragraph plain-language summary of how USDC escrow settles on Arc, ending with a single JSON line {\"summary\": \"...\"}.",
+    "budgetUsdc": "0.02",
+    "deadlineIso": "2026-07-13T01:00:00.000Z",
+    "source": "seeded"
+  },
+  "registry": [
+    {
+      "agentId": "1",
+      "providerId": "arctask-agent-1",
+      "wallet": "0x5d5c99EdF529335160FF180fA141Dd4967fc00D2",
+      "capabilities": [
+        "arctask.general.v1"
+      ],
+      "status": "active",
+      "claimedSuccessProb": 0.8,
+      "calibratedSuccessProb": 0.8695652173913043,
+      "nObservations": 21,
+      "priceUsdc": "0.006",
+      "bondUsdc": "0.02",
+      "archetype": "workhorse"
+    },
+    {
+      "agentId": "2",
+      "providerId": "arctask-agent-2",
+      "wallet": "0x75E0De31eCa89159a26b09cc3b5eF4736A4f8969",
+      "capabilities": [
+        "arctask.general.v1"
+      ],
+      "status": "active",
+      "claimedSuccessProb": 0.98,
+      "calibratedSuccessProb": 0.4166666666666667,
+      "nObservations": 10,
+      "priceUsdc": "0.005",
+      "bondUsdc": "0.004",
+      "archetype": "braggart"
+    },
+    {
+      "agentId": "3",
+      "providerId": "arctask-agent-3",
+      "wallet": "0x3c524fD949d601790ac741dFB5B07414F3DacF1d",
+      "capabilities": [
+        "arctask.general.v1"
+      ],
+      "status": "active",
+      "claimedSuccessProb": 0.85,
+      "calibratedSuccessProb": 0.5,
+      "nObservations": 2,
+      "priceUsdc": "0.006",
+      "bondUsdc": "0.01",
+      "archetype": "neutral"
+    }
+  ],
+  "clearing": {
+    "useCalibration": true,
+    "winnerProviderId": "arctask-agent-1",
+    "winnerAgentId": "1",
+    "mechanism": "second_price",
+    "ranked": [
+      {
+        "rank": 1,
+        "providerId": "arctask-agent-1",
+        "agentId": "1",
+        "score": 0.011058056913159309,
+        "pSuccessUsed": 0.8636363636363636,
+        "source": "calibrated",
+        "priceUsdc": 0.006,
+        "riskPremium": 0.0002146703595679645,
+        "hired": true
+      },
+      {
+        "rank": 2,
+        "providerId": "arctask-agent-3",
+        "agentId": "3",
+        "score": 0.0025791796067500634,
+        "pSuccessUsed": 0.5,
+        "source": "calibrated",
+        "priceUsdc": 0.006,
+        "riskPremium": 0.001420820393249937,
+        "hired": false
+      },
+      {
+        "rank": 3,
+        "providerId": "arctask-agent-2",
+        "agentId": "2",
+        "score": 0.0015231270062621496,
+        "pSuccessUsed": 0.4166666666666667,
+        "source": "calibrated",
+        "priceUsdc": 0.005,
+        "riskPremium": 0.0018102063270711835,
+        "hired": false
+      }
+    ],
+    "calibratedWinner": "arctask-agent-1",
+    "claimedWinner": "arctask-agent-2",
+    "rationale": "Calibration hires arctask-agent-1 on its realized track record; trusting the self-reported bids would hire arctask-agent-2, which over-claims. score = p_success·value − price − risk_premium, with p_success from the realized-outcome ledger."
+  },
+  "execution": {
+    "worker": "simulated-external-worker",
+    "submittedByTrapeza": false,
+    "submitted": true,
+    "deliverable": {
+      "kind": "evm-tx",
+      "value": "0xsub00000000000000000000000000000000000000000000000000000001",
+      "url": null,
+      "linkable": false,
+      "label": "submitDeliverable → ArcTask escrow (external worker)"
+    },
+    "note": "Execution is ArcTask's own autonomous worker (scripts/agent-worker.mjs), running as the chosen agent. Trapeza MUST NOT submit deliverables in product mode. In this offline run the worker is a clearly-labeled stand-in."
+  },
+  "evaluation": {
+    "passed": true,
+    "score": 100,
+    "settlement": "release",
+    "verdictNote": "Deliverable verified (score 100). Escrow released to the worker; reputation and calibration updated.",
+    "steps": [
+      {
+        "key": "createJob",
+        "label": "Assign + fund escrow",
+        "detail": "Job #1 created and funded with 0.02 USDC, assigned to the cleared winner (agent #1); evaluator = Trapeza.",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xjob00000000000000000000000000000000000000000000000000000001",
+          "url": null,
+          "linkable": false,
+          "label": "createJob → ArcTask escrow"
+        }
+      },
+      {
+        "key": "submitDeliverable",
+        "label": "Worker submits deliverable",
+        "detail": "simulated-external-worker (ArcTask, not Trapeza) submitted the deliverable hash on-chain.",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xsub00000000000000000000000000000000000000000000000000000001",
+          "url": null,
+          "linkable": false,
+          "label": "submitDeliverable → ArcTask escrow (external worker)"
+        }
+      },
+      {
+        "key": "settle",
+        "label": "Verify + release escrow",
+        "detail": "Oracle verified the deliverable (score 100); Trapeza, as evaluator, released escrow to the worker (acceptWork).",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xacc00000000000000000000000000000000000000000000000000000001",
+          "url": null,
+          "linkable": false,
+          "label": "acceptWork → release escrow"
+        }
+      },
+      {
+        "key": "reputation",
+        "label": "Write reputation",
+        "detail": "Realized outcome folded into the calibration ledger (n=21, p̂=0.870) and mirrored to ERC-8004 reputation.",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xsimfb00000000000000000000000000000000000000000000000000000001",
+          "url": null,
+          "linkable": false,
+          "label": "giveFeedback → ERC-8004 reputation"
+        }
+      }
+    ],
+    "reputation": {
+      "kind": "evm-tx",
+      "value": "0xsimfb00000000000000000000000000000000000000000000000000000001",
+      "url": null,
+      "linkable": false,
+      "label": "giveFeedback → ERC-8004 reputation"
+    }
+  },
+  "provenLive": {
+    "note": "Real, verified Arc-testnet transactions from an earlier live ArcTask escrow run against the deployed contracts. They prove the full on-chain seam (createJob → submitDeliverable → acceptWork) end-to-end. Only these real 0x+64-hex hashes link to the explorer.",
+    "registryAddress": "0x4ab5791a689b15126fcc7a549f8e4c7e16c5e0b8",
+    "escrowAddress": "0x58ca473df727301bce771d6087f883364c83a3b6",
+    "agentId": "14",
+    "jobId": "9",
+    "steps": [
+      {
+        "key": "createJob",
+        "label": "Open + fund escrow",
+        "detail": "Job #9 created and funded (native USDC) on the ArcTask escrow, evaluator = Trapeza.",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xd3443ee4d33e3a74f54f801ec4fe54f3b011bbad9bb017e9b612c299fc3d9c8e",
+          "url": "https://testnet.arcscan.app/tx/0xd3443ee4d33e3a74f54f801ec4fe54f3b011bbad9bb017e9b612c299fc3d9c8e",
+          "linkable": true,
+          "label": "createJob → ArcTask escrow"
+        }
+      },
+      {
+        "key": "submitDeliverable",
+        "label": "Worker submits deliverable",
+        "detail": "Deliverable hash submitted on-chain for job #9, moving it to Submitted.",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0x53a50daf9b9aa4fbedd83b5a0a86df4532a9c40276192dd6339aec9102503b35",
+          "url": "https://testnet.arcscan.app/tx/0x53a50daf9b9aa4fbedd83b5a0a86df4532a9c40276192dd6339aec9102503b35",
+          "linkable": true,
+          "label": "submitDeliverable → ArcTask escrow"
+        }
+      },
+      {
+        "key": "settle",
+        "label": "Verify + release escrow",
+        "detail": "Trapeza, as the registered evaluator, released escrow to the worker (acceptWork).",
+        "ref": {
+          "kind": "evm-tx",
+          "value": "0xccbe68b9a3d1677b4c4a102266ceeb36f7d3f92e05e3e713b6e51cff42f46f4b",
+          "url": "https://testnet.arcscan.app/tx/0xccbe68b9a3d1677b4c4a102266ceeb36f7d3f92e05e3e713b6e51cff42f46f4b",
+          "linkable": true,
+          "label": "acceptWork → ArcTask escrow (release)"
+        }
+      }
+    ]
+  }
+}
